@@ -168,6 +168,7 @@
       \]
     \end{column}
     \begin{column}{0.44\textwidth}
+      \hspace*{-1.2cm}%
       \begin{tikzpicture}[
         every node/.style={font=\small},
         box/.style={draw=jedy_blue, fill=jedy_light, rounded corners,
@@ -183,8 +184,10 @@
         \draw[->, jedy_mid, thick] (model) -- (yhat);
         \draw[->, jedy_mid, thick] (yhat)  -- (loss);
         \draw[->, jedy_alert, thick] (gt)  -- (loss);
-        \draw[->, jedy_alert, thick, bend right=60]
-          (loss) to node[left, font=\scriptsize]{$\nabla\Loss$} (model);
+        \draw[->, jedy_alert, thick]
+          (loss.west) -- ++(-0.8, 0)
+          -- node[left, font=\scriptsize]{$\nabla\Loss$} ++(0, 2.2)
+          -- (model.west);
       \end{tikzpicture}
     \end{column}
   \end{columns}
@@ -194,40 +197,134 @@
 \section{Régression Linéaire}
 % ============================================================
 
-\begin{frame}{Régression — Choix du Modèle}
+\begin{frame}{Régression — La Tâche}
   \begin{columns}[T]
     \begin{column}{0.50\textwidth}
-      \textbf{Tâche :} prédire une sortie \textbf{continue} $y \in \R$.
+      \textbf{Objectif :} prédire une sortie \textbf{continue} $y \in \R$
+      à partir de features $\bm{x} \in \R^D$.
 
       \bigskip
-      \textbf{Modèle linéaire} ($D=1$) :
-      \[
-        f_{w,b}(x) = wx + b
-      \]
+      \textbf{Exemples :}
+      \begin{itemize}
+        \item Surface + localisation $\to$ prix d'un logement
+        \item Historique météo $\to$ température demain
+        \item Âge + poids $\to$ glycémie
+      \end{itemize}
 
-      \textbf{Modèle linéaire} (multivarié) :
-      \[
-        f_{\w,b}(\bm{x}) = \w\T\bm{x} + b = \sum_{j=1}^D w_j x_j + b
-      \]
-
-      \textbf{Modèle polynomial} (feature map $\Phi$) :
-      \[
-        f_\Theta(\bm{x}) = \bm{\theta}\T \Phi(\bm{x})
-      \]
-      \textit{Ex :} $\Phi(x) = [1, x, x^2, x^3]$ pour degré 3.
+      \bigskip
+      On cherche $f : \R^D \to \R$ telle que $f(\bm{x}_i) \approx y_i$.
     \end{column}
     \begin{column}{0.46\textwidth}
       \begin{tikzpicture}
         \begin{axis}[
-          width=6.5cm, height=5cm,
+          width=6.5cm, height=5.5cm,
+          xlabel={surface (m²)}, ylabel={prix (k€)},
+          axis lines=left,
+          tick label style={font=\tiny},
+          label style={font=\small},
+          xmin=20, xmax=100, ymin=50, ymax=450,
+        ]
+          \addplot[only marks, mark=x, mark size=2pt,
+                   jedy_blue!70, mark options={line width=1pt}]
+            coordinates {
+              (25,90)(30,110)(35,120)(40,150)(45,160)
+              (50,190)(55,210)(60,230)(65,260)(70,280)
+              (75,310)(80,330)(85,360)(90,390)(95,410)
+              (38,140)(52,200)(67,250)(78,320)(88,370)
+            };
+          \addplot[jedy_alert, thick, domain=20:100] {4.2*x - 20};
+          \node[jedy_alert, font=\scriptsize] at (axis cs:80, 280)
+            {$\hat{y} = f(\bm{x})$};
+        \end{axis}
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}{Régression — Choix du Modèle}
+  \begin{block}{Modèle linéaire ($D=1$)}
+    \[ f_{w,b}(x) = wx + b \]
+  \end{block}
+
+  \medskip
+  \begin{block}{Modèle linéaire (multivarié)}
+    \[ f_{\w,b}(\bm{x}) = \w\T\bm{x} + b = \sum_{j=1}^D w_j x_j + b \]
+  \end{block}
+
+  \medskip
+  \begin{block}{Modèle polynomial (feature map $\Phi$)}
+    \[ f_\Theta(\bm{x}) = \bm{\theta}\T \Phi(\bm{x}) \]
+    \textit{Ex :} $\Phi(x) = [1, x, x^2, x^3]$ pour degré 3.
+  \end{block}
+\end{frame}
+
+% ---
+
+\begin{frame}{Fonction de Coût — La MSE}
+  \begin{block}{Mean Squared Error (MSE)}
+    \[
+      \Loss(\Theta) = \frac{1}{N} \sum_{i=1}^{N} \bigl(f_\Theta(\bm{x}_i) - y_i\bigr)^2
+      = \frac{1}{N} \norm{\hat{\y} - \y}^2
+    \]
+    \centering
+    avec $\hat{\y} = [f_\Theta(\bm{x}_1), \dots, f_\Theta(\bm{x}_N)]\T \in \R^N$ le vecteur des prédictions.
+  \end{block}
+\end{frame}
+
+% ---
+
+\begin{frame}{MSE — Justification par la Vraisemblance}
+  \footnotesize
+  \[
+    \begin{aligned}
+      & \textbf{Hypothèse :}\quad y_i \sim \mathcal{N}(\hat{y}_i, \sigma^2) \text{ avec } \hat{y}_i = f_\theta(x_i) \quad\text{(bruit gaussien)} \\[0.15em]
+      \implies & L = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi\sigma^2}} \exp\!\left( -\frac{(y_i - \hat{y}_i)^2}{2\sigma^2} \right) \\[0.15em]
+      \implies & \ln L = \sum_{i=1}^{n} \left[ \ln\!\left(\frac{1}{\sqrt{2\pi\sigma^2}}\right) - \frac{(y_i - \hat{y}_i)^2}{2\sigma^2} \right] \\[0.15em]
+      \implies & \operatorname{argmax}_{\theta} \ln L \iff \operatorname{argmax}_{\theta} \!\left( -\sum_{i=1}^{n} (y_i - \hat{y}_i)^2 \right) \\[0.15em]
+      \implies & \operatorname{argmax}_{\theta} \ln L \iff \operatorname{argmin}_{\theta} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2 \\[0.15em]
+      \implies & \operatorname{argmin}_{\theta} \tfrac{1}{n}\sum_{i=1}^{n} (y_i - \hat{y}_i)^2 \iff \mathbf{argmin\ MSE}
+    \end{aligned}
+  \]
+\end{frame}
+
+% ---
+
+\begin{frame}{Régression Linéaire — Récapitulatif du Problème}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \textbf{Données} $\dataset = \{(\bm{x}_i, y_i)\}_{i=1}^{N}$
+      \begin{itemize}
+        \item $\bm{x}_i \in \R^D$ — features (surface, nb pièces…)
+        \item $y_i \in \R$ — valeur cible à prédire (prix…)
+      \end{itemize}
+
+      \bigskip
+      \textbf{Modèle} — une droite (ou hyperplan) :
+      \[
+        \hat{y}_i = \w\T\bm{x}_i + b
+      \]
+      On cherche $\w \in \R^D$ et $b \in \R$ qui \textbf{ajustent} cette droite aux données.
+
+      \bigskip
+      \textbf{Objectif} — minimiser l'erreur quadratique :
+      \[
+        \operatorname{argmin}_{\w,\, b}\; \frac{1}{N}\sum_{i=1}^{N}\bigl(\hat{y}_i - y_i\bigr)^2
+      \]
+      Trouver la droite la \textbf{plus proche} de tous les points.
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=6.5cm, height=5.5cm,
           xlabel={$x$}, ylabel={$y$},
           axis lines=left,
           tick label style={font=\tiny},
-          title={\small Données et modèle linéaire},
-          title style={font=\small},
           xmin=0, xmax=4, ymin=-1, ymax=9,
+          title={\small Ajuster une droite aux données},
+          title style={font=\small},
         ]
-          % Points
           \addplot[only marks, mark=x, mark size=2pt,
                    jedy_blue!70, mark options={line width=1pt}]
             coordinates {
@@ -235,107 +332,17 @@
               (1.9,3.4)(2.2,4.0)(2.5,3.8)(2.8,5.1)(3.1,5.5)
               (3.4,5.8)(3.7,6.9)(3.9,7.2)(0.5,0.9)(2.0,4.2)
             };
-          % Droite de regression
           \addplot[jedy_alert, thick, domain=0:4] {1.8*x + 0.2};
-          \node[jedy_alert, font=\scriptsize] at (axis cs:3.5, 7.6)
-            {$\hat{y}=wx+b$};
+          % Résidus
+          \draw[jedy_example, dashed, thin] (axis cs:1.0,1.8) -- (axis cs:1.0,2.0);
+          \draw[jedy_example, dashed, thin] (axis cs:2.5,3.8) -- (axis cs:2.5,4.7);
+          \draw[jedy_example, dashed, thin] (axis cs:3.1,5.5) -- (axis cs:3.1,5.78);
+          \node[jedy_alert, font=\scriptsize] at (axis cs:3.3,7.8) {$\hat{y}=\w\T x+b$};
+          \node[jedy_example, font=\scriptsize] at (axis cs:2.0,2.5) {résidus};
         \end{axis}
       \end{tikzpicture}
     \end{column}
   \end{columns}
-\end{frame}
-
-% ---
-
-\begin{frame}{Fonction de Coût — La MSE}
-  \begin{block}{Mean Squared Error (MSE) — aussi appelée Least Squares}
-    \[
-      \Loss(\w) = \frac{1}{N} \sum_{i=1}^{N} \bigl(\hat{y}_i - y_i\bigr)^2
-      = \frac{1}{N} \sum_{i=1}^{N} \bigl(f_\w(\bm{x}_i) - y_i\bigr)^2
-    \]
-  \end{block}
-
-  \begin{columns}[T]
-    \begin{column}{0.50\textwidth}
-      \textbf{Pourquoi le carré ?}
-      \begin{itemize}
-        \item Pénalise plus fortement les \textbf{grandes erreurs}
-        \item Différentiable partout $\Rightarrow$ gradient bien défini
-        \item Lien avec la vraisemblance gaussienne (vu ce matin)
-      \end{itemize}
-
-      \bigskip
-      \textbf{Forme matricielle} (plus efficace) :
-      \[
-        \Loss(\w) = \frac{1}{N} \norm{\X\w - \y}^2
-      \]
-      avec $\X \in \R^{N \times D}$, $\w \in \R^D$, $\y \in \R^N$.
-    \end{column}
-    \begin{column}{0.46\textwidth}
-      \begin{tikzpicture}
-        \begin{axis}[
-          width=6cm, height=4.5cm,
-          xlabel={$w$}, ylabel={$\Loss(w)$},
-          axis lines=left,
-          tick label style={font=\tiny},
-          title={\small Loss en 1D — convexe !},
-          title style={font=\small},
-          ymin=0,
-        ]
-          \addplot[jedy_blue, thick, domain=-2:4, samples=80]
-            {(x-1)^2 + 0.5};
-          \addplot[jedy_alert, dashed, mark=*, mark size=2pt,
-                   mark options={jedy_alert, solid}]
-            coordinates {(1, 0.5)};
-          \node[jedy_alert, font=\scriptsize] at (axis cs:1.8, 0.7)
-            {$w^* = \arg\min \Loss$};
-        \end{axis}
-      \end{tikzpicture}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-% ---
-
-\begin{frame}{Gradient de la MSE — Calcul Étape par Étape}
-  On dérive $\Loss(\w) = \frac{1}{N}\sum_{i=1}^N (\w\T\bm{x}_i - y_i)^2$ par rapport à $w_j$ :
-
-  \medskip
-  \begin{columns}[T]
-    \begin{column}{0.50\textwidth}
-      \textbf{Règle de la chaîne :}
-      \[
-        \frac{\partial \Loss}{\partial w_j}
-        = \frac{1}{N} \sum_{i=1}^N
-          \underbrace{2(\hat{y}_i - y_i)}_{\text{erreur}}
-          \cdot
-          \underbrace{\frac{\partial \hat{y}_i}{\partial w_j}}_{= x_{i,j}}
-      \]
-
-      \[
-        \frac{\partial \Loss}{\partial w_j}
-        = \frac{2}{N} \sum_{i=1}^N (\hat{y}_i - y_i)\, x_{i,j}
-      \]
-    \end{column}
-    \begin{column}{0.46\textwidth}
-      \textbf{Forme vectorielle} (tous les $w_j$ d'un coup) :
-      \[
-        \boxed{
-          \grad_\w \Loss = \frac{2}{N}\, \X\T (\X\w - \y)
-        }
-      \]
-      \begin{itemize}
-        \item $\X\w - \y \in \R^N$ : vecteur des erreurs
-        \item $\X\T(\cdot) \in \R^D$ : pondère par les features
-      \end{itemize}
-    \end{column}
-  \end{columns}
-
-  \bigskip
-  \begin{alertblock}{Propriété cruciale pour la suite}
-    La MSE linéaire est \textbf{convexe} en $\w$ $\Rightarrow$ \textbf{un seul minimum global}.\\
-    La descente de gradient est garantie de le trouver (avec un bon $\lr$).
-  \end{alertblock}
 \end{frame}
 
 % ---
@@ -384,6 +391,91 @@ grad = (2/N) * X_aug.T @ (y_hat - y)
       \end{exampleblock}
     \end{column}
   \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}{Gradient de la MSE}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \textbf{Calcul de} $\dfrac{\partial \Loss}{\partial w_j}$ :
+
+      \medskip
+      \[
+        \begin{aligned}
+          \frac{\partial \Loss}{\partial w_j}
+          &= \frac{1}{N}\sum_{i=1}^N \frac{\partial}{\partial w_j}
+             \bigl(\w\T\bm{x}_i - y_i\bigr)^2 \\[0.4em]
+          &= \frac{1}{N}\sum_{i=1}^N 2\bigl(\w\T\bm{x}_i - y_i\bigr)
+             \cdot \frac{\partial\, \w\T\bm{x}_i}{\partial w_j} \\[0.4em]
+          &\quad\text{or } \w\T\bm{x}_i = \textstyle\sum_k w_k x_{i,k}
+             \implies \frac{\partial\,\w\T\bm{x}_i}{\partial w_j} = x_{i,j} \\[0.4em]
+          &= \frac{2}{N}\sum_{i=1}^N \bigl(\hat{y}_i - y_i\bigr)\, x_{i,j}
+        \end{aligned}
+      \]
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \textbf{Forme vectorielle} (tous les $w_j$ d'un coup) :
+      \[
+        \boxed{
+          \grad_\w \Loss = \frac{2}{N}\, \X\T (\X\w - \y)
+        }
+      \]
+      \begin{itemize}
+        \item $\X\w - \y \in \R^N$ : vecteur des erreurs
+        \item $\X\T(\cdot) \in \R^D$ : pondère par les features
+      \end{itemize}
+
+      \bigskip
+      \begin{alertblock}{}
+        MSE convexe en $\w$ $\Rightarrow$ \textbf{un seul minimum global}.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}{Solution Analytique — Équation Normale}
+  La MSE est convexe : son minimum est atteint quand le gradient s'annule.
+
+  \medskip
+  \[
+    \nabla_\w \Loss = 0
+    \implies \frac{2}{N}\X\T(\X\w - \y) = 0
+    \implies \X\T\X\w = \X\T\y
+  \]
+
+  \medskip
+  \[
+    \boxed{\w^* = (\X\T\X)^{-1}\X\T\y}
+  \]
+
+  \bigskip
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Avantages}
+        \begin{itemize}
+          \item Solution \textbf{exacte} en un calcul
+          \item Pas d'hyperparamètre ($\lr$, nb itérations)
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{Limites}
+        \begin{itemize}
+          \item Inverser $\X\T\X \in \R^{D\times D}$ coûte $\mathcal{O}(D^3)$
+          \item Inutilisable si $D$ ou $N$ est très grand
+          \item Ne généralise pas aux modèles non-linéaires
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+
+  \bigskip
+  \begin{center}
+    \small $\Rightarrow$ En pratique on préfère la \textbf{descente de gradient}, généralisable à tout modèle.
+  \end{center}
 \end{frame}
 
 % ============================================================
@@ -605,12 +697,13 @@ def gradient_descent(X, y, lr, n_iters):
             {0.3*sin(deg(3*x)) + 0.08*(x-5)^2 + 1};
           % local min
           \addplot[only marks, mark=triangle*, mark size=3pt, jedy_alert]
-            coordinates {(2.1, 0.87)(5.2, 0.92)};
+            coordinates {(2.462, 1.783)(7.688, 1.314)};
           % global min
           \addplot[only marks, mark=star, mark size=4pt, jedy_example]
-            coordinates {(7.8, 0.55)};
-          \node[font=\scriptsize, jedy_alert]   at (axis cs:2.1, 1.3) {local};
-          \node[font=\scriptsize, jedy_example] at (axis cs:7.8, 1.0) {global};
+            coordinates {(5.717, 0.744)};
+          \node[font=\scriptsize, jedy_alert]   at (axis cs:2.462, 2.15) {local};
+          \node[font=\scriptsize, jedy_alert]   at (axis cs:7.688, 1.65) {local};
+          \node[font=\scriptsize, jedy_example] at (axis cs:5.717, 1.10) {global};
         \end{axis}
       \end{tikzpicture}
     \end{column}
