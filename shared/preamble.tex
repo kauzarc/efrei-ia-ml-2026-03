@@ -1,0 +1,130 @@
+% ============================================================
+%  PREAMBLE COMMUN — IA, Deep Learning & Machine Learning
+%  Julien Rolland — M2 Développement Fullstack
+% ============================================================
+
+% --- Langue & encodage ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+
+% --- Thème Beamer ---
+\usetheme{Madrid}
+\usecolortheme{default}
+
+% Palette de bleu académique
+\definecolor{jedy_blue}{RGB}{0, 51, 102}       % bleu foncé principal
+\definecolor{jedy_mid}{RGB}{0, 102, 179}        % bleu moyen accent
+\definecolor{jedy_light}{RGB}{204, 221, 240}    % bleu très clair (fond boxes)
+\definecolor{jedy_alert}{RGB}{180, 30, 30}      % rouge pour alertes
+\definecolor{jedy_example}{RGB}{0, 120, 60}     % vert pour exemples
+
+% Application des couleurs sur le thème Madrid
+\setbeamercolor{palette primary}{bg=jedy_blue, fg=white}
+\setbeamercolor{palette secondary}{bg=jedy_mid, fg=white}
+\setbeamercolor{palette tertiary}{bg=jedy_blue, fg=white}
+\setbeamercolor{palette quaternary}{bg=jedy_blue, fg=white}
+\setbeamercolor{structure}{fg=jedy_blue}
+\setbeamercolor{frametitle}{bg=jedy_blue, fg=white}
+\setbeamercolor{title}{bg=jedy_blue, fg=white}
+\setbeamercolor{block title}{bg=jedy_mid, fg=white}
+\setbeamercolor{block body}{bg=jedy_light, fg=black}
+\setbeamercolor{block title alerted}{bg=jedy_alert, fg=white}
+\setbeamercolor{block body alerted}{bg=jedy_light, fg=black}
+\setbeamercolor{block title example}{bg=jedy_example, fg=white}
+\setbeamercolor{block body example}{bg=jedy_light, fg=black}
+
+% --- Typographie ---
+\usepackage{lmodern}
+\setbeamerfont{title}{size=\Large, series=\bfseries}
+\setbeamerfont{frametitle}{size=\normalsize, series=\bfseries}
+
+% --- Navigation : suppression des icônes de navigation par défaut ---
+\setbeamertemplate{navigation symbols}{}
+
+% --- Numérotation des slides ---
+\setbeamertemplate{footline}{%
+  \leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[wd=.333\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+      \usebeamerfont{author in head/foot}\insertshortauthor
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.334\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+      \usebeamerfont{title in head/foot}\insertshorttitle
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.333\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+      \usebeamerfont{date in head/foot}
+      \insertframenumber{} / \inserttotalframenumber\hspace*{2ex}
+    \end{beamercolorbox}%
+  }%
+  \vskip0pt%
+}
+
+% --- Maths ---
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{bm}          % vecteurs en gras : \bm{w}
+
+% --- Code source ---
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstdefinestyle{pythonstyle}{
+  language=Python,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{jedy_blue}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{jedy_example},
+  numberstyle=\tiny\color{gray},
+  numbers=left,
+  numbersep=5pt,
+  frame=single,
+  framerule=0.4pt,
+  rulecolor=\color{jedy_light},
+  backgroundcolor=\color{jedy_light!40},
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=4,
+}
+\lstset{style=pythonstyle}
+
+% Alias pratique pour code inline
+\newcommand{\code}[1]{\texttt{\small#1}}
+
+% --- Graphiques ---
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, fit, calc}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% --- Tableaux ---
+\usepackage{booktabs}
+\usepackage{array}
+
+% --- Icônes (optionnel, nécessite fontawesome5) ---
+% \usepackage{fontawesome5}
+
+% --- Macros ML/DL courantes ---
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Loss}{\mathcal{L}}
+\newcommand{\dataset}{\mathcal{D}}
+\newcommand{\X}{\mathbf{X}}
+\newcommand{\y}{\mathbf{y}}
+\newcommand{\w}{\mathbf{w}}
+\newcommand{\W}{\mathbf{W}}
+\newcommand{\grad}{\nabla}
+\newcommand{\T}{^{\top}}         % transposée : \X\T
+\newcommand{\lr}{\alpha}         % learning rate
+\newcommand{\norm}[1]{\left\|#1\right\|}
+
+% Encadré "Objectif pédagogique" en début de section
+\newenvironment{objectif}{%
+  \begin{alertblock}{Objectif}%
+}{%
+  \end{alertblock}%
+}
+
+% --- Infos du cours (remplacer dans chaque slides.tex) ---
+\author[J. Rolland]{Julien Rolland}
+\institute[Jedy]{Formation M2 Développement Fullstack}

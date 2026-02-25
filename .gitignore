@@ -1,0 +1,41 @@
+# LaTeX auxiliaires
+*.aux
+*.log
+*.out
+*.toc
+*.nav
+*.snm
+*.vrb
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex(busy)
+*.bbl
+*.blg
+*.idx
+*.ind
+*.ilg
+*.lof
+*.lot
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.pyc
+.env
+venv/
+.venv/
+
+# Modèles entraînés (trop lourds pour git)
+*.pth
+*.pt
+*.onnx
+*.pkl
+*.h5
+
+# Données brutes (trop lourdes pour git)
+data/raw/
+*.csv
+*.parquet

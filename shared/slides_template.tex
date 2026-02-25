@@ -1,0 +1,98 @@
+% ============================================================
+%  TEMPLATE SLIDES — à copier dans chaque module
+%  Remplacer : TITRE, SOUS-TITRE, DATE, JOUR
+% ============================================================
+\documentclass[aspectratio=169, 10pt]{beamer}
+\input{../shared/preamble}
+
+% --- Métadonnées du module ---
+\title[TITRE COURT]{TITRE COMPLET DU MODULE}
+\subtitle{Jour X — Matin / Après-midi}
+\date{Jour X}
+
+% ============================================================
+\begin{document}
+% ============================================================
+
+% --- Slide de titre ---
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% --- Sommaire ---
+\begin{frame}{Plan du module}
+  \tableofcontents
+\end{frame}
+
+% ============================================================
+\section{Section 1}
+% ============================================================
+
+\begin{frame}{Titre de la slide}
+
+  \begin{objectif}
+    Ce que l'étudiant doit retenir de cette slide.
+  \end{objectif}
+
+  \bigskip
+  Contenu principal\ldots
+
+\end{frame}
+
+% --- Slide avec deux colonnes ---
+\begin{frame}{Titre — Deux colonnes}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \textbf{Colonne gauche}\\[0.5em]
+      Texte ou code\ldots
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \textbf{Colonne droite}\\[0.5em]
+      Schéma ou formule\ldots
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% --- Slide avec code Python ---
+\begin{frame}[fragile]{Titre — Code}
+\begin{lstlisting}
+import numpy as np
+
+x = np.array([1, 2, 3])
+print(x ** 2)   # [1 4 9]
+\end{lstlisting}
+\end{frame}
+
+% --- Slide de transition entre sections ---
+\begin{frame}
+  \begin{center}
+    \Huge\color{jedy_blue}\textbf{SECTION 2}\\[1em]
+    \large Sous-titre de la section
+  \end{center}
+\end{frame}
+
+% ============================================================
+\section{Section 2}
+% ============================================================
+
+% ... ajouter les slides ici ...
+
+% --- Slide de conclusion ---
+\begin{frame}{Récapitulatif}
+  \begin{block}{Ce qu'on a vu}
+    \begin{itemize}
+      \item Point clé 1
+      \item Point clé 2
+      \item Point clé 3
+    \end{itemize}
+  \end{block}
+
+  \bigskip
+
+  \begin{exampleblock}{Prochain module}
+    Description du prochain module\ldots
+  \end{exampleblock}
+\end{frame}
+
+% ============================================================
+\end{document}
