@@ -1,0 +1,347 @@
+% ============================================================
+%  J2 — APRÈS-MIDI : Sklearn, Généralisation & Overfitting
+%  Julien Rolland — M2 Développement Fullstack
+% ============================================================
+\documentclass[aspectratio=169, 10pt]{beamer}
+\input{../shared/preamble}
+
+\title[Généralisation \& Overfitting]{Sklearn, Généralisation \& Overfitting}
+\subtitle{Jour 2 --- Après-midi}
+\date{Jour 2}
+
+% ============================================================
+\begin{document}
+% ============================================================
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Plan du module}
+  \tableofcontents
+\end{frame}
+
+% ============================================================
+\section{Le Vrai Objectif : Généraliser}
+% ============================================================
+
+\begin{frame}{Le Vrai Objectif : Généraliser}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{Le Piège}
+        \begin{itemize}
+          \item Minimiser $J(\Theta, X_{\text{train}})$ = problème résolu
+          \item La performance sur le train \textbf{ne compte pas}
+        \end{itemize}
+      \end{alertblock}
+
+      \smallskip
+      \begin{block}{Ce qu'on veut vraiment}
+        \begin{itemize}
+          \item Données \textbf{non-vues} (unseen data)
+          \item Capter la loi sous-jacente
+          \item Ignorer le bruit du dataset
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Définition}
+        \textbf{Généralisation :} capacité à performer
+        sur des exemples jamais vus pendant l'entraînement.
+      \end{exampleblock}
+
+      \smallskip
+      % TODO : courbe train loss vs val loss (epochs)
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{L'Ennemi N°1 : l'Overfitting}
+% ============================================================
+
+\begin{frame}{Underfitting vs Overfitting}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Underfitting}
+        \begin{itemize}
+          \item Modèle trop \textbf{simple}
+          \item Passe à côté de la tendance
+          \item Biais élevé
+        \end{itemize}
+      \end{block}
+
+      \smallskip
+      \begin{alertblock}{Overfitting}
+        \begin{itemize}
+          \item Modèle trop \textbf{complexe}
+          \item Relie les points, délire entre eux
+          \item Variance élevée
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      % TODO : courbe classique underfitting / bon fit / overfitting
+      % (polynôme de degré 1, 3, 15 sur données bruitées)
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}{Mémorisation vs Généralisation}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Théorème de Cover}
+        \begin{itemize}
+          \item Dans $\mathbb{R}^D$, $N \leq D$ points
+                sont toujours linéairement séparables
+          \item Un modèle assez complexe peut
+                \textbf{mémoriser} n'importe quel dataset
+          \item Accuracy train $= 100\%$ ne signifie rien
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Analogie MNIST}
+        \begin{itemize}
+          \item Mémoriser les pixels exacts de chaque «3»
+          \item Incapable de reconnaître un «3» écrit
+                avec un stylo différent
+          \item $\Rightarrow$ 0\% de généralisation
+        \end{itemize}
+      \end{exampleblock}
+
+      \smallskip
+      % TODO : exemple visuel 2 "3" différents
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Biais-Variance}
+% ============================================================
+
+\begin{frame}{Le Compromis Biais-Variance}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Biais élevé --- Underfitting}
+        \begin{itemize}
+          \item Erreur systématique
+          \item Modèle trop rigide (trop peu de paramètres)
+          \item Train error $\approx$ Val error, les deux élevées
+        \end{itemize}
+      \end{block}
+
+      \smallskip
+      \begin{alertblock}{Variance élevée --- Overfitting}
+        \begin{itemize}
+          \item Sensible aux variations du train
+          \item Train error $\ll$ Val error
+          \item Modèle trop riche (trop de paramètres)
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      % TODO : courbe biais-variance vs complexité (U-shape)
+
+      \smallskip
+      \begin{exampleblock}{Levier : les Hyperparamètres}
+        \begin{itemize}
+          \item Profondeur d'arbre, nombre de neurones
+          \item Coefficient de régularisation $\lambda$
+          \item Taille du dataset
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Méthodologie : Train / Validation / Test}
+% ============================================================
+
+\begin{frame}{Le Split Standard}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{3 ensembles distincts}
+        \begin{enumerate}
+          \item \textbf{Train set} --- ajuster $W$, $b$
+          \item \textbf{Validation set} --- choisir les hyperparamètres
+          \item \textbf{Test set} --- coffre-fort,
+                ouvert \textbf{une seule fois} à la fin
+        \end{enumerate}
+      \end{block}
+
+      \smallskip
+      \begin{alertblock}{Règle d'or : Data Leakage}
+        Ne \textbf{jamais} entraîner sur le test set.\\
+        Ne \textbf{jamais} utiliser le test pour choisir les hyperparamètres.\\
+        Le test set doit rester \textbf{invisible}.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      % TODO : schéma train/val/test (barres horizontales proportionnelles)
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Cross-Validation}
+% ============================================================
+
+\begin{frame}{K-Fold Cross-Validation}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \begin{alertblock}{Le Problème}
+        \begin{itemize}
+          \item Peu de données $\Rightarrow$ split instable
+          \item Un seul val set $\Rightarrow$ variance élevée de l'estimation
+        \end{itemize}
+      \end{alertblock}
+
+      \smallskip
+      \begin{block}{Solution : K-Fold}
+        \begin{itemize}
+          \item Découper le train en $K$ morceaux (\textit{folds})
+          \item $K$ rotations : chaque fold sert de validation
+          \item Score final = moyenne sur $K$ runs
+          \item Utilisation maximale des données disponibles
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      % TODO : schéma K-Fold (grille K×N avec fold de validation coloré)
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Scikit-Learn}
+% ============================================================
+
+\begin{frame}{L'API Estimator de sklearn}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Interface universelle}
+        \begin{itemize}
+          \item \texttt{.fit(X, y)} --- entraînement
+          \item \texttt{.predict(X)} --- inférence
+          \item \texttt{.score(X, y)} --- évaluation
+        \end{itemize}
+      \end{block}
+
+      \smallskip
+      \begin{exampleblock}{Modèles clés}
+        \begin{itemize}
+          \item \texttt{LogisticRegression} (softmax)
+          \item \texttt{StandardScaler}
+          \item \texttt{cross\_val\_score}
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Pipeline}
+        \begin{itemize}
+          \item Enchaîner Scaler $\to$ Modèle
+          \item Évite le Data Leakage sur le scaling
+          \item \texttt{Pipeline([('scaler', StandardScaler()),}
+                \texttt{\phantom{Pipeline(}'('clf', LogisticRegression())])}
+        \end{itemize}
+      \end{block}
+
+      \smallskip
+      % TODO : schéma pipeline (blocs enchaînés)
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{TP : MNIST avec sklearn}
+% ============================================================
+
+\begin{frame}{TP --- Setup \& Baseline}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Dataset MNIST}
+        \begin{itemize}
+          \item 70 000 images $28 \times 28$ ($= 784$ features)
+          \item 10 classes (chiffres 0--9)
+          \item Split standard : 60 000 train / 10 000 test
+        \end{itemize}
+      \end{block}
+
+      \smallskip
+      \begin{block}{Baseline}
+        \begin{itemize}
+          \item \texttt{LogisticRegression} (Softmax)
+          \item Normalisation \texttt{StandardScaler}
+          \item Métriques : accuracy, matrice de confusion
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      % TODO : grille d'exemples MNIST (chiffres 0-9)
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}{TP --- Manipuler l'Overfitting}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Observer l'Overfitting}
+        \begin{itemize}
+          \item Entraîner sur $N = 500$ images
+          \item Train accuracy $\approx 100\%$,
+                Test accuracy $\approx 60\%$
+          \item Le modèle mémorise
+        \end{itemize}
+      \end{alertblock}
+
+      \smallskip
+      \begin{exampleblock}{Remèdes}
+        \begin{itemize}
+          \item \textbf{Plus de données} --- augmenter $N$
+          \item \textbf{Régularisation L2} (\texttt{C} dans sklearn)
+                --- pénalise les grands poids
+          \item \textbf{Régularisation L1} --- sparse weights
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      % TODO : courbe train acc / test acc en fonction de N
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}{TP --- Analyse des Erreurs}
+  \begin{columns}[T]
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Matrice de Confusion}
+        \begin{itemize}
+          \item Quels chiffres sont confondus ?
+          \item Ex. : 4 vs 9, 3 vs 8, 5 vs 6
+          \item Orienter les efforts d'amélioration
+        \end{itemize}
+      \end{block}
+
+      \smallskip
+      \begin{exampleblock}{Aller plus loin}
+        \begin{itemize}
+          \item \texttt{cross\_val\_score} pour estimer la variance
+          \item Grid search sur $C$ (régularisation)
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+      % TODO : matrice de confusion MNIST (10×10)
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\end{document}
