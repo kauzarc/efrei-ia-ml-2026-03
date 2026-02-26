@@ -517,47 +517,170 @@ def rosenblatt(X, t, lr=0.1, n_epochs=50):
 \section{Classification Multi-Classes}
 % ============================================================
 
-\begin{frame}{De 2 Classes à $K$ Classes --- Softmax}
+\begin{frame}{Un Perceptron par Classe}
   \begin{columns}[T]
-    \begin{column}{0.50\textwidth}
-      \vspace{-3pt}
-      \textbf{Problème :} $K > 2$ classes (chiffres 0--9...).
+    \begin{column}{0.52\textwidth}
+      \textbf{Idée :} $K$ perceptrons indépendants, un par classe.
 
-      \begin{block}{Encodage One-Hot}
-        \small $\bm{t}_n \in \{0,1\}^K$, une seule composante à $1$.
-        Ex.~classe~2 sur~4~: $[0,0,1,0]$.
-      \end{block}
-
-      \begin{block}{Modèle : $K$ scores}
-        \[ \bm{f}_\Theta(\bm{x}_n) = \W\bm{x}_n + \bm{b} \in \R^K \]
-        $\W \in \R^{K \times D}$ : une ligne par classe.
+      \begin{block}{Score de la classe $k$}
+        \[ f_k(\bm{x}_n) = \bm{w}_k\T\bm{x}_n + b_k \in \R,
+           \quad \bm{w}_k \in \R^D,\ b_k \in \R \]
       \end{block}
 
       \begin{block}{Softmax $\to$ probabilités}
         \[ p_k = \frac{e^{f_k}}{\sum_j e^{f_j}} \in (0,1),
            \quad \sum_k p_k = 1 \]
-        \small Readout : $\hat{k} = \arg\max_k\, p_k$.
+        \small Lisse et différentiable : adaptée à GD.
+      \end{block}
+
+      \begin{block}{Encodage \& Prédiction}
+        \small $\bm{t}_n \in \{0,1\}^K$ (one-hot), une composante à $1$.\\
+        Readout : $\hat{k} = \arg\max_k\, p_k(\bm{x}_n)$.
+      \end{block}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{tikzpicture}[
+        neur/.style={rectangle, rounded corners,
+                     minimum width=2.1cm, minimum height=0.45cm,
+                     font=\tiny, align=center, draw},
+        arr/.style={->, gray, thin},
+      ]
+        \node[font=\small] (x) at (0, 1.5) {$\bm{x}_n$};
+
+        \node[neur, draw=jedy_blue, fill=jedy_blue!20] (n1)
+          at (2.8, 2.8) {$\bm{w}_1\T\bm{x}+b_1$};
+        \node[neur, draw=jedy_mid, fill=jedy_mid!20] (n2)
+          at (2.8, 1.5) {$\bm{w}_2\T\bm{x}+b_2$};
+        \node[font=\tiny] at (2.8, 0.8) {$\vdots$};
+        \node[neur, draw=jedy_alert, fill=jedy_alert!15] (nk)
+          at (2.8, 0.1) {$\bm{w}_K\T\bm{x}+b_K$};
+
+        \node[font=\tiny, jedy_blue]  at (4.8, 2.8) {$f_1$};
+        \node[font=\tiny, jedy_mid]   at (4.8, 1.5) {$f_2$};
+        \node[font=\tiny, jedy_alert] at (4.8, 0.1) {$f_K$};
+
+        \draw[arr] (x.north east) -- (n1.west);
+        \draw[arr] (x)            -- (n2.west);
+        \draw[arr] (x.south east) -- (nk.west);
+
+        \draw[arr] (n1.east) -- ++(0.6,0);
+        \draw[arr] (n2.east) -- ++(0.6,0);
+        \draw[arr] (nk.east) -- ++(0.6,0);
+
+        \node[font=\tiny, jedy_mid, align=center]
+          at (2.8, -0.55) {Softmax puis $\hat{k}=\arg\max$};
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}{$K$ Perceptrons $=$ 1 Matrice}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      $K$ équations séparées, une par classe :
+      \[
+        f_k(\bm{x}_n) = \bm{w}_k\T\bm{x}_n + b_k,
+        \quad k = 1, \ldots, K
+      \]
+
+      \begin{alertblock}{Empilement $\Rightarrow$ 1 équation matricielle}
+        \[
+          \bm{f}_n
+          = \underbrace{\W}_{\R^{K\times D}}\bm{x}_n
+          + \underbrace{\bm{b}}_{\R^K},
+          \qquad W_{k,\cdot} = \bm{w}_k\T
+        \]
+        \small La \textbf{ligne} $k$ de $\W$ est le perceptron de classe $k$.
+      \end{alertblock}
+
+      \begin{block}{Forme batch (tout le dataset)}
+        \small $\bm{F} = \bm{X}\W\T + \mathbf{1}_N\bm{b}\T$,
+        \hfill $\bm{X}\in\R^{N\times D}$, $\bm{F}\in\R^{N\times K}$.\\
+        1 seul produit matriciel pour les $N$ exemples.
+      \end{block}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{tikzpicture}[
+        rbox/.style={rectangle, minimum width=3.2cm, minimum height=0.52cm,
+                     font=\scriptsize, align=center, draw},
+        arr/.style={->, thin},
+      ]
+        \node[font=\small, jedy_blue] at (0, 4.0)
+          {Matrice $\W \in \R^{K\times D}$};
+
+        \node[rbox, draw=jedy_blue, fill=jedy_blue!20] (r1) at (0, 3.35)
+          {$\leftarrow\;\bm{w}_1\T\;\rightarrow$};
+        \node[rbox, draw=jedy_mid, fill=jedy_mid!20] (r2) at (0, 2.65)
+          {$\leftarrow\;\bm{w}_2\T\;\rightarrow$};
+        \node[font=\scriptsize] at (0, 2.05) {$\vdots$};
+        \node[rbox, draw=jedy_alert, fill=jedy_alert!15] (rk) at (0, 1.55)
+          {$\leftarrow\;\bm{w}_K\T\;\rightarrow$};
+
+        \node[jedy_blue,  font=\scriptsize] at (2.5, 3.35) {score classe $1$};
+        \node[jedy_mid,   font=\scriptsize] at (2.5, 2.65) {score classe $2$};
+        \node[jedy_alert, font=\scriptsize] at (2.5, 1.55) {score classe $K$};
+
+        \draw[arr, jedy_blue]  (r1.east) -- ++(0.35,0);
+        \draw[arr, jedy_mid]   (r2.east) -- ++(0.35,0);
+        \draw[arr, jedy_alert] (rk.east) -- ++(0.35,0);
+
+        \node[font=\tiny, gray, align=center] at (0, 0.85)
+          {1 ligne = 1 perceptron};
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}{Loss CCE \& Gradients pour $\W$ et $\bm{b}$}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \begin{block}{Cross-Entropy Catégorielle (CCE)}
+        \[
+          \Loss = -\frac{1}{N}\sum_{n}\sum_{k}
+          t_{n,k}\,\log(p_{n,k})
+        \]
+        \small Seul le $\log$ de la \textbf{vraie classe} contribue
+        ($t_{n,k}=0$ pour les autres).
+      \end{block}
+
+      \smallskip
+      \begin{block}{Gradient w.r.t.\ les logits}
+        \[
+          \frac{\partial \Loss}{\partial f_{n,k}}
+          = p_{n,k} - t_{n,k}
+        \]
+        \small Erreur $=$ proba prédite $-$ label one-hot.\\
+        Résultat \textbf{élégant} : Softmax $+$ log $+$ CCE.
       \end{block}
     \end{column}
     \begin{column}{0.46\textwidth}
-      \begin{block}{Cross-Entropy Catégorielle (CCE)}
+      \begin{block}{Gradients pour $\W$ et $\bm{b}$}
+        \small Par règle de chaîne ($f_{n,k} = \bm{w}_k\T\bm{x}_n + b_k$) :
         \[
-          \Loss_{\text{CCE}} = -\frac{1}{N}\sum_{n}\sum_{k}
-          t_{n,k}\, \log(p_{n,k})
+          \nabla_\W\Loss
+          = \frac{(\bm{P}-\bm{T})\T \bm{X}}{N}
+          \in \R^{K\times D}
         \]
-        \small Comme $t_{n,k} \in \{0,1\}$, seul le log de la
-        \textbf{vraie classe} contribue à chaque terme.
+        \[
+          \nabla_{\bm{b}}\Loss
+          = \frac{1}{N}\sum_n (\bm{p}_n - \bm{t}_n)
+          \in \R^K
+        \]
+        $\bm{P},\bm{T}\in\R^{N\times K}$ : probas et labels du batch.
       \end{block}
 
       \smallskip
-      \begin{block}{Gradient --- résultat remarquable}
-        \[ \nabla_{f_k} \Loss_{\text{CCE}} = p_k - t_k \]
-        \small Erreur = proba prédite $-$ label one-hot.
-      \end{block}
-
-      \smallskip
-      {\small \textbf{PyTorch :} \code{nn.CrossEntropyLoss()}
-      (Softmax + CCE en une passe).}
+      \begin{exampleblock}{Mise à jour \& PyTorch}
+        \small
+        $\W \leftarrow \W - \lr\,\nabla_\W\Loss$\quad
+        $\bm{b} \leftarrow \bm{b} - \lr\,\nabla_{\bm{b}}\Loss$\\[2pt]
+        \textbf{PyTorch :} \code{nn.CrossEntropyLoss()}\\
+        Softmax intégré --- passer les \textbf{logits} $\bm{f}$ directement.
+      \end{exampleblock}
     \end{column}
   \end{columns}
 \end{frame}
