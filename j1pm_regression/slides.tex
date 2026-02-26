@@ -154,17 +154,19 @@
       \end{itemize}
 
       \bigskip
-      \textbf{Modèle paramétrique} $f_\Theta$
+      $\Theta$ = paramètres \textbf{appris} pendant l'entraînement.
+
+      \smallskip
+      \textbf{Modèle} $f_\Theta$ — appliqué à $\bm{x}_i$ donne une \textbf{prédiction} :
       \[
         \hat{y}_i = f_\Theta(\bm{x}_i)
       \]
-      $\Theta$ = paramètres \textbf{appris} pendant l'entraînement.
 
       \bigskip
       \textbf{Apprentissage} = trouver $\Theta^*$ qui minimise\\
       l'écart entre $\hat{y}_i$ et $y_i$ :
       \[
-        \Theta^* = \arg\min_\Theta\; \Loss(\Theta, \X, \y)
+        \Theta^* = \arg\min_\Theta\; \Loss(\hat{\y},\, \y)
       \]
     \end{column}
     \begin{column}{0.44\textwidth}
@@ -265,7 +267,7 @@
 \begin{frame}{Fonction de Coût — La MSE}
   \begin{block}{Mean Squared Error (MSE)}
     \[
-      \Loss(\Theta) = \frac{1}{N} \sum_{i=1}^{N} \bigl(f_\Theta(\bm{x}_i) - y_i\bigr)^2
+      \Loss = \frac{1}{N} \sum_{i=1}^{N} \bigl(f_\Theta(\bm{x}_i) - y_i\bigr)^2
       = \frac{1}{N} \norm{\hat{\y} - \y}^2
     \]
     \centering
@@ -381,9 +383,6 @@ X_aug = np.hstack([ones, X])
 
 # Prediction
 y_hat = X_aug @ w_aug
-
-# Gradient MSE augmentee
-grad = (2/N) * X_aug.T @ (y_hat - y)
 \end{lstlisting}
       \begin{exampleblock}{Avantage}
         Toutes les équations (gradient, solution analytique)
@@ -397,46 +396,46 @@ grad = (2/N) * X_aug.T @ (y_hat - y)
 
 \begin{frame}{Gradient de la MSE}
   \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      \textbf{Calcul de} $\dfrac{\partial \Loss}{\partial w_j}$ :
+    \begin{column}{0.55\textwidth}
+      \begin{block}{}
+        \[
+          \begin{aligned}
+            \Loss &= \frac{1}{N} \norm{\hat{\y} - \y}^2 \\[0.1em]
+                  &= \frac{1}{N} (\X\w - \y)\T (\X\w - \y) \\[0.1em]
+                  &= \frac{1}{N} \bigl(\w\T\X\T\X\w - 2\w\T\X\T\y + \y\T\y\bigr) \\[0.5em]
+            \nabla_\w \Loss &= \frac{1}{N} \bigl(2\X\T\X\w - 2\X\T\y\bigr) \\[0.1em]
+            \nabla_\w \Loss &= \frac{2}{N}\,\X\T (\X\w - \y)
+          \end{aligned}
+        \]
+      \end{block}
+    \end{column}
+    \begin{column}{0.41\textwidth}
+      \begin{alertblock}{Résultat}
+        \[
+          \nabla_\w \Loss = \frac{2}{N}\,\X\T (\X\w - \y)
+        \]
+      \end{alertblock}
 
       \medskip
-      \[
-        \begin{aligned}
-          \frac{\partial \Loss}{\partial w_j}
-          &= \frac{1}{N}\sum_{i=1}^N \frac{\partial}{\partial w_j}
-             \bigl(\w\T\bm{x}_i - y_i\bigr)^2 \\[0.4em]
-          &= \frac{1}{N}\sum_{i=1}^N 2\bigl(\w\T\bm{x}_i - y_i\bigr)
-             \cdot \frac{\partial\, \w\T\bm{x}_i}{\partial w_j} \\[0.4em]
-          &\quad\text{or } \w\T\bm{x}_i = \textstyle\sum_k w_k x_{i,k}
-             \implies \frac{\partial\,\w\T\bm{x}_i}{\partial w_j} = x_{i,j} \\[0.4em]
-          &= \frac{2}{N}\sum_{i=1}^N \bigl(\hat{y}_i - y_i\bigr)\, x_{i,j}
-        \end{aligned}
-      \]
-    \end{column}
-    \begin{column}{0.44\textwidth}
-      \textbf{Forme vectorielle} (tous les $w_j$ d'un coup) :
-      \[
-        \boxed{
-          \grad_\w \Loss = \frac{2}{N}\, \X\T (\X\w - \y)
-        }
-      \]
-      \begin{itemize}
-        \item $\X\w - \y \in \R^N$ : vecteur des erreurs
-        \item $\X\T(\cdot) \in \R^D$ : pondère par les features
-      \end{itemize}
-
-      \bigskip
-      \begin{alertblock}{}
-        MSE convexe en $\w$ $\Rightarrow$ \textbf{un seul minimum global}.
-      \end{alertblock}
+      \begin{block}{Convexité}
+        \[
+          \nabla^2_\w \Loss = \frac{2}{N}\,\X\T\X
+        \]
+        $\X\T\X$ est une matrice de Gram :
+        \[
+          \forall \bm{v} \in \R^D,\quad
+          \bm{v}\T(\X\T\X)\bm{v} = \norm{\X\bm{v}}^2 \geq 0
+        \]
+        $\Rightarrow \nabla^2_\w \Loss \succeq 0$
+        $\Rightarrow$ \textbf{minimum global unique}.
+      \end{block}
     \end{column}
   \end{columns}
 \end{frame}
 
 % ---
 
-\begin{frame}{Solution Analytique — Équation Normale}
+\begin{frame}{Solution analytique}
   La MSE est convexe : son minimum est atteint quand le gradient s'annule.
 
   \medskip
