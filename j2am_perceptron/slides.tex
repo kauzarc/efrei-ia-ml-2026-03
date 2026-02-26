@@ -1,0 +1,765 @@
+% ============================================================
+%  J2 — MATIN : Classification Binaire & Perceptron
+%  Julien Rolland — M2 Développement Fullstack
+% ============================================================
+\documentclass[aspectratio=169, 10pt]{beamer}
+\input{../shared/preamble}
+
+\title[Classification \& Perceptron]{Classification Binaire \& Perceptron}
+\subtitle{Jour 2 --- Matin}
+\date{Jour 2}
+
+% ============================================================
+\begin{document}
+% ============================================================
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Plan du module}
+  \tableofcontents
+\end{frame}
+
+% ============================================================
+\section{Classification Binaire}
+% ============================================================
+
+\begin{frame}{De la Régression à la Classification}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \textbf{Régression} (J1) : sortie \textbf{continue} $\hat{y}_i \in \R$
+
+      \smallskip
+      \textbf{Classification} (J2) : classe \textbf{discrète}
+      $\hat{t}_n \in \{+1, -1\}$
+
+      \smallskip
+      \textbf{Exemples :}
+      \begin{itemize}
+        \item Email $\to$ spam / ham
+        \item Image $\to$ chat / chien
+        \item Tumeur $\to$ maligne / bénigne
+      \end{itemize}
+
+      \smallskip
+      \begin{block}{Modèle \& Prédiction}
+        \[ f_\Theta(\bm{x}_n) = \w\T\bm{x}_n + b \in \R \]
+        \small $\hat{t}_n = \operatorname{sign}(f)
+        \in \{+1,-1\}$ \quad
+        Encodage $t_n \in \{+1,-1\}$ : \textbf{crucial}
+        pour la loss (pas $\{0,1\}$ !).
+      \end{block}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=6.5cm, height=4.3cm,
+          xlabel={$x_1$}, ylabel={$x_2$},
+          axis lines=left,
+          tick label style={font=\tiny},
+          xmin=-3, xmax=3, ymin=-2.5, ymax=2,
+          title={\small Hyperplan séparateur dans $\R^2$},
+          title style={font=\small},
+        ]
+          \addplot[only marks, mark=*, mark size=2pt, jedy_blue]
+            coordinates {
+              (1.2,1.0)(1.5,0.8)(0.8,1.2)(1.8,1.1)(1.0,0.6)
+              (1.3,1.4)(2.0,0.9)(1.6,0.5)(0.9,1.5)
+            };
+          \addplot[only marks, mark=*, mark size=2pt, jedy_alert]
+            coordinates {
+              (-1.5,-1.0)(-0.8,-1.2)(-1.2,-0.8)(-2.0,-0.9)(-1.0,-1.5)
+              (-0.5,-0.8)(-1.8,-1.3)(-1.3,-0.5)(-0.9,-1.1)
+            };
+          \addplot[jedy_example, thick, domain=-2.5:2.0] {-x};
+          \draw[->, jedy_mid, very thick]
+            (axis cs:0,0) -- (axis cs:0.6,0.6);
+          \node[jedy_mid,    font=\scriptsize] at (axis cs: 0.9, 0.4) {$\w$};
+          \node[jedy_example,font=\scriptsize] at (axis cs: 2.2,-1.9)
+            {$\w\T\bm{x}+b=0$};
+          \node[jedy_blue,   font=\scriptsize] at (axis cs: 1.9, 1.7) {$t=+1$};
+          \node[jedy_alert,  font=\scriptsize] at (axis cs:-1.9,-1.9) {$t=-1$};
+        \end{axis}
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{L'Impasse du Gradient}
+% ============================================================
+
+\begin{frame}{Pourquoi le Gradient Échoue}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      Pour optimiser $\Theta$ par descente de gradient :
+      \[ \w \leftarrow \w - \lr\,\nabla_\w \Loss \]
+
+      \smallskip
+      \textbf{Problème :} le readout $\operatorname{sign}(z)$ est
+      \textbf{non-différentiable} en $0$, dérivée \textbf{nulle} ailleurs.
+
+      \smallskip
+      \begin{alertblock}{Conséquences}
+        \small
+        \begin{itemize}
+          \item $\operatorname{sign}$ dans la loss $\Rightarrow$
+                $\nabla_\w \Loss = 0$ presque partout.
+          \item Le gradient ne transporte \textbf{aucune information}.
+          \item GD est \textbf{bloqué mathématiquement}.
+        \end{itemize}
+      \end{alertblock}
+
+      \smallskip
+      \begin{exampleblock}{Solution}
+        Ne \textbf{pas} mettre le readout dans la loss.\\
+        Utiliser une fonction \textbf{différentiable} à la place.
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=6.0cm, height=2.6cm,
+          xlabel={$z$}, ylabel={$\operatorname{sign}(z)$},
+          axis lines=center,
+          tick label style={font=\tiny},
+          xmin=-3, xmax=3, ymin=-1.6, ymax=1.6,
+          ytick={-1,1}, yticklabels={$-1$,$+1$},
+          title={\small Readout : $\operatorname{sign}$},
+          title style={font=\small},
+        ]
+          \addplot[jedy_blue, very thick, domain=-3:0] {-1};
+          \addplot[jedy_blue, very thick, domain=0:3]  { 1};
+          \addplot[only marks, mark=o, mark size=2pt, jedy_blue]
+            coordinates {(0,-1)(0,1)};
+        \end{axis}
+      \end{tikzpicture}
+
+      \smallskip
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=6.0cm, height=2.6cm,
+          xlabel={$z$}, ylabel={$\operatorname{sign}'(z)$},
+          axis lines=center,
+          tick label style={font=\tiny},
+          xmin=-3, xmax=3, ymin=-0.3, ymax=1.5,
+          ytick={0}, yticklabels={$0$},
+          title={\small Dérivée : nulle partout (infinie en 0)},
+          title style={font=\small},
+        ]
+          \addplot[jedy_alert, very thick, domain=-3:-0.05] {0};
+          \addplot[jedy_alert, very thick, domain=0.05:3]   {0};
+          \draw[->, jedy_alert, very thick]
+            (axis cs:0,0) -- (axis cs:0,1.4);
+          \node[jedy_alert, font=\tiny] at (axis cs:0.5,1.1) {$+\infty$};
+        \end{axis}
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{ReLU \& Loss du Perceptron}
+% ============================================================
+
+\begin{frame}{ReLU --- La Fonction Clé}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \begin{block}{Définition}
+        \[ \operatorname{ReLU}(z) = \max(0,z) \]
+      \end{block}
+
+      \smallskip
+      \begin{block}{Dérivée}
+        \[
+          \operatorname{ReLU}'(z) = \mathbf{1}[z > 0] =
+          \begin{cases} 1 & z > 0 \\ 0 & z \leq 0 \end{cases}
+        \]
+      \end{block}
+
+      \smallskip
+      \textbf{Pourquoi c'est le standard :}
+      \begin{itemize}
+        \item Gradient \textbf{constant} ($= 1$) pour $z > 0$ ---
+              l'information circule.
+        \item Ultra-rapide : pas d'exponentielle.
+        \item Atténue le \textit{Vanishing Gradient}
+              (Deep Learning, J3).
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=6.0cm, height=3.2cm,
+          xlabel={$z$}, ylabel={$\operatorname{ReLU}(z)$},
+          axis lines=center,
+          tick label style={font=\tiny},
+          xmin=-3, xmax=3, ymin=-0.3, ymax=3,
+          title={\small ReLU},
+          title style={font=\small},
+        ]
+          \addplot[jedy_blue, very thick, domain=-3:0] {0};
+          \addplot[jedy_blue, very thick, domain=0:3]  {x};
+          \addplot[only marks, mark=*, mark size=2pt, jedy_blue]
+            coordinates {(0,0)};
+        \end{axis}
+      \end{tikzpicture}
+
+      \smallskip
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=6.0cm, height=2.3cm,
+          xlabel={$z$}, ylabel={$\operatorname{ReLU}'(z)$},
+          axis lines=center,
+          tick label style={font=\tiny},
+          xmin=-3, xmax=3, ymin=-0.3, ymax=1.5,
+          ytick={0,1},
+          title={\small Dérivée --- toujours calculable},
+          title style={font=\small},
+        ]
+          \addplot[jedy_alert, very thick, domain=-3:0] {0};
+          \addplot[jedy_alert, very thick, domain=0:3]  {1};
+          \addplot[only marks, mark=o, mark size=2pt, jedy_alert]
+            coordinates {(0,0)(0,1)};
+        \end{axis}
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}{Loss de Rosenblatt}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \textbf{Idée :} mesurer l'erreur par le produit $f \cdot t_n$.
+      \begin{itemize}
+        \item $f \cdot t > 0$ : bonne classe $\Rightarrow$ perte $= 0$.
+        \item $f \cdot t < 0$ : mauvaise classe $\Rightarrow$ pénalité.
+      \end{itemize}
+
+      \smallskip
+      \begin{block}{Loss de Rosenblatt}
+        \[
+          \Loss = \frac{1}{N}\sum_{n=1}^{N}
+          \operatorname{ReLU}\!\bigl(-f_\Theta(\bm{x}_n)\cdot t_n\bigr)
+        \]
+      \end{block}
+
+      \smallskip
+      Gradient pour un exemple \textbf{mal classifié}
+      ($f \cdot t < 0$) :
+      \[
+        \nabla_\w \operatorname{ReLU}(-f\cdot t) = -t_n\,\bm{x}_n
+      \]
+
+      \begin{alertblock}{Règle de mise à jour}
+        Si $\hat{t}_n \neq t_n$ :\quad
+        $\w \leftarrow \w + \lr\, t_n\, \bm{x}_n$
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=6.0cm, height=4.2cm,
+          xlabel={$f_\Theta(\bm{x}_n) \cdot t_n$},
+          ylabel={perte},
+          axis lines=center,
+          tick label style={font=\tiny},
+          xmin=-2.5, xmax=2.5, ymin=-0.3, ymax=2.5,
+          title={\small Loss $= \operatorname{ReLU}(-f\cdot t)$},
+          title style={font=\small},
+          xtick={-2,-1,0,1,2},
+        ]
+          \addplot[jedy_example, very thick, domain=0:2.5]  {0};
+          \addplot[jedy_alert,   very thick, domain=-2.5:0] {-x};
+          \addplot[only marks, mark=*, mark size=2pt, jedy_blue]
+            coordinates {(0,0)};
+          \node[jedy_example, font=\scriptsize]
+            at (axis cs: 1.4, 0.35) {bien classifié};
+          \node[jedy_alert,   font=\scriptsize]
+            at (axis cs:-1.4, 1.8) {mal classifié};
+          \draw[dashed, gray, thin]
+            (axis cs:0,-0.3) -- (axis cs:0,2.5);
+        \end{axis}
+      \end{tikzpicture}
+
+      \smallskip
+      \begin{exampleblock}{Encodage $\pm 1$ crucial}
+        \small Avec $t \in \{0,1\}$, le produit $f \cdot t$
+        serait nul pour la classe $0$ --- la loss
+        ne fonctionnerait pas.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Algorithme de Rosenblatt}
+% ============================================================
+
+\begin{frame}[fragile]{Algorithme Online de Rosenblatt}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+\begin{lstlisting}
+def rosenblatt(X, t, lr=0.1, n_epochs=50):
+    N, D = X.shape
+    ones  = np.ones((N, 1))
+    X_aug = np.hstack([ones, X])  # (N, D+1)
+    w = np.zeros(D + 1)
+
+    for epoch in range(n_epochs):
+        for n in range(N):
+            score = X_aug[n] @ w
+            t_hat = np.sign(score)
+            if t_hat != t[n]:
+                w += lr * t[n] * X_aug[n]
+    return w
+\end{lstlisting}
+
+      \begin{alertblock}{« Online » = un exemple à la fois}
+        \small Traite les données comme un \textbf{flux},
+        pas comme un lot statique.
+        Instable sur données \textbf{bruitées}.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{tikzpicture}[
+        node distance=0.75cm,
+        box/.style={draw=jedy_blue, fill=jedy_light, rounded corners,
+                    minimum width=3.0cm, minimum height=0.5cm,
+                    font=\scriptsize, align=center},
+        dec/.style={draw=jedy_alert, fill=jedy_light!60,
+                    diamond, aspect=2.5, minimum height=0.6cm,
+                    font=\scriptsize, align=center},
+        arr/.style={->, jedy_mid, thick},
+      ]
+        \node[box] (init)  {Init $\w = \bm{0}$};
+        \node[box, below of=init]  (pick)
+          {Prendre $\bm{x}_n$};
+        \node[box, below of=pick]  (score)
+          {$\hat{t}_n = \operatorname{sign}(\w\T\bm{x}_n)$};
+        \node[dec, below of=score, node distance=1.0cm] (err)
+          {$\hat{t}_n \neq t_n$ ?};
+        \node[box, below of=err, node distance=1.0cm] (upd)
+          {$\w \leftarrow \w + \lr\, t_n\, \bm{x}_n$};
+        \draw[arr] (init)  -- (pick);
+        \draw[arr] (pick)  -- (score);
+        \draw[arr] (score) -- (err);
+        \draw[arr] (err)   -- node[right, font=\tiny]{oui} (upd);
+        \draw[arr] (upd.east)  -- ++(0.4,0) |- (pick.east);
+        \draw[arr] (err.west)  --
+          node[above, font=\tiny]{non} ++(-0.6,0) |- (pick.west);
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}{Online vs Batch Gradient Descent}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \small\begin{tabular}{lp{2.6cm}p{1.9cm}}
+        \toprule
+        \textbf{Stratégie} & \textbf{Gradient sur} & \textbf{Stabilité} \\
+        \midrule
+        Online (SGD pur) & 1 exemple & Très instable \\[0.3em]
+        Mini-Batch       & $B$ exemples ($32$--$256$) & Bon équilibre \\[0.3em]
+        Batch (full)     & Tout le dataset ($N$) & Très stable \\
+        \bottomrule
+      \end{tabular}
+
+      \smallskip
+      \begin{block}{Mini-Batch GD --- Pratique moderne}
+        \small
+        \begin{enumerate}
+          \item Mélanger le dataset.
+          \item Découper en batches de taille $B$.
+          \item Pour chaque batch : gradient $\to$ update $\w$.
+          \item Répéter sur toutes les \textbf{époques}.
+        \end{enumerate}
+      \end{block}
+    \end{column}
+    \begin{column}{0.41\textwidth}
+      \begin{exampleblock}{Avantage clé : vectorisation}
+        \small Un batch $(X_b, \bm{t}_b)$ de taille $B$ permet
+        de calculer le gradient en un seul produit matriciel.\\
+        Exploitable par \textbf{NumPy} et les \textbf{GPU}.
+      \end{exampleblock}
+
+      \smallskip
+      \begin{alertblock}{Convergence}
+        \small Si les données sont \textbf{linéairement séparables},
+        le perceptron converge.\\
+        Sinon : il oscille $\Rightarrow$ utiliser
+        une loss différentiable.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Régression Logistique}
+% ============================================================
+
+\begin{frame}{Régression Logistique --- Sigmoïde \& Probabilités}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      Remplacer $\operatorname{sign}$ par une fonction \textbf{lisse}
+      qui retourne une \textbf{probabilité}.
+
+      \smallskip
+      \begin{block}{Modèle \& Loss (BCE)}
+        \small
+        \[ \sigma(z) = \tfrac{1}{1+e^{-z}},\quad
+           f_\Theta(\bm{x}_n) = \sigma(\w\T\bm{x}_n) \approx P(t_n{=}1 \mid \bm{x}_n) \]
+        \[ \Loss_{\text{BCE}} = -\tfrac{1}{N}\sum_{n}
+          \bigl[t_n \log f_n + (1-t_n)\log(1-f_n)\bigr] \]
+      \end{block}
+
+      \smallskip
+      \begin{exampleblock}{Avantage}
+        \small $\sigma$ diff.\ partout --- pénalise lourdement les erreurs confiantes ($\Loss\to+\infty$).
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=6.0cm, height=3.5cm,
+          xlabel={$z$},
+          axis lines=center,
+          tick label style={font=\tiny},
+          xmin=-5, xmax=5, ymin=-0.15, ymax=1.15,
+          ytick={0,0.5,1}, yticklabels={$0$,$0.5$,$1$},
+          title={\small Sigmoïde vs $\operatorname{sign}$},
+          title style={font=\small},
+        ]
+          \addplot[jedy_blue, thick, domain=-5:5, samples=100]
+            {1/(1+exp(-x))};
+          \addplot[jedy_alert, dashed, thick, domain=-5:-0.01] {0};
+          \addplot[jedy_alert, dashed, thick, domain=0.01:5]   {1};
+          \draw[jedy_alert, dashed, thick]
+            (axis cs:0,0) -- (axis cs:0,1);
+          \node[jedy_blue,  font=\scriptsize] at (axis cs:3.5,0.75) {$\sigma(z)$};
+          \node[jedy_alert, font=\scriptsize] at (axis cs:3.5,0.15) {sign};
+        \end{axis}
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Architecture d'un Neurone}
+% ============================================================
+
+\begin{frame}{Un Neurone Artificiel}
+  \begin{center}
+    \begin{tikzpicture}[
+      input/.style={circle, draw=jedy_example, fill=jedy_example!20,
+                    minimum size=0.75cm, font=\small},
+      neuron/.style={circle, draw=jedy_blue, fill=jedy_light,
+                     minimum size=1.1cm, font=\footnotesize, align=center},
+      activ/.style={rectangle, rounded corners, draw=jedy_mid,
+                    fill=jedy_mid!20, minimum width=1.3cm,
+                    minimum height=0.75cm, font=\footnotesize, align=center},
+      outp/.style={circle, draw=jedy_alert, fill=jedy_alert!20,
+                   minimum size=0.75cm, font=\small},
+      arr/.style={->, thick, gray},
+    ]
+      \node[input]  (x1) at (0,  1.6) {$x_1$};
+      \node[input]  (x2) at (0,  0.6) {$x_2$};
+      \node[font=\small] at (0, -0.1) {$\vdots$};
+      \node[input]  (xD) at (0, -0.8) {$x_D$};
+
+      \node[neuron] (sum) at (3.8, 0.4)
+            {$\displaystyle\sum_j w_j x_j + b$};
+
+      \node[activ]  (act) at (6.8, 0.4)
+            {$\sigma(\cdot)$\\\scriptsize ou ReLU};
+
+      \node[outp]   (out) at (9.2, 0.4) {$\hat{y}$};
+
+      \draw[arr] (x1) -- node[above, font=\tiny, jedy_mid]{$w_1$} (sum);
+      \draw[arr] (x2) -- node[above, font=\tiny, jedy_mid]{$w_2$} (sum);
+      \draw[arr] (xD) -- node[below, font=\tiny, jedy_mid]{$w_D$} (sum);
+      \draw[arr] (sum) -- node[above, font=\tiny]{$f_\Theta$} (act);
+      \draw[arr] (act) -- (out);
+
+      \node[font=\scriptsize, jedy_example] at (0,   -1.5) {Entrées};
+      \node[font=\scriptsize, jedy_blue]    at (3.8, -0.6) {Agrégation};
+      \node[font=\scriptsize, jedy_mid]     at (6.8, -0.3) {Activation};
+      \node[font=\scriptsize, jedy_alert]   at (9.2, -0.3) {Sortie};
+    \end{tikzpicture}
+  \end{center}
+
+  \vspace{0.1cm}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Perceptron = réseau à 0 couche cachée}
+        \small Entrées $\to$ agrégation $\to$ readout.\\
+        Premier réseau de neurones (Rosenblatt, 1958).
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Readout vs Activation}
+        \small \textbf{Activation} : dans le réseau
+        (ReLU, $\tanh$, $\sigma$) --- différentiable.\\
+        \textbf{Readout} : décision finale
+        ($\operatorname{sign}$, $\arg\max$).
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Classification Multi-Classes}
+% ============================================================
+
+\begin{frame}{De 2 Classes à $K$ Classes --- Softmax}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \vspace{-3pt}
+      \textbf{Problème :} $K > 2$ classes (chiffres 0--9...).
+
+      \begin{block}{Encodage One-Hot}
+        \small $\bm{t}_n \in \{0,1\}^K$, une seule composante à $1$.
+        Ex.~classe~2 sur~4~: $[0,0,1,0]$.
+      \end{block}
+
+      \begin{block}{Modèle : $K$ scores}
+        \[ \bm{f}_\Theta(\bm{x}_n) = \W\bm{x}_n + \bm{b} \in \R^K \]
+        $\W \in \R^{K \times D}$ : une ligne par classe.
+      \end{block}
+
+      \begin{block}{Softmax $\to$ probabilités}
+        \[ p_k = \frac{e^{f_k}}{\sum_j e^{f_j}} \in (0,1),
+           \quad \sum_k p_k = 1 \]
+        \small Readout : $\hat{k} = \arg\max_k\, p_k$.
+      \end{block}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{block}{Cross-Entropy Catégorielle (CCE)}
+        \[
+          \Loss_{\text{CCE}} = -\frac{1}{N}\sum_{n}\sum_{k}
+          t_{n,k}\, \log(p_{n,k})
+        \]
+        \small Comme $t_{n,k} \in \{0,1\}$, seul le log de la
+        \textbf{vraie classe} contribue à chaque terme.
+      \end{block}
+
+      \smallskip
+      \begin{block}{Gradient --- résultat remarquable}
+        \[ \nabla_{f_k} \Loss_{\text{CCE}} = p_k - t_k \]
+        \small Erreur = proba prédite $-$ label one-hot.
+      \end{block}
+
+      \smallskip
+      {\small \textbf{PyTorch :} \code{nn.CrossEntropyLoss()}
+      (Softmax + CCE en une passe).}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Vers le Deep Learning}
+% ============================================================
+
+\begin{frame}{Limite du Perceptron : le Problème XOR}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \begin{alertblock}{Limite fondamentale}
+        Un perceptron (couche linéaire unique)
+        ne peut séparer que des données
+        \textbf{linéairement séparables}.
+      \end{alertblock}
+
+      \smallskip
+      \textbf{Exemple : XOR}
+      \begin{center}
+        \begin{tabular}{cc|c}
+          \toprule
+          $x_1$ & $x_2$ & $t$ \\
+          \midrule
+          $-1$ & $-1$ & $+1$ \\
+          $+1$ & $+1$ & $+1$ \\
+          $-1$ & $+1$ & $-1$ \\
+          $+1$ & $-1$ & $-1$ \\
+          \bottomrule
+        \end{tabular}
+      \end{center}
+
+      \smallskip
+      Aucun hyperplan ne peut séparer ces 4 points.\\
+      $\Rightarrow$ Le perceptron \textbf{échoue} sur XOR.\\
+      $\Rightarrow$ Il faut des couches \textbf{non-linéaires}.
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=6.0cm, height=5.0cm,
+          xlabel={$x_1$}, ylabel={$x_2$},
+          axis lines=center,
+          tick label style={font=\tiny},
+          xmin=-2, xmax=2, ymin=-2, ymax=2,
+          xtick={-1,1}, ytick={-1,1},
+          title={\small XOR --- non linéairement séparable},
+          title style={font=\small},
+        ]
+          \addplot[only marks, mark=*, mark size=5pt, jedy_blue]
+            coordinates {(-1,-1)(1,1)};
+          \addplot[only marks, mark=square*, mark size=4pt, jedy_alert]
+            coordinates {(-1,1)(1,-1)};
+          \node[jedy_blue,  font=\scriptsize] at (axis cs: 1.5, 1.5) {$t=+1$};
+          \node[jedy_alert, font=\scriptsize] at (axis cs: 1.5,-1.5) {$t=-1$};
+        \end{axis}
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}{Vers le Multi-Layer Perceptron (MLP)}
+  \begin{columns}[T]
+    \begin{column}{0.42\textwidth}
+      \textbf{Solution :} empiler des couches avec des
+      activations \textbf{non-linéaires}.
+
+      \smallskip
+      \begin{block}{Architecture MLP ($L$ couches)}
+        \small
+        \[
+          \bm{h}^{(1)} = \operatorname{ReLU}(\W^{(1)}\bm{x} + \bm{b}^{(1)})
+        \]
+        \[
+          \bm{h}^{(\ell)} = \operatorname{ReLU}(\W^{(\ell)}\bm{h}^{(\ell-1)}
+          + \bm{b}^{(\ell)})
+        \]
+        \[
+          \hat{\bm{y}} =
+          \operatorname{softmax}(\W^{(L)}\bm{h}^{(L-1)} + \bm{b}^{(L)})
+        \]
+      \end{block}
+
+      \smallskip
+      Le réseau apprend des frontières de décision
+      \textbf{courbes et complexes}.
+
+      \smallskip
+      \begin{exampleblock}{J3 --- Autograd \& PyTorch}
+        \small Comment différencier automatiquement
+        toutes ces couches ?\\
+        $\Rightarrow$ \textbf{Rétropropagation} \& Autograd.
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.54\textwidth}
+      \begin{tikzpicture}[
+        nod/.style={circle, draw=jedy_blue, fill=jedy_light,
+                    minimum size=0.52cm, font=\tiny},
+        inp/.style={circle, draw=jedy_example, fill=jedy_example!20,
+                    minimum size=0.52cm, font=\tiny},
+        outp/.style={circle, draw=jedy_alert, fill=jedy_alert!20,
+                     minimum size=0.52cm, font=\tiny},
+        arr/.style={->, gray, very thin},
+      ]
+        \foreach \i/\y in {1/3.0, 2/2.0, 3/1.0, 4/0.0}
+          \node[inp] (i\i) at (0, \y) {$x_\i$};
+
+        \foreach \i/\y in {1/3.5, 2/2.5, 3/1.5, 4/0.5, 5/-0.5}
+          \node[nod] (h1\i) at (2.5, \y) {};
+
+        \foreach \i/\y in {1/3.0, 2/2.0, 3/1.0, 4/0.0}
+          \node[nod] (h2\i) at (5.0, \y) {};
+
+        \foreach \i/\y in {1/2.5, 2/1.5, 3/0.5}
+          \node[outp] (o\i) at (7.0, \y) {};
+
+        \foreach \s in {1,...,4} {
+          \foreach \t in {1,...,5} {
+            \draw[arr] (i\s) -- (h1\t);
+          }
+        }
+        \foreach \s in {1,...,5} {
+          \foreach \t in {1,...,4} {
+            \draw[arr] (h1\s) -- (h2\t);
+          }
+        }
+        \foreach \s in {1,...,4} {
+          \foreach \t in {1,...,3} {
+            \draw[arr] (h2\s) -- (o\t);
+          }
+        }
+
+        \node[font=\scriptsize, jedy_example] at (0,   -1.0) {Entrée};
+        \node[font=\scriptsize, jedy_blue]    at (2.5, -1.3) {Cachée 1};
+        \node[font=\scriptsize, jedy_blue]    at (5.0, -1.0) {Cachée 2};
+        \node[font=\scriptsize, jedy_alert]   at (7.0, -0.2) {Sortie};
+
+        \node[font=\tiny, jedy_mid] at (2.5, 4.2) {ReLU};
+        \node[font=\tiny, jedy_mid] at (5.0, 3.7) {ReLU};
+        \node[font=\tiny, jedy_mid] at (7.0, 3.2) {Softmax};
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+% RÉCAPITULATIF
+% ============================================================
+
+\begin{frame}{Récapitulatif --- Ce qu'on a vu}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Classification Binaire}
+        \small
+        \begin{itemize}
+          \item Labels $t_n \in \{+1,-1\}$,
+                hyperplan $\w\T\bm{x}+b=0$
+          \item Readout $\operatorname{sign}(f)$ : \textbf{hors} de la loss
+          \item $\nabla \operatorname{sign} = 0$
+                $\Rightarrow$ GD bloqué
+        \end{itemize}
+      \end{block}
+
+      \smallskip
+      \begin{block}{ReLU \& Perceptron de Rosenblatt}
+        \small
+        \begin{itemize}
+          \item $\operatorname{ReLU}(z) = \max(0,z)$ : dérivée 0/1
+          \item $\Loss = \frac{1}{N}\sum \operatorname{ReLU}(-f\cdot t)$
+          \item Update : $\w \leftarrow \w + \lr t_n \bm{x}_n$
+                si mal classifié
+          \item Converge $\Leftrightarrow$ données lin.\ séparables
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Régression Logistique}
+        \small
+        \begin{itemize}
+          \item $\sigma(z) = 1/(1+e^{-z})$ : lisse, $\in (0,1)$
+          \item $f_\Theta(\bm{x}) = \sigma(\w\T\bm{x})
+                \approx P(t=1|\bm{x})$
+          \item Loss : Binary Cross-Entropy,
+                encodage $t \in \{0,1\}$
+        \end{itemize}
+      \end{block}
+
+      \smallskip
+      \begin{block}{Multi-Classes \& Vers le MLP}
+        \small
+        \begin{itemize}
+          \item $K$ sorties, encodage one-hot
+          \item Softmax $\to$ distribution de probabilité
+          \item CCE : $\nabla_{f_k} = p_k - t_k$
+          \item Couches cachées + activations $\to$ \textbf{MLP} (J3)
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\end{document}
