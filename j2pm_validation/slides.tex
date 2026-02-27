@@ -51,7 +51,30 @@
       \end{exampleblock}
 
       \smallskip
-      % TODO : courbe train loss vs val loss (epochs)
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=\linewidth, height=3.5cm,
+          xlabel={\small Époques},
+          ylabel={\small Loss},
+          xmin=0, xmax=10, ymin=0, ymax=1.15,
+          xtick=\empty, ytick=\empty,
+          legend style={font=\tiny, at={(0.98,0.95)}, anchor=north east},
+          every axis plot/.append style={line width=1.2pt},
+        ]
+          \addplot[color=jedy_mid, smooth] coordinates {
+            (0,1.0)(1,0.75)(2,0.55)(3,0.40)(4,0.30)
+            (5,0.22)(6,0.17)(7,0.13)(8,0.10)(9,0.08)(10,0.06)
+          };
+          \addlegendentry{Train}
+          \addplot[color=jedy_alert, dashed, smooth] coordinates {
+            (0,1.05)(1,0.80)(2,0.65)(3,0.58)(4,0.56)
+            (5,0.58)(6,0.63)(7,0.70)(8,0.79)(9,0.89)(10,1.00)
+          };
+          \addlegendentry{Val}
+          \draw[gray, dashed, line width=0.6pt] (axis cs:4,0) -- (axis cs:4,1.15);
+          \node[font=\tiny, gray] at (axis cs:5.5,1.10) {sweet spot};
+        \end{axis}
+      \end{tikzpicture}
     \end{column}
   \end{columns}
 \end{frame}
@@ -62,29 +85,71 @@
 
 \begin{frame}{Underfitting vs Overfitting}
   \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
+    \begin{column}{0.32\textwidth}
       \begin{block}{Underfitting}
         \begin{itemize}
-          \item Modèle trop \textbf{simple}
-          \item Passe à côté de la tendance
-          \item Biais élevé
+          \item Modèle trop \textbf{simple} --- biais élevé
+          \item Train $\approx$ Val $\Rightarrow$
+                \textcolor{jedy_alert}{toutes deux élevées}
         \end{itemize}
       \end{block}
-
-      \smallskip
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{exampleblock}{Bon fit}
+        \begin{itemize}
+          \item Complexité adaptée aux données
+          \item Train $\approx$ Val $\Rightarrow$
+                \textcolor{jedy_example}{toutes deux basses}
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.32\textwidth}
       \begin{alertblock}{Overfitting}
         \begin{itemize}
-          \item Modèle trop \textbf{complexe}
-          \item Relie les points, délire entre eux
-          \item Variance élevée
+          \item Modèle trop \textbf{complexe} --- variance élevée
+          \item Train $\ll$ Val $\Rightarrow$
+                \textcolor{jedy_alert}{Val explose}
         \end{itemize}
       \end{alertblock}
     \end{column}
-    \begin{column}{0.48\textwidth}
-      % TODO : courbe classique underfitting / bon fit / overfitting
-      % (polynôme de degré 1, 3, 15 sur données bruitées)
-    \end{column}
   \end{columns}
+
+  \medskip
+  \centering
+  \begin{tikzpicture}
+    \begin{groupplot}[
+      group style={group size=3 by 1, horizontal sep=0.5cm},
+      width=3.7cm, height=3.2cm,
+      xmin=0, xmax=10, ymin=0, ymax=1.05,
+      xtick=\empty, ytick=\empty,
+      axis lines=left,
+      every axis plot/.append style={line width=1.2pt},
+    ]
+    \nextgroupplot
+      \addplot[jedy_mid, smooth, forget plot] coordinates {
+        (0,0.85)(4,0.80)(7,0.77)(10,0.75)
+      };
+      \addplot[jedy_alert, dashed, smooth, forget plot] coordinates {
+        (0,0.88)(4,0.84)(7,0.81)(10,0.80)
+      };
+    \nextgroupplot
+      \addplot[jedy_mid, smooth, forget plot] coordinates {
+        (0,0.90)(3,0.60)(6,0.33)(10,0.15)
+      };
+      \addplot[jedy_alert, dashed, smooth, forget plot] coordinates {
+        (0,0.92)(3,0.63)(6,0.38)(10,0.22)
+      };
+    \nextgroupplot
+      \addplot[jedy_mid, smooth, forget plot] coordinates {
+        (0,0.90)(3,0.52)(6,0.18)(10,0.03)
+      };
+      \addplot[jedy_alert, dashed, smooth, forget plot] coordinates {
+        (0,0.92)(3,0.62)(6,0.52)(10,0.88)
+      };
+      \node[font=\tiny, color=jedy_mid] at (axis cs:7,0.10) {Train};
+      \node[font=\tiny, color=jedy_alert] at (axis cs:7,0.82) {Val};
+    \end{groupplot}
+  \end{tikzpicture}
 \end{frame}
 
 % ---
@@ -113,7 +178,34 @@
       \end{exampleblock}
 
       \smallskip
-      % TODO : exemple visuel 2 "3" différents
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=\linewidth, height=4.2cm,
+          xmin=0, xmax=5.5, ymin=-0.6, ymax=2.4,
+          xtick=\empty, ytick=\empty,
+          axis lines=left,
+          every axis plot/.append style={line width=1.2pt},
+        ]
+          \addplot[only marks, mark=*, mark size=1.5pt,
+                   color=black!60, forget plot] coordinates {
+            (0.3,0.15)(0.8,0.65)(1.3,1.05)(1.8,1.25)(2.3,1.55)
+            (2.8,1.35)(3.3,0.95)(3.8,0.65)(4.3,0.15)(4.8,-0.15)
+          };
+          \addplot[black!60, dashed, domain=0:5, samples=2, forget plot] {0.7};
+          \addplot[jedy_example, domain=0:5, samples=60, forget plot]
+            {-0.25*(x-2.5)^2+1.5};
+          \addplot[jedy_alert, smooth, forget plot] coordinates {
+            (0.3,0.15)(0.55,1.6)(0.8,0.65)(1.05,-0.3)
+            (1.3,1.05)(1.55,2.1)(1.8,1.25)(2.05,-0.1)
+            (2.3,1.55)(2.55,2.1)(2.8,1.35)(3.05,0.3)
+            (3.3,0.95)(3.55,1.8)(3.8,0.65)(4.05,-0.3)
+            (4.3,0.15)(4.55,0.9)(4.8,-0.15)
+          };
+          \node[font=\tiny, color=black!70] at (axis cs:3.8,0.48) {Deg. 1};
+          \node[font=\tiny, color=jedy_example] at (axis cs:2.5,1.73) {Deg. 3};
+          \node[font=\tiny, color=jedy_alert] at (axis cs:2.0,2.3) {Deg. 15};
+        \end{axis}
+      \end{tikzpicture}
     \end{column}
   \end{columns}
 \end{frame}
@@ -124,33 +216,64 @@
 
 \begin{frame}{Le Compromis Biais-Variance}
   \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-      \begin{block}{Biais élevé --- Underfitting}
-        \begin{itemize}
-          \item Erreur systématique
-          \item Modèle trop rigide (trop peu de paramètres)
-          \item Train error $\approx$ Val error, les deux élevées
-        \end{itemize}
-      \end{block}
+    \begin{column}{0.55\textwidth}
+      \centering
+      \begin{tikzpicture}[scale=0.85]
+        \node[font=\footnotesize\bfseries, color=jedy_blue] at (1.5, 1.3) {Biais faible};
+        \node[font=\footnotesize\bfseries, color=jedy_blue] at (4.5, 1.3) {Biais fort};
+        \node[font=\footnotesize\bfseries, color=jedy_blue, rotate=90] at (-1.1,-1.5) {Var. faible};
+        \node[font=\footnotesize\bfseries, color=jedy_blue, rotate=90] at (-1.1,-4.5) {Var. forte};
 
-      \smallskip
-      \begin{alertblock}{Variance élevée --- Overfitting}
-        \begin{itemize}
-          \item Sensible aux variations du train
-          \item Train error $\ll$ Val error
-          \item Modèle trop riche (trop de paramètres)
-        \end{itemize}
-      \end{alertblock}
+        % Board 1 : low bias, low var
+        \draw[gray!60, thin] (1.5,-1.5) circle (1.0);
+        \draw[gray!60, thin] (1.5,-1.5) circle (0.5);
+        \draw[gray!40, very thin] (1.3,-1.5)--(1.7,-1.5) (1.5,-1.7)--(1.5,-1.3);
+        \foreach \dx/\dy in {0.05/0.08,-0.08/0.05,0.10/-0.06,-0.05/-0.08,0.07/0.04}
+          { \fill[jedy_example] ({1.5+\dx},{-1.5+\dy}) circle (2.5pt); }
+        \node[font=\tiny, color=jedy_example] at (1.5,-2.75) {Idéal};
+
+        % Board 2 : high bias, low var
+        \draw[gray!60, thin] (4.5,-1.5) circle (1.0);
+        \draw[gray!60, thin] (4.5,-1.5) circle (0.5);
+        \draw[gray!40, very thin] (4.3,-1.5)--(4.7,-1.5) (4.5,-1.7)--(4.5,-1.3);
+        \foreach \dx/\dy in {0.50/0.38,0.55/0.42,0.48/0.45,0.57/0.40,0.52/0.36}
+          { \fill[jedy_alert] ({4.5+\dx},{-1.5+\dy}) circle (2.5pt); }
+        \node[font=\tiny, color=jedy_alert] at (4.5,-2.75) {Précis mais faux};
+
+        % Board 3 : low bias, high var
+        \draw[gray!60, thin] (1.5,-4.5) circle (1.0);
+        \draw[gray!60, thin] (1.5,-4.5) circle (0.5);
+        \draw[gray!40, very thin] (1.3,-4.5)--(1.7,-4.5) (1.5,-4.7)--(1.5,-4.3);
+        \foreach \dx/\dy in {0.60/0.10,-0.50/0.60,-0.30/-0.70,0.70/-0.40,-0.60/-0.10}
+          { \fill[jedy_alert] ({1.5+\dx},{-4.5+\dy}) circle (2.5pt); }
+        \node[font=\tiny, color=jedy_alert] at (1.5,-5.75) {Juste en moyenne};
+
+        % Board 4 : high bias, high var
+        \draw[gray!60, thin] (4.5,-4.5) circle (1.0);
+        \draw[gray!60, thin] (4.5,-4.5) circle (0.5);
+        \draw[gray!40, very thin] (4.3,-4.5)--(4.7,-4.5) (4.5,-4.7)--(4.5,-4.3);
+        \foreach \dx/\dy in {0.60/0.50,-0.10/0.80,0.70/-0.20,0.30/0.90,0.80/0.20}
+          { \fill[jedy_alert] ({4.5+\dx},{-4.5+\dy}) circle (2.5pt); }
+        \node[font=\tiny, color=jedy_alert] at (4.5,-5.75) {Le pire cas};
+      \end{tikzpicture}
     \end{column}
-    \begin{column}{0.48\textwidth}
-      % TODO : courbe biais-variance vs complexité (U-shape)
-
-      \smallskip
-      \begin{exampleblock}{Levier : les Hyperparamètres}
+    \begin{column}{0.42\textwidth}
+      \begin{block}{En Machine Learning}
         \begin{itemize}
-          \item Profondeur d'arbre, nombre de neurones
-          \item Coefficient de régularisation $\lambda$
-          \item Taille du dataset
+          \item \textbf{Biais} : erreur systématique\\
+                {\small modèle trop simple}
+          \item \textbf{Variance} : sensibilité aux données\\
+                {\small modèle trop complexe}
+        \end{itemize}
+        \medskip\centering
+        $\text{Erreur} = \text{Biais}^2 + \text{Variance} + \varepsilon$
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Leviers}
+        \begin{itemize}
+          \item \textbf{Complexité} du modèle
+          \item \textbf{Régularisation} ($\lambda$)
+          \item \textbf{Volume} de données
         \end{itemize}
       \end{exampleblock}
     \end{column}
@@ -162,26 +285,40 @@
 % ============================================================
 
 \begin{frame}{Le Split Standard}
+  \centering
+  \begin{tikzpicture}
+    \node[font=\small, color=jedy_blue] at (5.0,1.2) {Dataset complet};
+
+    \fill[jedy_mid]     (0,   0) rectangle (7.0, 0.9);
+    \fill[jedy_example] (7.0, 0) rectangle (8.5, 0.9);
+    \fill[jedy_alert]   (8.5, 0) rectangle (10.0,0.9);
+
+    \node[white, font=\small\bfseries]    at (3.5,  0.45) {Train};
+    \node[white, font=\tiny\bfseries]     at (7.75, 0.45) {Val};
+    \node[white, font=\tiny\bfseries]     at (9.25, 0.45) {Test};
+
+    \node[font=\footnotesize, color=jedy_mid]     at (3.5,  -0.3) {70\%};
+    \node[font=\footnotesize, color=jedy_example] at (7.75, -0.3) {15\%};
+    \node[font=\footnotesize, color=jedy_alert]   at (9.25, -0.3) {15\%};
+  \end{tikzpicture}
+
+  \medskip
   \begin{columns}[T]
     \begin{column}{0.52\textwidth}
       \begin{block}{3 ensembles distincts}
         \begin{enumerate}
-          \item \textbf{Train set} --- ajuster $W$, $b$
-          \item \textbf{Validation set} --- choisir les hyperparamètres
-          \item \textbf{Test set} --- coffre-fort,
-                ouvert \textbf{une seule fois} à la fin
+          \item \textbf{Train} --- ajuster les paramètres $\Theta$
+          \item \textbf{Validation} --- choix du modèle et des hyperparamètres
+          \item \textbf{Test} --- mesure finale
         \end{enumerate}
       \end{block}
-
-      \smallskip
-      \begin{alertblock}{Règle d'or : Data Leakage}
-        Ne \textbf{jamais} entraîner sur le test set.\\
-        Ne \textbf{jamais} utiliser le test pour choisir les hyperparamètres.\\
-        Le test set doit rester \textbf{invisible}.
-      \end{alertblock}
     \end{column}
     \begin{column}{0.44\textwidth}
-      % TODO : schéma train/val/test (barres horizontales proportionnelles)
+      \begin{alertblock}{Règle d'or : Data Leakage}
+        Ne \textbf{jamais} entraîner sur le test set.\\
+        Ne \textbf{jamais} utiliser le test pour choisir les HP.\\
+        Le test set doit rester \textbf{invisible}.
+      \end{alertblock}
     \end{column}
   \end{columns}
 \end{frame}
@@ -211,7 +348,28 @@
       \end{block}
     \end{column}
     \begin{column}{0.46\textwidth}
-      % TODO : schéma K-Fold (grille K×N avec fold de validation coloré)
+      \centering
+      \begin{tikzpicture}
+        \foreach \f/\fn in {0/1, 1/2, 2/3, 3/4, 4/5} {
+          \node[font=\tiny, color=black!60] at ({(\f+0.5)}, 0.3) {$f_{\fn}$};
+        }
+        \foreach \k/\ki in {0/1, 1/2, 2/3, 3/4, 4/5} {
+          \foreach \f in {0,...,4} {
+            \fill[jedy_mid!50] ({\f},{-\k*0.65}) rectangle ({(\f+1)},{-\k*0.65-0.5});
+            \draw[white, line width=0.8pt]
+              ({\f},{-\k*0.65}) rectangle ({(\f+1)},{-\k*0.65-0.5});
+          }
+          \fill[jedy_example] ({\k},{-\k*0.65}) rectangle ({(\k+1)},{-\k*0.65-0.5});
+          \node[font=\tiny, anchor=east] at (-0.1,{-\k*0.65-0.25}) {Iter \ki};
+        }
+        \fill[jedy_mid!50]  (0.3,-3.7) rectangle (0.8,-3.5);
+        \node[font=\tiny, anchor=west] at (0.85,-3.6) {Train};
+        \fill[jedy_example] (2.3,-3.7) rectangle (2.8,-3.5);
+        \node[font=\tiny, anchor=west] at (2.85,-3.6) {Validation};
+      \end{tikzpicture}
+
+      \smallskip
+      $\displaystyle s = \frac{1}{K}\sum_{k=1}^{K} s_k$
     \end{column}
   \end{columns}
 \end{frame}
@@ -220,7 +378,57 @@
 \section{Scikit-Learn}
 % ============================================================
 
-\begin{frame}{L'API Estimator de sklearn}
+\begin{frame}{Scikit-Learn}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \begin{block}{La bibliothèque ML de référence}
+        \begin{itemize}
+          \item Open-source, basée sur NumPy / SciPy
+          \item Standard de l'industrie pour le ML classique
+          \item Interface cohérente pour tous les algorithmes
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Ce qu'elle couvre}
+        \begin{itemize}
+          \item \textbf{Prétraitement} : scaling, encodage, imputation
+          \item \textbf{Modèles} : régression, classification, clustering
+          \item \textbf{Validation} : cross-validation, grid search
+          \item \textbf{Métriques} : accuracy, F1, AUC, ...
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \centering
+      \begin{tikzpicture}[node distance=0.4cm]
+        \node[draw, fill=jedy_light, rounded corners=4pt, font=\small,
+              align=center, minimum width=3cm, minimum height=0.8cm]
+              (raw) {Données brutes};
+        \node[draw, fill=jedy_mid!30, rounded corners=4pt, font=\small,
+              align=center, minimum width=3cm, minimum height=0.8cm,
+              below=0.4cm of raw]
+              (pre) {Prétraitement};
+        \node[draw, fill=jedy_mid, text=white, rounded corners=4pt,
+              font=\small\bfseries, align=center,
+              minimum width=3cm, minimum height=0.8cm,
+              below=0.4cm of pre]
+              (mod) {Modèle};
+        \node[draw, fill=jedy_example, text=white, rounded corners=4pt,
+              font=\small, align=center,
+              minimum width=3cm, minimum height=0.8cm,
+              below=0.4cm of mod]
+              (eva) {Évaluation};
+        \draw[->, thick, jedy_blue] (raw) -- (pre);
+        \draw[->, thick, jedy_blue] (pre) -- (mod);
+        \draw[->, thick, jedy_blue] (mod) -- (eva);
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}[fragile]{L'API Estimator}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
       \begin{block}{Interface universelle}
@@ -228,120 +436,112 @@
           \item \texttt{.fit(X, y)} --- entraînement
           \item \texttt{.predict(X)} --- inférence
           \item \texttt{.score(X, y)} --- évaluation
+          \item \texttt{.transform(X)} --- transformation
         \end{itemize}
       \end{block}
-
-      \smallskip
+    \end{column}
+    \begin{column}{0.48\textwidth}
       \begin{exampleblock}{Modèles clés}
         \begin{itemize}
-          \item \texttt{LogisticRegression} (softmax)
+          \item \texttt{LogisticRegression}
+          \item \texttt{LinearRegression}
           \item \texttt{StandardScaler}
-          \item \texttt{cross\_val\_score}
+          \item \texttt{train\_test\_split}
         \end{itemize}
       \end{exampleblock}
     \end{column}
-    \begin{column}{0.48\textwidth}
-      \begin{block}{Pipeline}
+  \end{columns}
+
+  \medskip
+  \begin{lstlisting}[style=pythonstyle]
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+X_tr = scaler.fit_transform(X_train)
+X_te = scaler.transform(X_test)
+
+clf = LogisticRegression()
+clf.fit(X_tr, y_train)
+print(clf.score(X_te, y_test))
+  \end{lstlisting}
+\end{frame}
+
+% ---
+
+\begin{frame}[fragile]{Pipeline}
+  \begin{columns}[T]
+    \begin{column}{0.58\textwidth}
+      \begin{block}{Principe}
         \begin{itemize}
           \item Enchaîner Scaler $\to$ Modèle
-          \item Évite le Data Leakage sur le scaling
-          \item \texttt{Pipeline([('scaler', StandardScaler()),}
-                \texttt{\phantom{Pipeline(}'('clf', LogisticRegression())])}
-        \end{itemize}
-      \end{block}
-
-      \smallskip
-      % TODO : schéma pipeline (blocs enchaînés)
-    \end{column}
-  \end{columns}
-\end{frame}
-
-% ============================================================
-\section{TP : MNIST avec sklearn}
-% ============================================================
-
-\begin{frame}{TP --- Setup \& Baseline}
-  \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-      \begin{block}{Dataset MNIST}
-        \begin{itemize}
-          \item 70 000 images $28 \times 28$ ($= 784$ features)
-          \item 10 classes (chiffres 0--9)
-          \item Split standard : 60 000 train / 10 000 test
-        \end{itemize}
-      \end{block}
-
-      \smallskip
-      \begin{block}{Baseline}
-        \begin{itemize}
-          \item \texttt{LogisticRegression} (Softmax)
-          \item Normalisation \texttt{StandardScaler}
-          \item Métriques : accuracy, matrice de confusion
+          \item \texttt{.fit()} appliqué séquentiellement
+          \item Compatible avec la cross-validation
         \end{itemize}
       \end{block}
     \end{column}
-    \begin{column}{0.48\textwidth}
-      % TODO : grille d'exemples MNIST (chiffres 0-9)
-    \end{column}
-  \end{columns}
-\end{frame}
-
-% ---
-
-\begin{frame}{TP --- Manipuler l'Overfitting}
-  \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      \begin{alertblock}{Observer l'Overfitting}
-        \begin{itemize}
-          \item Entraîner sur $N = 500$ images
-          \item Train accuracy $\approx 100\%$,
-                Test accuracy $\approx 60\%$
-          \item Le modèle mémorise
-        \end{itemize}
+    \begin{column}{0.38\textwidth}
+      \begin{alertblock}{Sans Pipeline}
+        Scaler fitté sur train+val\\
+        $\Rightarrow$ \textbf{Data Leakage !}
       \end{alertblock}
-
-      \smallskip
-      \begin{exampleblock}{Remèdes}
-        \begin{itemize}
-          \item \textbf{Plus de données} --- augmenter $N$
-          \item \textbf{Régularisation L2} (\texttt{C} dans sklearn)
-                --- pénalise les grands poids
-          \item \textbf{Régularisation L1} --- sparse weights
-        \end{itemize}
-      \end{exampleblock}
-    \end{column}
-    \begin{column}{0.44\textwidth}
-      % TODO : courbe train acc / test acc en fonction de N
     \end{column}
   \end{columns}
+
+  \medskip
+  \begin{lstlisting}[style=pythonstyle]
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+
+pipe = Pipeline([
+    ('scaler', StandardScaler()),
+    ('clf',    LogisticRegression()),
+])
+
+pipe.fit(X_train, y_train)
+print(pipe.score(X_test, y_test))
+  \end{lstlisting}
 \end{frame}
 
 % ---
 
-\begin{frame}{TP --- Analyse des Erreurs}
+\begin{frame}[fragile]{train\_test\_split \& cross\_val\_score}
   \begin{columns}[T]
-    \begin{column}{0.44\textwidth}
-      \begin{block}{Matrice de Confusion}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{\texttt{train\_test\_split}}
         \begin{itemize}
-          \item Quels chiffres sont confondus ?
-          \item Ex. : 4 vs 9, 3 vs 8, 5 vs 6
-          \item Orienter les efforts d'amélioration
+          \item Découpe aléatoire du dataset
+          \item \texttt{test\_size} : proportion du test set
+          \item \texttt{random\_state} : reproductibilité
+          \item \texttt{stratify} : préserve les proportions de classes
         \end{itemize}
       \end{block}
-
-      \smallskip
-      \begin{exampleblock}{Aller plus loin}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{\texttt{cross\_val\_score}}
         \begin{itemize}
-          \item \texttt{cross\_val\_score} pour estimer la variance
-          \item Grid search sur $C$ (régularisation)
+          \item K-Fold intégré, compatible Pipeline
+          \item Retourne un score par fold
+          \item \texttt{cv} : nombre de folds
+          \item \texttt{scoring} : métrique (\texttt{'accuracy'}, ...)
         \end{itemize}
       \end{exampleblock}
     \end{column}
-    \begin{column}{0.52\textwidth}
-      % TODO : matrice de confusion MNIST (10×10)
-    \end{column}
   \end{columns}
+
+  \medskip
+  \begin{lstlisting}[style=pythonstyle]
+from sklearn.model_selection import train_test_split, cross_val_score
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y)
+
+scores = cross_val_score(pipe, X_train, y_train, cv=5)
+print(f"CV: {scores.mean():.3f} +/- {scores.std():.3f}")
+  \end{lstlisting}
 \end{frame}
+
 
 % ============================================================
 \end{document}
