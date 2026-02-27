@@ -37,5 +37,6 @@ venv/
 
 # Données brutes (trop lourdes pour git)
 data/raw/
+data/MNIST/
 *.csv
 *.parquet
