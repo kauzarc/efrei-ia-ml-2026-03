@@ -155,6 +155,135 @@
 \end{frame}
 
 % ============================================================
+\section{Calcul différentiel}
+% ============================================================
+
+\begin{frame}{Dérivée — Taux de Variation}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      La dérivée mesure comment $f$ \textbf{varie localement} en $x_0$ :
+      \[
+        \frac{df}{dx}(x_0) = \lim_{h \to 0} \frac{f(x_0+h) - f(x_0)}{h}
+      \]
+      \textit{Géométriquement :} pente de la \textbf{tangente} au point $x_0$.
+
+      \medskip
+      \textbf{Dérivées usuelles :}
+      \begin{center}
+      {\renewcommand{\arraystretch}{1.3}%
+      \begin{tabular}{ll}
+        \toprule
+        $f(x)$ & $\dfrac{df}{dx}$ \\[0.4em]
+        \midrule
+        $x^n$ & $n\,x^{n-1}$ \\
+        $e^x$ & $e^x$ \\
+        $\ln x$ & $1/x$ \\
+        \bottomrule
+      \end{tabular}}
+      \end{center}
+
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=5.5cm, height=4.2cm,
+          domain=-1.5:2.3, samples=80,
+          ymin=-0.5, ymax=5.2,
+          axis lines=left,
+          tick label style={font=\tiny},
+          xlabel={\small $x$},
+          ylabel={\small $f(x)$},
+          xtick={-1,0,1,2},
+          ytick={0,1,2,3,4,5},
+          legend style={font=\scriptsize, at={(0.05,0.95)}, anchor=north west},
+          legend cell align=left,
+        ]
+          \addplot[jedy_blue, thick] {x^2};
+          \addlegendentry{$f(x)=x^2$}
+          \addplot[jedy_alert, dashed, thick, domain=0.0:2.2] {2*x - 1};
+          \addlegendentry{tangente en $x_0\!=\!1$}
+          \addplot[only marks, mark=*,
+                   mark options={fill=jedy_alert, draw=jedy_alert, scale=1.3}]
+            coordinates {(1,1)};
+        \end{axis}
+      \end{tikzpicture}
+
+      \smallskip
+      \textbf{Règle de composition :}
+      \[
+        \frac{d(g \circ f)}{dx} = \frac{dg}{du} \cdot \frac{df}{dx}
+        \quad (u = f(x))
+      \]
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}{Gradient — Extension Multivariée}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      Pour $f : \R^n \to \R$, le \textbf{gradient} est le vecteur des dérivées partielles :
+      \[
+        \nabla f(\bm{x}) =
+        \begin{pmatrix}
+          \dfrac{\partial f}{\partial x_1} \\[0.5em]
+          \vdots \\[0.2em]
+          \dfrac{\partial f}{\partial x_n}
+        \end{pmatrix}
+        \in \R^n
+      \]
+
+      \textbf{Exemple :} $f(x_1, x_2) = x_1^2 + x_2^2 \;\Rightarrow\;
+        \nabla f = \begin{pmatrix} 2x_1 \\ 2x_2 \end{pmatrix}$
+
+      \begin{block}{Propriété clé}
+        $\nabla f(\bm{x})$ pointe dans la direction de \textbf{plus forte montée} de $f$.\\[0.3em]
+        $-\nabla f(\bm{x})$ pointe donc vers la \textbf{plus forte descente}.
+      \end{block}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{center}
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=6.2cm, height=5.8cm,
+          view={25}{38},
+          xlabel={\scriptsize $x_1$},
+          ylabel={\scriptsize $x_2$},
+          zlabel={\scriptsize $f$},
+          tick label style={font=\tiny},
+          label style={font=\scriptsize},
+          domain=-1.5:1.5,
+          y domain=-1.5:1.5,
+          samples=16,
+          z buffer=sort,
+          colormap={jedy3d}{color=(jedy_light) color=(jedy_blue)},
+          xtick={-1,0,1},
+          ytick={-1,0,1},
+          ztick={0,2,4},
+        ]
+          \addplot3[surf, shader=interp] {x^2 + y^2};
+          % Flèches gradient sur la surface
+          \draw[->, jedy_alert, very thick]
+            (axis cs:1.00,0.00,1.00) -- (axis cs:1.30,0.00,1.69);
+          \draw[->, jedy_alert, very thick]
+            (axis cs:0.00,1.00,1.00) -- (axis cs:0.00,1.30,1.69);
+          \draw[->, jedy_alert, very thick]
+            (axis cs:0.70,0.70,0.98) -- (axis cs:0.91,0.91,1.66);
+          \node[jedy_alert, font=\scriptsize]
+            at (axis cs:1.45,0.20,1.90) {$\nabla f$};
+          % Minimum
+          \fill[white] (axis cs:0,0,0) circle (2pt);
+          \node[font=\tiny, jedy_blue, above right]
+            at (axis cs:0.05,0.05,0.05) {min};
+        \end{axis}
+      \end{tikzpicture}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
 \section{Probabilités (express)}
 % ============================================================
 
@@ -232,11 +361,11 @@
 
 \begin{frame}{Notion de Vraisemblance}
   \begin{block}{Idée fondatrice du ML supervisé}
-    On cherche les paramètres $\w$ qui rendent les données \textbf{les plus probables} :
+    On cherche les paramètres $\theta$ qui rendent les données \textbf{les plus probables} :
     \[
-      \w^* = \arg\max_{\w}\; p(\dataset \mid \w)
+      \theta^* = \arg\max_{\theta}\; p(\dataset \mid \theta)
       \quad \Longleftrightarrow \quad
-      \w^* = \arg\min_{\w}\; \Loss(\w)
+      \theta^* = \arg\min_{\theta}\; \Loss(\theta)
     \]
   \end{block}
 
@@ -245,7 +374,7 @@
     \begin{column}{0.48\textwidth}
       \textbf{Log-vraisemblance} (plus pratique)
       \[
-        \ell(\w) = \log p(\dataset \mid \w) = \sum_i \log p(y_i \mid \bm{x}_i, \w)
+        \ell(\theta) = \log p(\dataset \mid \theta) = \sum_i \log p(y_i \mid \bm{x}_i, \theta)
       \]
       Maximiser $\ell$ = minimiser une \textbf{loss}.
     \end{column}
@@ -253,7 +382,7 @@
       \begin{exampleblock}{Lien avec la MSE}
         Si le bruit est gaussien, maximiser la vraisemblance revient à minimiser :
         \[
-          \Loss(\w) = \frac{1}{m}\sum_{i=1}^{m}(y_i - \hat{y}_i)^2
+          \Loss(\theta) = \frac{1}{m}\sum_{i=1}^{m}(y_i - \hat{y}_i)^2
         \]
       \end{exampleblock}
     \end{column}
@@ -660,6 +789,7 @@ pd.get_dummies(df, columns=['ville'])
       \begin{block}{Mathématiques}
         \begin{itemize}
           \item Vecteurs, matrices, produit, transposée
+          \item Dérivée, gradient $\nabla f$ — direction de montée
           \item Espérance, variance, distributions $\mathcal{B}$, $\mathcal{N}$
           \item Vraisemblance $\leftrightarrow$ fonction de coût
         \end{itemize}
