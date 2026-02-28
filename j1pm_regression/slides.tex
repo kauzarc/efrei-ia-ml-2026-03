@@ -302,16 +302,18 @@
         \item $y_i \in \R$ — valeur cible à prédire (prix…)
       \end{itemize}
 
-      \bigskip
+      \medskip
       \textbf{Modèle} — une droite (ou hyperplan) :
       \[
-        \hat{y}_i = \w\T\bm{x}_i + b
+        \hat{y}_i = f_{\w,b}(\bm{x}_i) = \w\T\bm{x}_i + b
       \]
       On cherche $\w \in \R^D$ et $b \in \R$ qui \textbf{ajustent} cette droite aux données.
 
-      \bigskip
-      \textbf{Objectif} — minimiser l'erreur quadratique :
+      \medskip
+      \textbf{Objectif} — minimiser l'erreur quadratique moyenne :
       \[
+        \operatorname{argmin}_{\w,\, b}\; \Loss(\hat{\y},\, \y)
+        \;\Longleftrightarrow\;
         \operatorname{argmin}_{\w,\, b}\; \frac{1}{N}\sum_{i=1}^{N}\bigl(\hat{y}_i - y_i\bigr)^2
       \]
       Trouver la droite la \textbf{plus proche} de tous les points.
@@ -343,6 +345,66 @@
           \node[jedy_example, font=\scriptsize] at (axis cs:2.0,2.5) {résidus};
         \end{axis}
       \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}{Prédictions : du scalaire au matriciel}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \textbf{Forme scalaire} — une prédiction à la fois :
+      \[
+        \hat{y}_i = \w\T\bm{x}_i, \quad i = 1, \ldots, N
+      \]
+
+      \begin{exampleblock}{Forme compacte}
+        \[
+          \hat{\y} = \X\w, \qquad \X \in \R^{N \times D}
+        \]
+        \textbf{Un seul produit matriciel} pour les $N$ prédictions.
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[
+        mat/.style={draw=jedy_blue, fill=jedy_light,
+                    minimum width=1.4cm, minimum height=0.48cm,
+                    font=\scriptsize, inner sep=2pt},
+        vec/.style={draw=jedy_mid, fill=jedy_mid!20,
+                    minimum width=0.7cm, minimum height=0.48cm,
+                    font=\scriptsize, inner sep=2pt},
+        res/.style={draw=jedy_example, fill=jedy_example!15,
+                    minimum width=0.8cm, minimum height=0.48cm,
+                    font=\scriptsize, inner sep=2pt},
+      ]
+        % Matrice X
+        \foreach \i/\t in {0/$\bm{x}_1\T$, 1/$\bm{x}_2\T$, 2/$\vdots$, 3/$\bm{x}_N\T$} {
+          \node[mat] at (0, -\i*0.58) {\t};
+        }
+        \node[above, font=\small\bfseries, text=jedy_blue] at (0, 0.32) {$\X$};
+        \node[below, font=\tiny, text=gray] at (0, -3*0.58-0.3) {$N \times D$};
+
+        % Vecteur w
+        \foreach \i/\t in {0/$w_1$, 1/$w_2$, 2/$\vdots$, 3/$w_D$} {
+          \node[vec] at (2.0, -\i*0.58) {\t};
+        }
+        \node[above, font=\small\bfseries, text=jedy_mid] at (2.0, 0.32) {$\w$};
+        \node[below, font=\tiny, text=gray] at (2.0, -3*0.58-0.3) {$D \times 1$};
+
+        % Opérateurs
+        \node[font=\large] at (1.45, -0.87) {$\cdot$};
+        \node[font=\large] at (2.8, -0.87) {$=$};
+
+        % Vecteur ŷ
+        \foreach \i/\t in {0/$\hat{y}_1$, 1/$\hat{y}_2$, 2/$\vdots$, 3/$\hat{y}_N$} {
+          \node[res] at (3.65, -\i*0.58) {\t};
+        }
+        \node[above, font=\small\bfseries, text=jedy_example] at (3.65, 0.32) {$\hat{\y}$};
+        \node[below, font=\tiny, text=gray] at (3.65, -3*0.58-0.3) {$N \times 1$};
+      \end{tikzpicture}
+      \end{center}
     \end{column}
   \end{columns}
 \end{frame}
@@ -484,7 +546,7 @@ y_hat = X_aug @ w_aug
 \begin{frame}{Descente de Gradient — Intuition Géométrique}
   \begin{columns}[T]
     \begin{column}{0.50\textwidth}
-      On cherche $\w^* = \arg\min_\w \Loss(\w)$.
+      On cherche $\w^* = \arg\min_\w \Loss(\hat{\y}, \y)$.
 
       \bigskip
       \textbf{Idée :} le gradient $\nabla_\w\Loss$ pointe vers la
@@ -495,7 +557,7 @@ y_hat = X_aug @ w_aug
       \textbf{Règle de mise à jour :}
       \[
         \boxed{
-          \w \leftarrow \w - \lr\, \nabla_\w \Loss(\w)
+          \w \leftarrow \w - \lr\, \nabla_\w \Loss(\hat{\y}, \y)
         }
       \]
 
@@ -549,23 +611,21 @@ y_hat = X_aug @ w_aug
 
 % ---
 
-\begin{frame}[fragile]{L'Algorithme — Descente de Gradient (Batch)}
+\begin{frame}{L'Algorithme — Descente de Gradient (Batch)}
   \begin{columns}[T]
     \begin{column}{0.50\textwidth}
-\begin{lstlisting}
-def gradient_descent(X, y, lr, n_iters):
-    N, D = X.shape
-    w = np.zeros(D)        # init
-
-    for t in range(n_iters):
-        y_hat = X @ w
-        error = y_hat - y  # (N,)
-
-        grad = (2/N) * X.T @ error  # (D,)
-        w = w - lr * grad
-
-    return w
-\end{lstlisting}
+      \begin{block}{Algorithme}
+        \smallskip
+        \begin{tabular}{@{}ll}
+          \textbf{Entrée} & $\X \in \R^{N \times D}$, $\y \in \R^N$, $\lr$, $\mathit{nb\_iter}$ \\[0.3em]
+          \textbf{Init}   & $\theta \leftarrow \theta_0$ \\[0.5em]
+          \multicolumn{2}{@{}l}{\textbf{Répéter} $\mathit{nb\_iter}$ \textbf{fois} :} \\[0.2em]
+          \hspace{1.5em}  & $\bm{g} \leftarrow \nabla_\theta\,\Loss(f_\theta(\X),\, \y)$ \\[0.2em]
+                          & $\theta \leftarrow \theta - \lr\,\bm{g}$ \\[0.5em]
+          \multicolumn{2}{@{}l}{\textbf{Retourner} $\theta$}
+        \end{tabular}
+        \smallskip
+      \end{block}
 
       \begin{alertblock}{Complexité}
         $\mathcal{O}(N \cdot D)$ par itération.\\
@@ -579,7 +639,7 @@ def gradient_descent(X, y, lr, n_iters):
       \begin{tabular}{lp{3.2cm}}
         \toprule
         Batch GD & Gradient sur \textbf{tout} le dataset \\[0.3em]
-        SGD      & Gradient sur \textbf{1 exemple} aléatoire \\[0.3em]
+        SGD      & Gradient sur \textbf{1 échantillon} aléatoire \\[0.3em]
         Mini-Batch & Gradient sur un \textbf{batch} de taille $B$ \\
         \bottomrule
       \end{tabular}
