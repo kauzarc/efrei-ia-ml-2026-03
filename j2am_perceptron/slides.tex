@@ -340,24 +340,23 @@
 \section{Algorithme de Rosenblatt}
 % ============================================================
 
-\begin{frame}[fragile]{Algorithme Online de Rosenblatt}
+\begin{frame}{Algorithme Online de Rosenblatt}
   \begin{columns}[T]
     \begin{column}{0.52\textwidth}
-\begin{lstlisting}
-def rosenblatt(X, t, lr=0.1, n_epochs=50):
-    N, D = X.shape
-    ones  = np.ones((N, 1))
-    X_aug = np.hstack([ones, X])  # (N, D+1)
-    w = np.zeros(D + 1)
-
-    for epoch in range(n_epochs):
-        for n in range(N):
-            score = X_aug[n] @ w
-            t_hat = np.sign(score)
-            if t_hat != t[n]:
-                w += lr * t[n] * X_aug[n]
-    return w
-\end{lstlisting}
+      \begin{block}{Algorithme}
+        \small
+        \textbf{Entrée :} $\bm{x}_1,\ldots,\bm{x}_N \in \R^D$,\;
+        $t_1,\ldots,t_N \in \{+1,-1\}$,\; $\alpha$\\[4pt]
+        $\tilde{\bm{x}}_n \leftarrow [1,\;\bm{x}_n\T]\T \in \R^{D+1}$
+        \hfill\textit{(biais absorbé)}\\[2pt]
+        $\bm{w} \leftarrow \vec{0} \in \R^{D+1}$\\[2pt]
+        \textbf{pour} chaque époque \textbf{faire}\\
+        \hspace{1.2em}\textbf{pour} $n = 1$ \textbf{à} $N$ \textbf{faire}\\
+        \hspace{2.4em}$\hat{t}_n \leftarrow \operatorname{sign}(\bm{w}\T\tilde{\bm{x}}_n)$\\
+        \hspace{2.4em}\textbf{si} $\hat{t}_n \neq t_n$ \textbf{alors}\\
+        \hspace{3.6em}$\bm{w} \leftarrow \bm{w} + \alpha\, t_n\, \tilde{\bm{x}}_n$\\[2pt]
+        \textbf{retourner} $\bm{w}$
+      \end{block}
 
       \begin{alertblock}{« Online » = un exemple à la fois}
         \small Traite les données comme un \textbf{flux},
