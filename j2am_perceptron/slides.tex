@@ -43,13 +43,54 @@
       \end{itemize}
 
       \smallskip
+      \begin{block}{Enjeu}
+        Trouver une \textbf{frontière de décision} qui sépare
+        les classes dans l'espace des features.
+      \end{block}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=6.5cm, height=4.3cm,
+          xlabel={$x_1$}, ylabel={$x_2$},
+          axis lines=left,
+          tick label style={font=\tiny},
+          xmin=-3, xmax=3, ymin=-2.5, ymax=2,
+          title={\small Deux classes dans $\R^2$},
+          title style={font=\small},
+        ]
+          \addplot[only marks, mark=*, mark size=2pt, jedy_blue]
+            coordinates {
+              (1.2,1.0)(1.5,0.8)(0.8,1.2)(1.8,1.1)(1.0,0.6)
+              (1.3,1.4)(2.0,0.9)(1.6,0.5)(0.9,1.5)
+            };
+          \addplot[only marks, mark=*, mark size=2pt, jedy_alert]
+            coordinates {
+              (-1.5,-1.0)(-0.8,-1.2)(-1.2,-0.8)(-2.0,-0.9)(-1.0,-1.5)
+              (-0.5,-0.8)(-1.8,-1.3)(-1.3,-0.5)(-0.9,-1.1)
+            };
+          \node[jedy_blue,  font=\scriptsize] at (axis cs: 1.9, 1.7) {$t=+1$};
+          \node[jedy_alert, font=\scriptsize] at (axis cs:-1.9,-1.9) {$t=-1$};
+        \end{axis}
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}{Le Perceptron}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
       \begin{block}{Modèle \& Prédiction}
         \[ f_\Theta(\bm{x}_n) = \w\T\bm{x}_n + b \in \R \]
-        \small $\hat{t}_n = \operatorname{sign}(f)
-        \in \{+1,-1\}$ \quad
-        Encodage $t_n \in \{+1,-1\}$ : \textbf{crucial}
-        pour la loss (pas $\{0,1\}$ !).
+        \[ \hat{t}_n = \operatorname{sign}(f_\Theta(\bm{x}_n))
+           \in \{+1,-1\} \]
       \end{block}
+
+      \smallskip
+      Le signe de $f_\Theta(\bm{x}_n)$ indique de quel côté de
+      l'hyperplan se trouve $\bm{x}_n$.
     \end{column}
     \begin{column}{0.46\textwidth}
       \begin{tikzpicture}
@@ -75,11 +116,11 @@
           \addplot[jedy_example, thick, domain=-2.5:2.0] {-x};
           \draw[->, jedy_mid, very thick]
             (axis cs:0,0) -- (axis cs:0.6,0.6);
-          \node[jedy_mid,    font=\scriptsize] at (axis cs: 0.9, 0.4) {$\w$};
-          \node[jedy_example,font=\scriptsize] at (axis cs: 2.2,-1.9)
+          \node[jedy_mid,     font=\scriptsize] at (axis cs: 0.9, 0.4) {$\w$};
+          \node[jedy_example, font=\scriptsize] at (axis cs: 2.2,-1.9)
             {$\w\T\bm{x}+b=0$};
-          \node[jedy_blue,   font=\scriptsize] at (axis cs: 1.9, 1.7) {$t=+1$};
-          \node[jedy_alert,  font=\scriptsize] at (axis cs:-1.9,-1.9) {$t=-1$};
+          \node[jedy_blue,    font=\scriptsize] at (axis cs: 1.9, 1.7) {$t=+1$};
+          \node[jedy_alert,   font=\scriptsize] at (axis cs:-1.9,-1.9) {$t=-1$};
         \end{axis}
       \end{tikzpicture}
     \end{column}
@@ -517,27 +558,60 @@ def rosenblatt(X, t, lr=0.1, n_epochs=50):
 \section{Classification Multi-Classes}
 % ============================================================
 
-\begin{frame}{Un Perceptron par Classe}
+\begin{frame}{Classification Multi-Classes}
   \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      \textbf{Idée :} $K$ perceptrons indépendants, un par classe.
+    \begin{column}{0.50\textwidth}
+      \textbf{Classification binaire} (jusqu'ici) :
+      $\hat{t}_n \in \{+1,-1\}$
 
-      \begin{block}{Score de la classe $k$}
-        \[ f_k(\bm{x}_n) = \bm{w}_k\T\bm{x}_n + b_k \in \R,
-           \quad \bm{w}_k \in \R^D,\ b_k \in \R \]
-      \end{block}
+      \smallskip
+      \textbf{Multi-classes} : $K$ catégories discrètes,
+      $\hat{k} \in \{1, \ldots, K\}$
 
-      \begin{block}{Softmax $\to$ probabilités}
-        \[ p_k = \frac{e^{f_k}}{\sum_j e^{f_j}} \in (0,1),
-           \quad \sum_k p_k = 1 \]
-        \small Lisse et différentiable : adaptée à GD.
-      \end{block}
+      \smallskip
+      \textbf{Exemples :}
+      \begin{itemize}
+        \item Chiffres MNIST ($K = 10$)
+        \item Objets CIFAR-10 ($K = 10$)
+        \item Fleurs Iris ($K = 3$)
+      \end{itemize}
 
-      \begin{block}{Encodage \& Prédiction}
-        \small $\bm{t}_n \in \{0,1\}^K$ (one-hot), une composante à $1$.\\
-        Readout : $\hat{k} = \arg\max_k\, p_k(\bm{x}_n)$.
+      \smallskip
+      \begin{block}{Enjeu}
+        Séparer $K$ classes --- une \textbf{frontière de décision}
+        par classe.
       \end{block}
     \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=6.5cm, height=4.3cm,
+          xlabel={$x_1$}, ylabel={$x_2$},
+          axis lines=left,
+          tick label style={font=\tiny},
+          xmin=-3, xmax=3, ymin=-2.5, ymax=2.5,
+          title={\small $K = 3$ classes dans $\R^2$},
+          title style={font=\small},
+        ]
+          \addplot[only marks, mark=*, mark size=2pt, jedy_blue]
+            coordinates {(1.2,1.3)(1.5,1.6)(1.8,1.2)(1.3,1.8)(2.0,1.4)};
+          \addplot[only marks, mark=triangle*, mark size=2pt, jedy_mid]
+            coordinates {(-1.2,1.3)(-1.5,1.6)(-1.8,1.2)(-1.3,1.8)(-2.0,1.4)};
+          \addplot[only marks, mark=square*, mark size=2pt, jedy_alert]
+            coordinates {(-0.3,-1.5)(0.3,-1.5)(0,-1.8)(-0.5,-2.0)(0.5,-2.0)};
+          \node[jedy_blue,  font=\scriptsize] at (axis cs: 2.5, 2.2) {$k=1$};
+          \node[jedy_mid,   font=\scriptsize] at (axis cs:-2.5, 2.2) {$k=2$};
+          \node[jedy_alert, font=\scriptsize] at (axis cs: 1.5,-2.2) {$k=3$};
+        \end{axis}
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}{Un Perceptron par Classe}
+  \begin{columns}[T]
     \begin{column}{0.44\textwidth}
       \begin{tikzpicture}[
         neur/.style={rectangle, rounded corners,
@@ -566,10 +640,81 @@ def rosenblatt(X, t, lr=0.1, n_epochs=50):
         \draw[arr] (n1.east) -- ++(0.6,0);
         \draw[arr] (n2.east) -- ++(0.6,0);
         \draw[arr] (nk.east) -- ++(0.6,0);
-
-        \node[font=\tiny, jedy_mid, align=center]
-          at (2.8, -0.55) {Softmax puis $\hat{k}=\arg\max$};
       \end{tikzpicture}
+
+      \smallskip
+      \small Score de la classe $k$ :
+      \[ f_k(\bm{x}_n) = \bm{w}_k\T\bm{x}_n + b_k \in \R \]
+    \end{column}
+    \begin{column}{0.52\textwidth}
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=7.0cm, height=5.0cm,
+          xlabel={$x_1$}, ylabel={$x_2$},
+          axis lines=left,
+          tick label style={font=\tiny},
+          xmin=-3, xmax=3, ymin=-2.5, ymax=2.5,
+          title={\small Un hyperplan séparateur par classe},
+          title style={font=\small},
+        ]
+          \addplot[only marks, mark=*, mark size=2pt, jedy_blue]
+            coordinates {(1.2,1.3)(1.5,1.6)(1.8,1.2)(1.3,1.8)(2.0,1.4)};
+          \addplot[only marks, mark=triangle*, mark size=2pt, jedy_mid]
+            coordinates {(-1.2,1.3)(-1.5,1.6)(-1.8,1.2)(-1.3,1.8)(-2.0,1.4)};
+          \addplot[only marks, mark=square*, mark size=2pt, jedy_alert]
+            coordinates {(-0.3,-1.5)(0.3,-1.5)(0,-1.8)(-0.5,-2.0)(0.5,-2.0)};
+          % Hyperplan k=1 : y = 1.5 - x  (sépare cluster 1 des deux autres)
+          \addplot[jedy_blue,  thick, domain=-3:3] {1.5 - x};
+          % Hyperplan k=2 : y = 1.5 + x  (sépare cluster 2 des deux autres)
+          \addplot[jedy_mid,   thick, domain=-3:3] {1.5 + x};
+          % Hyperplan k=3 : y = -0.5     (sépare cluster 3 des deux autres)
+          \addplot[jedy_alert, thick, domain=-3:3] {-0.5};
+          \node[jedy_blue,  font=\scriptsize] at (axis cs: 2.5, 2.2) {$k=1$};
+          \node[jedy_mid,   font=\scriptsize] at (axis cs:-2.5, 2.2) {$k=2$};
+          \node[jedy_alert, font=\scriptsize] at (axis cs: 2.2,-0.9) {$k=3$};
+        \end{axis}
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}{Softmax \& Prédiction}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Softmax $\to$ probabilités}
+        \[
+          p_k = \frac{e^{f_k}}{\displaystyle\sum_{j=1}^{K} e^{f_j}}
+          \in (0,1), \qquad \sum_{k=1}^{K} p_k = 1
+        \]
+        \small Lisse et différentiable : adaptée à la descente de gradient.
+      \end{block}
+
+      \smallskip
+      Les scores bruts $f_k$ (\textbf{logits}) sont convertis
+      en distribution de probabilité sur les $K$ classes.
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Encodage \& Prédiction}
+        \small $\bm{t}_n \in \{0,1\}^K$ (\textbf{one-hot}) :
+        une seule composante à $1$.
+        \[
+          k=1 \;\to\; \begin{pmatrix}1\\0\\0\end{pmatrix}, \quad
+          k=2 \;\to\; \begin{pmatrix}0\\1\\0\end{pmatrix}
+        \]
+        Readout : $\hat{k} = \arg\max_k\, p_k(\bm{x}_n)$
+      \end{block}
+
+      \smallskip
+      \begin{exampleblock}{Exemple $K = 3$}
+        \small
+        \begin{tabular}{ll}
+          Logits :     & $[3.0,\;1.5,\;0.5]$ \\[2pt]
+          Softmax :    & $[0.77,\;0.17,\;0.06]$ \\[2pt]
+          Prédiction : & $\hat{k} = 1$ \\
+        \end{tabular}
+      \end{exampleblock}
     \end{column}
   \end{columns}
 \end{frame}
@@ -587,12 +732,12 @@ def rosenblatt(X, t, lr=0.1, n_epochs=50):
 
       \begin{alertblock}{Empilement $\Rightarrow$ 1 équation matricielle}
         \[
-          \bm{f}_n
-          = \underbrace{\W}_{\R^{K\times D}}\bm{x}_n
-          + \underbrace{\bm{b}}_{\R^K},
-          \qquad W_{k,\cdot} = \bm{w}_k\T
+          \underbrace{\bm{f}(\bm{x}_n)}_{\R^K}
+          = \underbrace{\W}_{\R^{K\times D}}\,
+            \underbrace{\bm{x}_n}_{\R^D}
+          + \underbrace{\bm{b}}_{\R^K}
         \]
-        \small La \textbf{ligne} $k$ de $\W$ est le perceptron de classe $k$.
+        \small Ligne $k$ de $\W$ = $\bm{w}_k\T$ (perceptron de classe $k$).
       \end{alertblock}
 
       \begin{block}{Forme batch (tout le dataset)}
@@ -629,6 +774,11 @@ def rosenblatt(X, t, lr=0.1, n_epochs=50):
         \node[font=\tiny, gray, align=center] at (0, 0.85)
           {1 ligne = 1 perceptron};
       \end{tikzpicture}
+
+      \smallskip
+      \small
+      $\bm{P} \in \R^{N\times K}$ : ligne $n$ = $\bm{p}_n$ (probas softmax de $\bm{x}_n$)\\
+      $\bm{T} \in \R^{N\times K}$ : ligne $n$ = $\bm{t}_n$ (label one-hot de $\bm{x}_n$)
     \end{column}
   \end{columns}
 \end{frame}
