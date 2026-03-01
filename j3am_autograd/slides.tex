@@ -385,53 +385,54 @@ grad_y = dy_2 + dy_1   # -4.0
 \section{Micro-Autograd en Python}
 % ============================================================
 
-\begin{frame}[fragile]{Software Design : La Classe \texttt{Value}}
+\begin{frame}[fragile]{Software Design : La Dataclasse \texttt{Value}}
   \begin{columns}[T]
     \begin{column}{0.34\textwidth}
-      \begin{block}{Encapsuler le \texttt{float}}
+      \begin{block}{Conteneur de données pur}
         \begin{itemize}\small
           \item \code{data} : valeur numérique
           \item \code{grad} : gradient (init. à 0)
           \item \code{\_prev} : parents dans le graphe
-          \item \code{\_backward} : gradient local
+          \item \code{\_backward} : fermeture du gradient local
         \end{itemize}
       \end{block}
       \smallskip
-      \begin{exampleblock}{Principe}
-        Code mathématique \textbf{normal} + construction du graphe \textbf{automatique}
+      \begin{exampleblock}{\texttt{eq=False}}
+        \small Conserve le hash par \textbf{identité} --- deux nœuds avec la même valeur restent distincts dans le graphe
       \end{exampleblock}
     \end{column}
     \begin{column}{0.62\textwidth}
       \begin{lstlisting}[style=pythonstyle]
-class Value:
-    def __init__(self, data, _children=()):
-        self.data = data
-        self.grad = 0.0
-        self._prev = set(_children)
-        self._backward = lambda: None
+from dataclasses import dataclass, field
 
-    def __repr__(self):
-        return (f"Value(data={self.data:.3f}, "
-                f"grad={self.grad:.3f})")
+@dataclass(eq=False)
+class Value:
+    data: float
+    grad: float = 0.0
+    _prev: tuple = field(
+        default_factory=tuple, repr=False)
+    _backward: object = field(
+        default=None, repr=False)
 
 # Utilisation
 x = Value(2.0)
 y = Value(-3.0)
-print(x)  # Value(data=2.000, grad=0.000)
+print(x)  # Value(data=2.0, grad=0.0)
       \end{lstlisting}
     \end{column}
   \end{columns}
 \end{frame}
 
-\begin{frame}[fragile]{Magie Python : Operator Overloading}
+\begin{frame}[fragile]{Style Fonctionnel : Opérateurs comme Factories}
   \begin{columns}[T]
     \begin{column}{0.34\textwidth}
-      \begin{block}{Dunder methods}
-        \begin{itemize}\small
-          \item \code{\_\_add\_\_} $\rightarrow$ opérateur $+$
-          \item \code{\_\_mul\_\_} $\rightarrow$ opérateur $\times$
-          \item Graphe construit \textbf{implicitement}
-        \end{itemize}
+      \begin{block}{Pattern factory}
+        \begin{enumerate}\small
+          \item Calcule \code{out.data}
+          \item Définit \code{\_bwd} : règle locale
+          \item Assigne \code{out.\_backward}
+          \item Retourne \code{out}
+        \end{enumerate}
       \end{block}
       \smallskip
       \begin{alertblock}{Règle pour $+$}
@@ -446,23 +447,26 @@ print(x)  # Value(data=2.000, grad=0.000)
     \end{column}
     \begin{column}{0.62\textwidth}
       \begin{lstlisting}[style=pythonstyle]
-def __add__(self, other):
-    out = Value(self.data + other.data,
-                (self, other))
-    def _backward():
-        self.grad  += 1.0 * out.grad
-        other.grad += 1.0 * out.grad
-    out._backward = _backward
+def add(a, b):
+    out = Value(a.data + b.data,
+                _prev=(a, b))
+    def _bwd():
+        a.grad += out.grad
+        b.grad += out.grad
+    out._backward = _bwd
     return out
 
-def __mul__(self, other):
-    out = Value(self.data * other.data,
-                (self, other))
-    def _backward():
-        self.grad  += other.data * out.grad
-        other.grad += self.data  * out.grad
-    out._backward = _backward
+def mul(a, b):
+    out = Value(a.data * b.data,
+                _prev=(a, b))
+    def _bwd():
+        a.grad += b.data * out.grad
+        b.grad += a.data * out.grad
+    out._backward = _bwd
     return out
+
+# Usage
+z = add(mul(x, y), x)
       \end{lstlisting}
     \end{column}
   \end{columns}
@@ -510,6 +514,50 @@ def __mul__(self, other):
       \begin{alertblock}{Cet après-midi : PyTorch}
         \small\code{x = torch.tensor(..., requires\_grad=True)}
       \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section*{Récapitulatif}
+% ============================================================
+
+\begin{frame}{Récapitulatif}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Limites \& Non-Linéarité}
+        \small\begin{itemize}
+          \item XOR : non linéairement séparable $\Rightarrow$ couches cachées
+          \item Sans activation : $N$ couches $=$ 1 couche linéaire
+          \item ReLU, Sigmoïde : brisent la linéarité
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Graphe de Calcul \& Chain Rule}
+        \small\begin{itemize}
+          \item Toute fonction $\Rightarrow$ DAG de nœuds élémentaires
+          \item $\frac{\partial\Loss}{\partial x} = \frac{\partial\Loss}{\partial y} \cdot \frac{\partial y}{\partial x}$
+          \item Un seul backward $\Rightarrow$ gradients de \textbf{tous} les paramètres
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{Micro-Autograd}
+        \small\begin{itemize}
+          \item \code{Value} : dataclasse pure — \code{data}, \code{grad}, \code{\_prev}, \code{\_backward}
+          \item Factories (\code{add}, \code{mul}\ldots) : définissent \code{\_bwd}
+          \item Compositions (\code{sigmoid}, \code{mse}\ldots) : gradient \textbf{gratuit}
+        \end{itemize}
+      \end{alertblock}
+      \smallskip
+      \begin{block}{Boucle d'Entraînement}
+        \small\begin{enumerate}
+          \item \textbf{Forward} + loss
+          \item \textbf{Zero grad}
+          \item \textbf{Backward}
+          \item \textbf{Update} : \code{p.data -= lr * p.grad}
+        \end{enumerate}
+      \end{block}
     \end{column}
   \end{columns}
 \end{frame}
