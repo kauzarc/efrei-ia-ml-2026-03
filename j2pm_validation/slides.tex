@@ -93,6 +93,23 @@
                 \textcolor{jedy_alert}{toutes deux élevées}
         \end{itemize}
       \end{block}
+      \smallskip
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=\linewidth, height=3.2cm,
+          xmin=0, xmax=10, ymin=0, ymax=1.05,
+          xtick=\empty, ytick=\empty,
+          axis lines=left,
+          every axis plot/.append style={line width=1.2pt},
+        ]
+          \addplot[jedy_mid, smooth, forget plot] coordinates {
+            (0,0.85)(4,0.80)(7,0.77)(10,0.75)
+          };
+          \addplot[jedy_alert, dashed, smooth, forget plot] coordinates {
+            (0,0.88)(4,0.84)(7,0.81)(10,0.80)
+          };
+        \end{axis}
+      \end{tikzpicture}
     \end{column}
     \begin{column}{0.32\textwidth}
       \begin{exampleblock}{Bon fit}
@@ -102,6 +119,23 @@
                 \textcolor{jedy_example}{toutes deux basses}
         \end{itemize}
       \end{exampleblock}
+      \smallskip
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=\linewidth, height=3.2cm,
+          xmin=0, xmax=10, ymin=0, ymax=1.05,
+          xtick=\empty, ytick=\empty,
+          axis lines=left,
+          every axis plot/.append style={line width=1.2pt},
+        ]
+          \addplot[jedy_mid, smooth, forget plot] coordinates {
+            (0,0.90)(3,0.60)(6,0.33)(10,0.15)
+          };
+          \addplot[jedy_alert, dashed, smooth, forget plot] coordinates {
+            (0,0.92)(3,0.63)(6,0.38)(10,0.22)
+          };
+        \end{axis}
+      \end{tikzpicture}
     \end{column}
     \begin{column}{0.32\textwidth}
       \begin{alertblock}{Overfitting}
@@ -111,45 +145,27 @@
                 \textcolor{jedy_alert}{Val explose}
         \end{itemize}
       \end{alertblock}
+      \smallskip
+      \begin{tikzpicture}
+        \begin{axis}[
+          width=\linewidth, height=3.2cm,
+          xmin=0, xmax=10, ymin=0, ymax=1.05,
+          xtick=\empty, ytick=\empty,
+          axis lines=left,
+          every axis plot/.append style={line width=1.2pt},
+        ]
+          \addplot[jedy_mid, smooth, forget plot] coordinates {
+            (0,0.90)(3,0.52)(6,0.18)(10,0.03)
+          };
+          \addplot[jedy_alert, dashed, smooth, forget plot] coordinates {
+            (0,0.92)(3,0.62)(6,0.52)(10,0.88)
+          };
+          \node[font=\tiny, color=jedy_mid] at (axis cs:7,0.10) {Train};
+          \node[font=\tiny, color=jedy_alert] at (axis cs:7,0.82) {Val};
+        \end{axis}
+      \end{tikzpicture}
     \end{column}
   \end{columns}
-
-  \medskip
-  \centering
-  \begin{tikzpicture}
-    \begin{groupplot}[
-      group style={group size=3 by 1, horizontal sep=0.5cm},
-      width=3.7cm, height=3.2cm,
-      xmin=0, xmax=10, ymin=0, ymax=1.05,
-      xtick=\empty, ytick=\empty,
-      axis lines=left,
-      every axis plot/.append style={line width=1.2pt},
-    ]
-    \nextgroupplot
-      \addplot[jedy_mid, smooth, forget plot] coordinates {
-        (0,0.85)(4,0.80)(7,0.77)(10,0.75)
-      };
-      \addplot[jedy_alert, dashed, smooth, forget plot] coordinates {
-        (0,0.88)(4,0.84)(7,0.81)(10,0.80)
-      };
-    \nextgroupplot
-      \addplot[jedy_mid, smooth, forget plot] coordinates {
-        (0,0.90)(3,0.60)(6,0.33)(10,0.15)
-      };
-      \addplot[jedy_alert, dashed, smooth, forget plot] coordinates {
-        (0,0.92)(3,0.63)(6,0.38)(10,0.22)
-      };
-    \nextgroupplot
-      \addplot[jedy_mid, smooth, forget plot] coordinates {
-        (0,0.90)(3,0.52)(6,0.18)(10,0.03)
-      };
-      \addplot[jedy_alert, dashed, smooth, forget plot] coordinates {
-        (0,0.92)(3,0.62)(6,0.52)(10,0.88)
-      };
-      \node[font=\tiny, color=jedy_mid] at (axis cs:7,0.10) {Train};
-      \node[font=\tiny, color=jedy_alert] at (axis cs:7,0.82) {Val};
-    \end{groupplot}
-  \end{tikzpicture}
 \end{frame}
 
 % ---
@@ -429,37 +445,23 @@
 % ---
 
 \begin{frame}[fragile]{L'API Estimator}
-  \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-      \begin{block}{Interface universelle}
-        \begin{itemize}
-          \item \texttt{.fit(X, y)} --- entraînement
-          \item \texttt{.predict(X)} --- inférence
-          \item \texttt{.score(X, y)} --- évaluation
-          \item \texttt{.transform(X)} --- transformation
-        \end{itemize}
-      \end{block}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-      \begin{exampleblock}{Modèles clés}
-        \begin{itemize}
-          \item \texttt{LogisticRegression}
-          \item \texttt{LinearRegression}
-          \item \texttt{StandardScaler}
-          \item \texttt{train\_test\_split}
-        \end{itemize}
-      \end{exampleblock}
-    \end{column}
-  \end{columns}
-
-  \medskip
+  \begin{block}{Interface universelle}
+    \begin{tabular}{@{}ll@{}}
+      \texttt{.fit(X, y)}         & Apprend les paramètres internes sur les données d'entraînement \\[3pt]
+      \texttt{.predict(X)}        & Prédit les labels / valeurs pour de nouveaux exemples \\[3pt]
+      \texttt{.transform(X)}      & Applique la transformation apprise (scalers, encodeurs\ldots) \\[3pt]
+      \texttt{.fit\_transform(X)} & \texttt{.fit()} + \texttt{.transform()} en une seule passe \\[3pt]
+      \texttt{.score(X, y)}       & Retourne une métrique : accuracy (classif), $R^2$ (régression) \\
+    \end{tabular}
+  \end{block}
+  \smallskip
   \begin{lstlisting}[style=pythonstyle]
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 
 scaler = StandardScaler()
-X_tr = scaler.fit_transform(X_train)
-X_te = scaler.transform(X_test)
+X_tr = scaler.fit_transform(X_train)  # fit sur train uniquement
+X_te = scaler.transform(X_test)       # applique la meme normalisation
 
 clf = LogisticRegression()
 clf.fit(X_tr, y_train)
@@ -471,7 +473,7 @@ print(clf.score(X_te, y_test))
 
 \begin{frame}[fragile]{Pipeline}
   \begin{columns}[T]
-    \begin{column}{0.58\textwidth}
+    \begin{column}{0.96\textwidth}
       \begin{block}{Principe}
         \begin{itemize}
           \item Enchaîner Scaler $\to$ Modèle
@@ -479,12 +481,6 @@ print(clf.score(X_te, y_test))
           \item Compatible avec la cross-validation
         \end{itemize}
       \end{block}
-    \end{column}
-    \begin{column}{0.38\textwidth}
-      \begin{alertblock}{Sans Pipeline}
-        Scaler fitté sur train+val\\
-        $\Rightarrow$ \textbf{Data Leakage !}
-      \end{alertblock}
     \end{column}
   \end{columns}
 
@@ -542,6 +538,215 @@ print(f"CV: {scores.mean():.3f} +/- {scores.std():.3f}")
   \end{lstlisting}
 \end{frame}
 
+
+% ---
+
+\begin{frame}{Modèles supervisés}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Classification}
+        \begin{itemize}
+          \item \texttt{LogisticRegression} --- linéaire, rapide
+          \item \texttt{SVC} --- à noyau, puissant
+          \item \texttt{KNeighborsClassifier} --- basé distance
+          \item \texttt{RandomForestClassifier} --- ensemble
+          \item \texttt{GradientBoostingClassifier} --- boosting
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Régression}
+        \begin{itemize}
+          \item \texttt{LinearRegression} --- OLS
+          \item \texttt{Ridge} / \texttt{Lasso} --- régularisés
+          \item \texttt{SVR} --- à noyau
+          \item \texttt{RandomForestRegressor}
+          \item \texttt{GradientBoostingRegressor}
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+  \medskip
+  \begin{alertblock}{Interface universelle}
+    \centering
+    \texttt{.fit(X, y)} \qquad \texttt{.predict(X)} \qquad \texttt{.score(X, y)}
+  \end{alertblock}
+\end{frame}
+
+% ---
+
+\begin{frame}[fragile]{Prétraitement : \texttt{sklearn.preprocessing}}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Normalisation}
+        \begin{itemize}
+          \item \texttt{StandardScaler} --- $\mu=0,\;\sigma=1$
+          \item \texttt{MinMaxScaler} --- $[0,\,1]$
+          \item \texttt{RobustScaler} --- robuste aux outliers
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Encodage \& Imputation}
+        \begin{itemize}
+          \item \texttt{OneHotEncoder} --- catégorielles $\to$ binaires
+          \item \texttt{LabelEncoder} --- labels $\to$ entiers
+          \item \texttt{SimpleImputer} --- valeurs manquantes
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{lstlisting}[style=pythonstyle]
+from sklearn.preprocessing import (
+    StandardScaler, OneHotEncoder,
+    SimpleImputer,
+)
+
+# normalisation
+scaler = StandardScaler()
+X_sc = scaler.fit_transform(X_train)
+
+# valeurs manquantes
+imp = SimpleImputer(strategy='mean')
+X_cl = imp.fit_transform(X_train)
+
+# variables categorielles
+enc = OneHotEncoder()
+X_cat = enc.fit_transform(X_train)
+      \end{lstlisting}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}[fragile]{Métriques : \texttt{sklearn.metrics}}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Classification}
+        \begin{itemize}
+          \item \texttt{accuracy\_score}
+          \item \texttt{f1\_score} --- macro / weighted
+          \item \texttt{confusion\_matrix}
+          \item \texttt{classification\_report}
+          \item \texttt{roc\_auc\_score}
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Régression}
+        \begin{itemize}
+          \item \texttt{mean\_squared\_error} (MSE)
+          \item \texttt{mean\_absolute\_error} (MAE)
+          \item \texttt{r2\_score} --- coefficient $R^2$
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{lstlisting}[style=pythonstyle]
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix,
+)
+
+y_pred = clf.predict(X_test)
+
+print(accuracy_score(y_test, y_pred))
+print(classification_report(
+    y_test, y_pred))
+print(confusion_matrix(
+    y_test, y_pred))
+      \end{lstlisting}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---
+
+\begin{frame}[fragile]{Recherche d'hyperparamètres}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{\texttt{GridSearchCV}}
+        \begin{itemize}
+          \item Teste toutes les combinaisons
+          \item Cross-validation intégrée
+          \item Compatible Pipeline
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{\texttt{RandomizedSearchCV}}
+        \begin{itemize}
+          \item Échantillonnage aléatoire de l'espace
+          \item Plus rapide sur de grands espaces
+          \item \texttt{n\_iter} itérations
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{lstlisting}[style=pythonstyle]
+from sklearn.model_selection import (
+    GridSearchCV)
+from sklearn.svm import SVC
+
+param_grid = {
+    'C':      [0.1, 1, 10],
+    'kernel': ['linear', 'rbf'],
+}
+
+grid = GridSearchCV(
+    SVC(), param_grid, cv=5,
+    scoring='accuracy')
+grid.fit(X_train, y_train)
+
+print(grid.best_params_)
+print(grid.best_score_)
+      \end{lstlisting}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section*{Récapitulatif}
+% ============================================================
+
+\begin{frame}{Récapitulatif}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Généralisation}
+        \small\begin{itemize}
+          \item Objectif : données \textbf{non vues}, pas le train
+          \item Underfitting --- biais élevé, modèle trop simple
+          \item Overfitting --- variance élevée, modèle trop complexe
+          \item Compromis biais-variance : le \textit{sweet spot}
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Méthodologie}
+        \small\begin{itemize}
+          \item Split \textbf{Train / Val / Test} --- test intouchable
+          \item \textbf{K-Fold} --- estimation robuste, peu de données
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{API Scikit-Learn}
+        \small\begin{itemize}
+          \item \texttt{.fit()} / \texttt{.predict()} / \texttt{.score()}
+          \item \texttt{Pipeline} --- prétraitement + modèle chaînés
+          \item \texttt{GridSearchCV} --- recherche d'hyperparamètres
+        \end{itemize}
+      \end{alertblock}
+      \smallskip
+      \begin{block}{Modules clés}
+        \small\begin{itemize}
+          \item \texttt{preprocessing} --- scalers, encodeurs
+          \item \texttt{linear\_model} / \texttt{ensemble} / \texttt{svm}
+          \item \texttt{metrics} --- accuracy, F1, $R^2$
+          \item \texttt{model\_selection} --- CV, GridSearch
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
 
 % ============================================================
 \end{document}
