@@ -1,0 +1,205 @@
+% ============================================================
+%  INTRODUCTION — IA, Deep Learning et Machine Learning
+%  Julien Rolland — M2 Développement Fullstack
+% ============================================================
+\documentclass[aspectratio=169, 10pt]{beamer}
+\input{../shared/preamble}
+
+\title[IA, Deep Learning et Machine Learning]{IA, Deep Learning\\ et Machine Learning}
+\subtitle{Introduction --- Roadmap \& Modalités d'évaluation}
+\date{}
+
+% ============================================================
+\begin{document}
+% ============================================================
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% ============================================================
+\section{Le module}
+% ============================================================
+
+\begin{frame}{Vue d'ensemble}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Objectifs}
+        À la fin de ce module, vous serez capables de :
+        \begin{itemize}
+          \item Comprendre les \textbf{fondements mathématiques}
+                du Machine Learning
+          \item Implémenter des modèles \textbf{from scratch}
+                (régression, perceptron, autograd)
+          \item Utiliser \textbf{PyTorch} et \textbf{scikit-learn}
+                pour des projets réels
+          \item Déployer un modèle en \textbf{production}
+                (FastAPI, Docker, MLOps)
+          \item Travailler en autonomie sur un
+                \textbf{challenge compétitif}
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{exampleblock}{Format}
+        \begin{itemize}
+          \item \textbf{6 jours} --- 42 heures
+          \item \textbf{50\,\%} Théorie (slides)
+          \item \textbf{50\,\%} Pratique (notebooks)
+        \end{itemize}
+      \end{exampleblock}
+      \smallskip
+      \begin{block}{Prérequis}
+        \begin{itemize}
+          \item Python intermédiaire
+          \item Algèbre linéaire de base
+                (vecteurs, matrices)
+          \item Calcul différentiel (dérivées)
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Roadmap}
+% ============================================================
+
+\begin{frame}{Roadmap --- 6 Jours}
+  \begin{center}
+  \begin{tikzpicture}[font=\tiny,
+    am/.style={draw, rounded corners=3pt, align=center,
+               minimum width=2.05cm, minimum height=0.62cm,
+               fill=jedy_blue!15, line width=0.5pt},
+    pm/.style={draw, rounded corners=3pt, align=center,
+               minimum width=2.05cm, minimum height=0.62cm,
+               fill=jedy_mid!15, line width=0.5pt},
+    lbl/.style={font=\bfseries\scriptsize, color=jedy_blue}
+  ]
+    % Positions X (espacement 2.3cm, noeuds 2.05cm => total 13.1cm)
+    \def\xa{0}   \def\xb{2.3} \def\xc{4.6}
+    \def\xd{6.9} \def\xe{9.2} \def\xf{11.5}
+
+    % Headers
+    \foreach \x/\d in {\xa/J1, \xb/J2, \xc/J3, \xd/J4, \xe/J5, \xf/J6}{
+      \node[lbl] at (\x, 1.35) {\d};
+    }
+
+    % AM blocks
+    \node[am] at (\xa, 0.72) {Tooling\\Tenseurs};
+    \node[am] at (\xb, 0.72) {Perceptron\\Logistique};
+    \node[am] at (\xc, 0.72) {Autograd\\from Scratch};
+    \node[am] at (\xd, 0.72) {Embeddings\\\& Attention};
+    \node[am] at (\xe, 0.72) {MLOps\\\& Production};
+    \node[am, fill=jedy_alert!20] at (\xf, 0.72) {QCM Final\\(80\,\%)};
+
+    % PM blocks
+    \node[pm] at (\xa, 0.08) {Régression\\Linéaire};
+    \node[pm] at (\xb, 0.08) {Généralisation\\Scikit-Learn};
+    \node[pm] at (\xc, 0.08) {PyTorch\\CNN};
+    \node[pm] at (\xd, 0.08) {Transformers\\Fine-tuning};
+    \node[pm] at (\xe, 0.08) {Challenge\\Kaggle};
+    \node[pm, fill=jedy_example!30] at (\xf, 0.08) {Soutenances\\(20\,\%)};
+
+    % Separator line
+    \draw[dashed, color=gray!50, line width=0.4pt]
+      (-1.1, 0.40) -- (12.6, 0.40);
+
+    % Legend
+    \node[font=\tiny, color=jedy_blue] at (-0.75, 0.72) {AM};
+    \node[font=\tiny, color=jedy_mid]  at (-0.75, 0.08) {PM};
+  \end{tikzpicture}
+  \end{center}
+
+  \vspace{6pt}
+  \begin{columns}[T]
+    \begin{column}{0.30\textwidth}
+      \begin{block}{\small J1--J2 : Fondations}
+        \scriptsize Maths, NumPy, régression, classification,
+        biais-variance, cross-validation.
+      \end{block}
+    \end{column}
+    \begin{column}{0.30\textwidth}
+      \begin{block}{\small J3--J4 : Deep Learning}
+        \scriptsize Rétropropagation, PyTorch, CNN, NLP,
+        Transformers, fine-tuning.
+      \end{block}
+    \end{column}
+    \begin{column}{0.30\textwidth}
+      \begin{block}{\small J5--J6 : Production \& Éval}
+        \scriptsize MLOps, Docker, FastAPI, challenge
+        compétitif, soutenance, QCM.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Évaluation}
+% ============================================================
+
+\begin{frame}{Modalités d'Évaluation}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{QCM Final --- 80\,\% de la note}
+        \begin{itemize}
+          \item \textbf{Date :} J6 matin --- 23 mars 2026
+          \item \textbf{Format :} Questions à choix multiples
+          \item \textbf{Périmètre :} l'ensemble des concepts
+                vus durant la semaine
+          \item \textbf{Durée :} à préciser
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{alertblock}{Conseil}
+        Les notebooks sont la meilleure préparation.
+        Comprendre \textbf{pourquoi} le code fonctionne
+        vaut plus que mémoriser des formules.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Challenge Kaggle --- 20\,\% de la note}
+        \begin{tabular}{rl}
+          \textbf{10 pts} & Performance (leaderboard privé)\\
+          \textbf{10 pts} & Soutenance flash J6 (5~min)\\
+        \end{tabular}
+        \vspace{4pt}
+        \begin{itemize}
+          \item Travail en \textbf{groupes}
+          \item Condition minimale : battre la baseline
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Supports de Cours}
+  \begin{center}
+    \begin{exampleblock}{\centering Tous les supports sont disponibles sur GitHub}
+      \centering\vspace{4pt}
+      \Large\ttfamily https://github.com/kauzarc/efrei-ia-ml-2026-03
+      \vspace{4pt}
+    \end{exampleblock}
+  \end{center}
+  \vspace{4pt}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Contenu du dépôt}
+        \begin{itemize}
+          \item Slides PDF de chaque session
+          \item Notebooks corrigés
+          \item Notebooks exercices (squelettes)
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{Recommandation}
+        Travaillez directement dans les notebooks
+        exercices --- les corrigés sont là en cas
+        de blocage, pas en remplacement.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\end{document}
