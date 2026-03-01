@@ -1,0 +1,305 @@
+% ============================================================
+%  J5 — APRÈS-MIDI : Crab Age Regression Challenge
+%  Julien Rolland — M2 Développement Fullstack
+% ============================================================
+\documentclass[aspectratio=169, 10pt]{beamer}
+\input{../shared/preamble}
+
+\title[Challenge Kaggle]{Crab Age Regression Challenge}
+\subtitle{Jour 5 --- Après-midi}
+\date{Jour 5}
+
+% ============================================================
+\begin{document}
+% ============================================================
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Plan du module}
+  \tableofcontents
+\end{frame}
+
+% ============================================================
+\section{Le défi}
+% ============================================================
+
+\begin{frame}{La Mission : Expertise en Aquaculture}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Le problème terrain}
+        Déterminer l'âge des crabes est essentiel pour la gestion
+        durable des stocks, mais l'analyse en laboratoire
+        (section des carapaces) est \textbf{longue et coûteuse}.
+        \begin{itemize}
+          \item Processus invasif, impossible à grande échelle
+          \item Expertise humaine rare et coûteuse
+        \end{itemize}
+      \end{alertblock}
+      \smallskip
+      \begin{block}{L'objectif}
+        Prédire l'\textbf{âge (en mois)} d'un crabe à partir de
+        mesures physiques non-invasives.
+      \end{block}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{exampleblock}{Votre rôle}
+        En tant qu'ingénieurs IA, livrer le modèle le plus précis
+        possible pour \textbf{automatiser cette tâche} sur le terrain.
+        \vspace{4pt}
+        \begin{center}
+          \begin{tikzpicture}[font=\scriptsize,
+            nd/.style={draw, rounded corners=3pt, align=center,
+                       minimum width=2cm, minimum height=0.6cm,
+                       fill=jedy_light!30}]
+            \node[nd] (m) at (0,0)    {Mesures\\physiques};
+            \node[nd] (ai) at (0,-1.1) {Modèle IA};
+            \node[nd] (a) at (0,-2.2) {Âge estimé};
+            \draw[->, thick] (m) -- (ai);
+            \draw[->, thick] (ai) -- (a);
+          \end{tikzpicture}
+        \end{center}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Le Dataset : Mesures de Crabes}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Features}
+        \begin{itemize}
+          \item \textbf{Sex :} Masculin (M), Féminin (F), Indéterminé (I)
+          \item \textbf{Dimensions :} Longueur, Diamètre, Hauteur (mm)
+          \item \textbf{Poids :} Total, sans coquille, viscères, carapace (g)
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{block}{Target}
+        Colonne \textbf{Age} --- valeur continue (en mois).
+      \end{block}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{exampleblock}{Origine des données}
+        Données synthétiques générées par IA.\\[4pt]
+        Elles imitent les relations biologiques réelles tout en
+        garantissant l'absence de solutions pré-existantes
+        sur le web.
+      \end{exampleblock}
+      \smallskip
+      \begin{alertblock}{Attention}
+        Variable catégorielle \textbf{Sex} à encoder.\\
+        Réfléchissez à la normalisation des poids.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Règles et logistique}
+% ============================================================
+
+\begin{frame}{La Métrique : Mean Absolute Error}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Définition}
+        \[
+          \mathrm{MAE} = \frac{1}{n}\sum_{i=1}^{n}|\hat{y}_i - y_i|
+        \]
+        C'est l'erreur moyenne en mois entre l'âge prédit et
+        l'âge réel.
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Traduction métier}
+        «~Mon modèle se trompe en moyenne de $X$ mois
+        sur l'âge du crabe.~»
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{MAE vs MSE}
+        \begin{itemize}
+          \item MSE pénalise \textbf{lourdement} les gros écarts
+                (erreur quadratique)
+          \item MAE est \textbf{robuste} aux outliers
+          \item MAE est \textbf{directement interprétable}
+                en unité métier
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{alertblock}{Objectif minimal}
+        Battre la baseline de l'intervenant : le modèle
+        «~prédire la moyenne~».
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Logistique Kaggle}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Fichiers fournis}
+        \begin{itemize}
+          \item \textbf{train.csv :} données d'entraînement avec
+                la colonne Age
+          \item \textbf{test.csv :} données sans étiquettes ---
+                vos prédictions ici
+          \item \textbf{sample\_submission.csv :} format attendu
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{block}{Format de soumission}
+        Un fichier CSV avec deux colonnes :
+        \texttt{id} et \texttt{Age}.
+      \end{block}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{alertblock}{Leaderboard : Public vs Private}
+        \begin{itemize}
+          \item \textbf{Public (30\%) :} visible immédiatement
+                --- votre score actuel
+          \item \textbf{Private (70\%) :} révélé au J6 ---
+                \textbf{c'est ce score qui compte}
+          \item Attention à l'\textbf{overfitting} sur le
+                leaderboard public !
+        \end{itemize}
+      \end{alertblock}
+      \smallskip
+      \begin{exampleblock}{Fin des soumissions}
+        Matin du J6 à \textbf{09h00}.\\
+        Votre validation locale est votre meilleur guide.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Stratégie}
+% ============================================================
+
+\begin{frame}{Vos Leviers d'Action}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \begin{block}{Prétraitement \& Feature Engineering}
+        \begin{itemize}
+          \item Encoder \textbf{Sex} : one-hot ou ordinal ?
+          \item Normaliser les features continues ?
+          \item Créer des \textbf{ratios} biologiques :\\
+                ex. Poids / Longueur, Poids / Volume
+          \item Gérer les valeurs aberrantes
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{block}{Validation locale}
+        Créez votre propre split ou K-Fold.\\
+        Ne touchez au test set qu'en soumission.
+      \end{block}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{block}{Choix du modèle}
+        \begin{itemize}
+          \item \textbf{Baseline :} régression linéaire
+          \item \textbf{Ensembles :} Random Forest,
+                Gradient Boosting
+          \item \textbf{Boosting :} XGBoost, LightGBM
+          \item \textbf{MLP :} réseau de neurones simple
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Conseil}
+        Le temps passé à comprendre vos données et créer
+        des features pertinentes est souvent plus rentable
+        que tester 50 algorithmes différents.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Évaluation}
+% ============================================================
+
+\begin{frame}{Évaluation \& Notation (20\,\% du module)}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Performance Technique --- 10 points}
+        \begin{itemize}
+          \item Rang final sur le \textbf{Private Leaderboard}
+          \item Condition de validation : battre la baseline
+                «~prédire la moyenne~»
+          \item Classement relatif entre groupes
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{block}{Soutenance Flash J6 --- 10 points}
+        5 minutes par groupe :
+        \begin{enumerate}
+          \item Pipeline de préparation des données
+          \item Modèles testés et choix final
+          \item \textbf{Vos échecs} : qu'est-ce qui n'a pas marché ?
+          \item Comment avez-vous lutté contre l'overfitting ?
+        \end{enumerate}
+      \end{block}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{alertblock}{Ce qui différencie les équipes}
+        \begin{itemize}
+          \item Une vraie démarche expérimentale
+          \item La rigueur de la validation locale
+          \item La capacité à \textbf{expliquer} les choix
+        \end{itemize}
+      \end{alertblock}
+      \smallskip
+      \begin{exampleblock}{Critère clé de la soutenance}
+        Les \textbf{échecs documentés} sont valorisés autant
+        que les succès. L'ingénieur IA sait expliquer
+        \textit{pourquoi} une piste n'a pas fonctionné.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section*{Lancement}
+% ============================================================
+
+\begin{frame}{C'est parti !}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Accès à la compétition}
+        \begin{enumerate}
+          \item Connectez-vous sur \textbf{kaggle.com}
+          \item Rejoignez la compétition via le lien fourni
+          \item Téléchargez \texttt{train.csv} et \texttt{test.csv}
+          \item Première soumission : la baseline
+        \end{enumerate}
+      \end{block}
+      \smallskip
+      \begin{block}{Organisation suggérée}
+        \begin{itemize}
+          \item \textbf{J5 PM :} EDA + baseline + feature engineering
+          \item \textbf{J6 matin :} modèles avancés, tuning,
+                soumission finale avant 09h00
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{exampleblock}{Par où commencer ?}
+        \begin{enumerate}
+          \item Charger les données, afficher \texttt{.describe()}
+          \item Encoder \textbf{Sex}, vérifier les NaN
+          \item Entraîner une \textbf{régression linéaire}
+          \item Soumettre --- avoir un score de référence
+          \item Itérer : features, modèle, hyperparamètres
+        \end{enumerate}
+      \end{exampleblock}
+      \smallskip
+      \begin{alertblock}{Bonne chance !}
+        Vous avez tous les outils vus en cours ---
+        maintenant c'est à vous de jouer.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\end{document}
