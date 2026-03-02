@@ -186,7 +186,7 @@
         \draw[->, thick, jedy_mid!70] (h2) -- (out);
         \draw[->, thick, gray!70]     (out) -- (L);
 
-        \draw[->, very thick, jedy_alert, bend right=35]
+        \draw[->, very thick, jedy_alert, bend left=35]
           (L.south) to
           node[below, midway, font=\tiny, color=jedy_alert]
             {$\frac{\partial\Loss}{\partial w_1}$ = ?}
@@ -381,6 +381,85 @@ grad_y = dy_2 + dy_1   # -4.0
   \end{columns}
 \end{frame}
 
+\begin{frame}{Backward Pass : Graphe Annoté}
+  \centering
+  \begin{tikzpicture}[
+    nd/.style={rectangle, draw=jedy_mid, fill=jedy_light, rounded corners=2pt,
+               minimum width=1.1cm, minimum height=0.55cm, font=\small\bfseries},
+    op/.style={circle, draw=jedy_blue, fill=jedy_blue!12,
+               minimum size=0.65cm, font=\small\bfseries},
+    fw/.style={->, thick, color=jedy_blue!70},
+    bw/.style={->, thick, color=jedy_alert, dashed},
+    vl/.style={font=\tiny, color=jedy_blue},
+    gr/.style={font=\tiny, color=jedy_alert},
+  ]
+    \node[nd] (x)  at (0.0,  0.5) {$x$};
+    \node[nd] (y)  at (0.0, -1.4) {$y$};
+    \node[op] (pl) at (2.1,  0.5) {$+$};
+    \node[nd] (a)  at (4.0,  0.5) {$a$};
+    \node[op] (mu) at (5.8,  0.5) {$\times$};
+    \node[nd] (b)  at (7.6,  0.5) {$b$};
+
+    % Valeurs forward (bleu, au-dessus)
+    \node[vl, above=1pt of x] {$\mathsf{val}=2$};
+    \node[vl, above=1pt of y] {$\mathsf{val}=-3$};
+    \node[vl, above=1pt of a] {$\mathsf{val}=-1$};
+    \node[vl, above=1pt of b] {$\mathsf{val}=3$};
+
+    % Gradients (rouge, en-dessous)
+    \node[gr, below=1pt of x] {$\mathsf{grad}=-3$};
+    \node[gr, below=1pt of y] {$\mathsf{grad}=-4$};
+    \node[gr, below=1pt of a] {$\mathsf{grad}=-3$};
+    \node[gr, below=1pt of b] {$\mathsf{grad}=1$};
+
+    % Flèches forward
+    \draw[fw] (x) -- (pl);
+    \draw[fw] (y) to[out=20, in=230] (pl);
+    \draw[fw] (y) to[out=5, in=280] (mu);
+    \draw[fw] (pl) -- (a);
+    \draw[fw] (a) -- (mu);
+    \draw[fw] (mu) -- (b);
+
+    % Flèches backward (dashed, de droite à gauche)
+    \draw[bw] (b.south) to[bend left=40]
+      node[below, midway, font=\tiny, color=jedy_alert] {$\times y=-3$}
+      (a.south);
+    \draw[bw] (b.south) to[out=220, in=-5]
+      node[pos=0.5, below, font=\tiny, color=jedy_alert] {$\times a=-1$}
+      (y.east);
+    \draw[bw] (a.south) to[bend left=40]
+      node[below, midway, font=\tiny, color=jedy_alert] {$\times 1$}
+      (x.south);
+    \draw[bw] (a.south) to[out=250, in=15]
+      node[pos=0.45, right, font=\tiny, color=jedy_alert] {$\times 1$}
+      (y.north);
+  \end{tikzpicture}
+
+  \vspace{0.3em}
+  \begin{columns}[T]
+    \begin{column}{0.18\textwidth}
+      \begin{block}{\small Init}
+        \small $\nabla_b = 1$
+      \end{block}
+    \end{column}
+    \begin{column}{0.40\textwidth}
+      \begin{alertblock}{\small Nœud $\times$ : $b = a \cdot y$}
+        \small
+        $\nabla_a = 1 \cdot y = \mathbf{-3}$\\[2pt]
+        $\nabla_y \mathrel{+}= 1 \cdot a = -1$
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.38\textwidth}
+      \begin{alertblock}{\small Nœud $+$ : $a = x + y$}
+        \small
+        $\nabla_x = -3 \cdot 1 = \mathbf{-3}$\\[2pt]
+        $\nabla_y \mathrel{+}= -3 \cdot 1 = -3$\\[1pt]
+        \textcolor{jedy_alert}{$\Rightarrow \nabla_y = -4$}
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
 % ============================================================
 \section{Micro-Autograd en Python}
 % ============================================================
@@ -397,22 +476,17 @@ grad_y = dy_2 + dy_1   # -4.0
         \end{itemize}
       \end{block}
       \smallskip
-      \begin{exampleblock}{\texttt{eq=False}}
-        \small Conserve le hash par \textbf{identité} --- deux nœuds avec la même valeur restent distincts dans le graphe
-      \end{exampleblock}
     \end{column}
     \begin{column}{0.62\textwidth}
       \begin{lstlisting}[style=pythonstyle]
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 @dataclass(eq=False)
 class Value:
     data: float
     grad: float = 0.0
-    _prev: tuple = field(
-        default_factory=tuple, repr=False)
-    _backward: object = field(
-        default=None, repr=False)
+    _prev: tuple = ()
+    _backward: callable = None
 
 # Utilisation
 x = Value(2.0)
@@ -423,7 +497,7 @@ print(x)  # Value(data=2.0, grad=0.0)
   \end{columns}
 \end{frame}
 
-\begin{frame}[fragile]{Style Fonctionnel : Opérateurs comme Factories}
+\begin{frame}[fragile]{Opérateurs}
   \begin{columns}[T]
     \begin{column}{0.34\textwidth}
       \begin{block}{Pattern factory}
@@ -468,6 +542,44 @@ def mul(a, b):
 # Usage
 z = add(mul(x, y), x)
       \end{lstlisting}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Boucle d'Entraînement}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \begin{block}{Algorithme}
+        \smallskip
+        \begin{tabular}{@{}ll}
+          \textbf{Entrée} & \textit{model}, $\X$, $\y$, $\lr$, $T$ \\[0.3em]
+          \multicolumn{2}{@{}l}{\textbf{Répéter} $T$ \textbf{fois} :} \\[0.2em]
+          \hspace{1.5em} & $\forall\, p \in \mathit{params}$ :
+                            $p.\mathit{grad} \leftarrow 0$ \\[0.2em]
+          \hspace{1.5em} & $\hat{\y} \leftarrow \mathit{model}(\X)$ \\[0.2em]
+          \hspace{1.5em} & $\mathcal{L} \leftarrow \mathit{loss}(\hat{\y},\, \y)$ \\[0.2em]
+          \hspace{1.5em} & $\mathit{backward}(\mathcal{L})$ \\[0.2em]
+          \hspace{1.5em} & $\forall\, p \in \mathit{params}$ :
+                            $p.\mathit{data} \leftarrow p.\mathit{data} - \lr \cdot p.\mathit{grad}$ \\[0.5em]
+          \multicolumn{2}{@{}l}{\textbf{Retourner} \textit{model}}
+        \end{tabular}
+        \smallskip
+      \end{block}
+      \smallskip
+      \begin{alertblock}{Zero grad obligatoire}
+        \small Les gradients \textbf{s'accumulent} (\code{+=}) ---
+        réinitialiser avant chaque forward
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.41\textwidth}
+      \begin{block}{4 étapes}
+        \begin{enumerate}
+          \item \textbf{Zero grad} : remise à zéro
+          \item \textbf{Forward} : calcul de la perte
+          \item \textbf{Backward} : gradients
+          \item \textbf{Update} : descente de gradient
+        \end{enumerate}
+      \end{block}
     \end{column}
   \end{columns}
 \end{frame}
