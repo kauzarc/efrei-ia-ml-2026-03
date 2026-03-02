@@ -38,5 +38,7 @@ venv/
 # Données brutes (trop lourdes pour git)
 data/raw/
 MNIST/
+cifar-10-batches-py/
+cifar-10-python.tar.gz
 *.csv
 *.parquet
