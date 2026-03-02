@@ -22,7 +22,7 @@
 \end{frame}
 
 % ============================================================
-\section{Vers PyTorch}
+\section{PyTorch}
 % ============================================================
 
 \begin{frame}{Pourquoi passer à PyTorch ?}
@@ -58,57 +58,130 @@
   \end{columns}
 \end{frame}
 
-% ============================================================
-\section{Tenseurs}
-% ============================================================
 
-\begin{frame}{Le Concept de Tenseur (\texttt{torch.Tensor})}
+\begin{frame}[fragile]{Le Concept de Tenseur (\texttt{torch.Tensor})}
+  \begin{center}
+    \Large\bfseries\color{jedy_blue}
+    \texttt{torch.Tensor} $=$ \texttt{np.ndarray} $+$ autograd
+  \end{center}
+  \medskip
   \begin{columns}[T]
-    \begin{column}{0.44\textwidth}
-      \begin{block}{Définition}
-        Généralisation des matrices à $n$ dimensions\\[0.3em]
-        \begin{center}
-          scalaire $\subset$ vecteur $\subset$ matrice $\subset$ tenseur
-        \end{center}
-      \end{block}
-      \smallskip
-      \begin{block}{Propriétés clés}
-        \begin{itemize}
-          \item \code{shape} : géométrie du tenseur
-          \item \code{device} : CPU ou GPU (\code{cuda})
-          \item \code{grad} : stockage du gradient \\
-                {\small $\Rightarrow$ notre \code{self.grad} de ce matin}
-          \item \code{requires\_grad} : active l'autograd
-        \end{itemize}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{\texttt{np.ndarray}}
+        \begin{lstlisting}[style=pythonstyle]
+import numpy as np
+
+x = np.array([[1.0, 2.0],
+               [3.0, 4.0]])
+y = x ** 2
+print(y.sum())  # 30.0
+# Pas de gradient !
+        \end{lstlisting}
       \end{block}
     \end{column}
-    \begin{column}{0.52\textwidth}
-      \begin{center}
-        \renewcommand{\arraystretch}{1.4}
-        \begin{tabular}{lll}
-          \toprule
-          \textbf{Objet} & \textbf{Shape} & \textbf{Cas d'usage} \\
-          \midrule
-          Scalaire  & \code{[]}           & Perte $\Loss$ \\
-          Vecteur   & \code{[n]}          & Biais, sortie \\
-          Matrice   & \code{[n, m]}       & Poids $\W$ \\
-          Batch     & \code{[B, n]}       & Mini-batch \\
-          Image     & \code{[B, C, H, W]} & Batch d'images \\
-          \bottomrule
-        \end{tabular}
-      \end{center}
-      \smallskip
-      \begin{exampleblock}{Exemple : batch d'images RGB}
-        \code{[128, 3, 224, 224]}\\
-        {\small 128 images $\cdot$ 3 canaux $\cdot$ $224\times224$ pixels}
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{\texttt{torch.Tensor}}
+        \begin{lstlisting}[style=pythonstyle]
+import torch
+
+x = torch.tensor([[1.0, 2.0],
+                   [3.0, 4.0]],
+                  requires_grad=True)
+y = x ** 2
+y.sum().backward()
+print(x.grad)  # 2*x
+        \end{lstlisting}
       \end{exampleblock}
     \end{column}
   \end{columns}
 \end{frame}
 
-% ============================================================
-\section{torch.nn}
-% ============================================================
+\begin{frame}[fragile]{NumPy $\leftrightarrow$ PyTorch : Même API}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{\texttt{np.ndarray}}
+        \begin{lstlisting}[style=pythonstyle]
+x.shape        # (3, 4)
+x.dtype        # float64
+
+np.ones((3, 4))
+np.zeros((3, 4))
+np.rand(3, 4)
+
+x + y
+x @ y          # produit matriciel
+x.T            # transposee
+
+x.reshape(2, 6)
+x[0, :]        # slicing
+        \end{lstlisting}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{\texttt{torch.Tensor}}
+        \begin{lstlisting}[style=pythonstyle]
+x.shape        # torch.Size([3, 4])
+x.dtype        # torch.float32
+
+torch.ones(3, 4)
+torch.zeros(3, 4)
+torch.rand(3, 4)
+
+x + y
+x @ y          # produit matriciel
+x.T            # transposee
+
+x.reshape(2, 6)
+x[0, :]        # slicing
+        \end{lstlisting}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Nouveaux concepts : \texttt{requires\_grad} et \texttt{device}}
+  \begin{block}{\texttt{requires\_grad} : suivi du calcul}
+    \begin{columns}[T]
+      \begin{column}{0.44\textwidth}
+        \begin{itemize}
+          \item Marque un tenseur comme \textbf{variable à optimiser}
+          \item PyTorch enregistre toutes les opérations le concernant
+          \item \code{.backward()} remonte le graphe et calcule \code{.grad}
+        \end{itemize}
+      \end{column}
+      \begin{column}{0.52\textwidth}
+        \begin{lstlisting}[style=pythonstyle]
+x = torch.tensor([2.0], requires_grad=True)
+y = x ** 3
+y.backward()
+print(x.grad)  # 3*x^2 = 12.0
+        \end{lstlisting}
+      \end{column}
+    \end{columns}
+  \end{block}
+  \medskip
+  \begin{block}{\texttt{device} : CPU ou GPU}
+    \begin{columns}[T]
+      \begin{column}{0.44\textwidth}
+        \begin{itemize}
+          \item Les tenseurs vivent sur un \textbf{device}
+          \item Les opérations exigent le \textbf{même device}
+          \item \code{.to(device)} déplace un tenseur ou un modèle
+        \end{itemize}
+      \end{column}
+      \begin{column}{0.52\textwidth}
+        \begin{lstlisting}[style=pythonstyle]
+device = (
+    "cuda" if torch.cuda.is_available()
+    else "cpu"
+)
+x = x.to(device)
+model = model.to(device)
+        \end{lstlisting}
+      \end{column}
+    \end{columns}
+  \end{block}
+\end{frame}
 
 \begin{frame}[fragile]{La Philosophie \texttt{torch.nn}}
   \begin{columns}[T]
@@ -151,56 +224,131 @@ print(f"{n} parametres")  # 101770
   \end{columns}
 \end{frame}
 
-% ============================================================
-\section{Optimisation \& Data}
-% ============================================================
 
-\begin{frame}[fragile]{Optimisation et Data Handling}
+\begin{frame}[fragile]{Optimisation : \texttt{torch.optim}}
   \begin{columns}[T]
-    \begin{column}{0.44\textwidth}
-      \begin{block}{\texttt{torch.optim} : plus de \code{w -= lr*grad}}
-        \begin{itemize}\small
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Plus de \code{w -= lr*grad} manuel}
+        \begin{itemize}
           \item \textbf{SGD} : descente de gradient classique
           \item \textbf{Adam} : adaptatif, converge rapidement
           \item \textbf{RMSprop} : stable pour les RNN
         \end{itemize}
       \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Interface unifiée}
+        Peu importe l'optimiseur, l'API est toujours la même :
+        \code{opt.zero\_grad()} / \code{opt.step()}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+  \medskip
+  \begin{lstlisting}[style=pythonstyle]
+import torch.optim as optim
+
+# SGD classique
+opt = optim.SGD(model.parameters(), lr=1e-2, momentum=0.9)
+
+# Adam (defaut recommande)
+opt = optim.Adam(model.parameters(), lr=1e-3)
+
+# Meme interface pour tous :
+opt.zero_grad()
+loss.backward()
+opt.step()
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Data : \texttt{Dataset} \& \texttt{DataLoader}}
+  \begin{columns}[T]
+    \begin{column}{0.44\textwidth}
+      \begin{block}{\texttt{Dataset} : accès aux données}
+        \begin{itemize}
+          \item Définit \textbf{comment} accéder à un exemple
+          \item Implémente \code{\_\_len\_\_} et \code{\_\_getitem\_\_}
+          \item \code{torchvision.datasets} fournit MNIST, CIFAR\ldots
+        \end{itemize}
+      \end{block}
       \smallskip
-      \begin{block}{\texttt{Dataset} \& \texttt{DataLoader}}
-        \begin{itemize}\small
-          \item \code{Dataset} : comment accéder à un exemple
-          \item \code{DataLoader} : gère le \textbf{batching},\\
-                le \textbf{shuffling} et le \textbf{multi-threading}
+      \begin{block}{\texttt{DataLoader} : pipeline}
+        \begin{itemize}
+          \item Gère le \textbf{batching} et le \textbf{shuffling}
+          \item \code{num\_workers} : chargement en parallèle
           \item Le GPU ne doit pas attendre le CPU
         \end{itemize}
       \end{block}
     \end{column}
     \begin{column}{0.52\textwidth}
       \begin{lstlisting}[style=pythonstyle]
-import torch.optim as optim
 from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
 
-# Optimiseur Adam
-opt = optim.Adam(model.parameters(), lr=1e-3)
+dataset = datasets.MNIST(
+    root="data", train=True,
+    transform=transforms.ToTensor(),
+)
 
-# DataLoader
 loader = DataLoader(
     dataset,
     batch_size=32,
     shuffle=True,
-    num_workers=4,   # threads CPU
+    num_workers=4,
 )
 
 for X, y in loader:
-    # X.shape = [32, ...]
+    # X.shape = [32, 1, 28, 28]
     pass
       \end{lstlisting}
     \end{column}
   \end{columns}
 \end{frame}
 
+\begin{frame}[fragile]{La Training Loop Standard}
+  \begin{columns}[T]
+    \begin{column}{0.37\textwidth}
+      \begin{block}{Les 5 étapes rituelles}
+        \begin{enumerate}\small
+          \item \code{zero\_grad()} : efface les anciens gradients
+          \item \code{model(x)} : forward pass
+          \item \code{criterion(out, y)} : calcul de la perte
+          \item \code{loss.backward()} : autograd
+          \item \code{optimizer.step()} : mise à jour des poids
+        \end{enumerate}
+      \end{block}
+      \smallskip
+      \begin{alertblock}{\small Piège classique}
+        \small Oublier \code{zero\_grad()} $\Rightarrow$ gradients \textbf{accumulés} $\Rightarrow$ divergence
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.59\textwidth}
+      \begin{lstlisting}[style=pythonstyle]
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters())
+
+for epoch in range(n_epochs):
+    for X, y in train_loader:
+        # 1. Zero gradients
+        optimizer.zero_grad()
+
+        # 2. Forward pass
+        output = model(X)
+
+        # 3. Compute loss
+        loss = criterion(output, y)
+
+        # 4. Backward (autograd)
+        loss.backward()
+
+        # 5. Update weights
+        optimizer.step()
+      \end{lstlisting}
+    \end{column}
+  \end{columns}
+\end{frame}
+
 % ============================================================
-\section{Convolutions}
+\section{CNN}
 % ============================================================
 
 \begin{frame}{Pourquoi le MLP Échoue sur les Images ?}
@@ -244,6 +392,63 @@ for X, y in loader:
           \bottomrule
         \end{tabular}
       \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Architecture Globale d'un CNN}
+  \begin{columns}[T]
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Partie 1 : Extraction de features}
+        \begin{itemize}
+          \item \textbf{Conv} + \textbf{ReLU} + \textbf{Pool} $\times N$
+          \item Image $\to$ cartes de caractéristiques abstraites
+          \item Taille spatiale $\downarrow$, profondeur (canaux) $\uparrow$
+        \end{itemize}
+      \end{block}
+      \vspace{1pt}
+      \begin{block}{Partie 2 : Classification}
+        \begin{itemize}
+          \item \textbf{Flatten} : cartes $\to$ vecteur 1D
+          \item MLP classique (J2) pour la décision finale
+          \item Sortie : logits $\to$ softmax $\to$ classes
+        \end{itemize}
+      \end{block}
+      \begin{exampleblock}{\small MNIST : $[B,1,28,28] \to [B,10]$}
+        \small 1 canal, $28\!\times\!28$ pixels, 10 classes
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+      \centering
+      \begin{tikzpicture}[
+        blk/.style={rectangle, rounded corners=3pt,
+                    minimum height=0.55cm, minimum width=3.2cm,
+                    align=center, font=\scriptsize\bfseries},
+        arr/.style={->, thick, gray!70},
+      ]
+        \node[blk, draw=gray,         fill=gray!10]        (img) at (0,  0.00) {Image $[B,C,H,W]$};
+        \node[blk, draw=jedy_blue,    fill=jedy_blue!15]   (c1)  at (0, -0.80) {Conv + ReLU + Pool};
+        \node[blk, draw=jedy_mid,     fill=jedy_mid!15]    (c2)  at (0, -1.60) {Conv + ReLU + Pool};
+        \node[blk, draw=jedy_alert,   fill=jedy_alert!15]  (fl)  at (0, -2.40) {Flatten};
+        \node[blk, draw=jedy_example, fill=jedy_example!15](fc)  at (0, -3.20) {FC + ReLU};
+        \node[blk, draw=gray,         fill=gray!10]        (out) at (0, -4.00) {Sortie + Softmax};
+
+        \draw[arr] (img) -- (c1);
+        \draw[arr] (c1)  -- (c2);
+        \draw[arr] (c2)  -- (fl);
+        \draw[arr] (fl)  -- (fc);
+        \draw[arr] (fc)  -- (out);
+
+        % Right-side labels
+        \node[font=\tiny, color=jedy_blue,    anchor=west] at (1.75, -1.20) {features};
+        \node[font=\tiny, color=jedy_mid,     anchor=west] at (1.75, -1.60) {abstraites};
+        \node[font=\tiny, color=jedy_example, anchor=west] at (1.75, -3.20) {décision};
+
+        % Separator between extraction and classification
+        \draw[dashed, gray!50] (-1.8, -2.85) -- (1.8, -2.85);
+        \node[font=\tiny, color=jedy_blue,    anchor=east] at (-1.8, -1.20) {Extraction};
+        \node[font=\tiny, color=jedy_example, anchor=east] at (-1.8, -3.60) {Classification};
+      \end{tikzpicture}
     \end{column}
   \end{columns}
 \end{frame}
@@ -313,9 +518,6 @@ for X, y in loader:
   \end{columns}
 \end{frame}
 
-% ============================================================
-\section{Pooling}
-% ============================================================
 
 \begin{frame}{Le Pooling : Réduction et Invariance}
   \begin{columns}[T]
@@ -407,118 +609,6 @@ for X, y in loader:
     \end{column}
   \end{columns}
 \end{frame}
-
-% ============================================================
-\section{Architecture CNN}
-% ============================================================
-
-\begin{frame}{Architecture Globale d'un CNN}
-  \begin{columns}[T]
-    \begin{column}{0.44\textwidth}
-      \begin{block}{Partie 1 : Extraction de features}
-        \begin{itemize}
-          \item \textbf{Conv} + \textbf{ReLU} + \textbf{Pool} $\times N$
-          \item Image $\to$ cartes de caractéristiques abstraites
-          \item Taille spatiale $\downarrow$, profondeur (canaux) $\uparrow$
-        \end{itemize}
-      \end{block}
-      \vspace{1pt}
-      \begin{block}{Partie 2 : Classification}
-        \begin{itemize}
-          \item \textbf{Flatten} : cartes $\to$ vecteur 1D
-          \item MLP classique (J2) pour la décision finale
-          \item Sortie : logits $\to$ softmax $\to$ classes
-        \end{itemize}
-      \end{block}
-      \begin{exampleblock}{\small MNIST : $[B,1,28,28] \to [B,10]$}
-        \small 1 canal, $28\!\times\!28$ pixels, 10 classes
-      \end{exampleblock}
-    \end{column}
-    \begin{column}{0.52\textwidth}
-      \centering
-      \begin{tikzpicture}[
-        blk/.style={rectangle, rounded corners=3pt,
-                    minimum height=0.55cm, minimum width=3.2cm,
-                    align=center, font=\scriptsize\bfseries},
-        arr/.style={->, thick, gray!70},
-      ]
-        \node[blk, draw=gray,         fill=gray!10]        (img) at (0,  0.00) {Image $[B,C,H,W]$};
-        \node[blk, draw=jedy_blue,    fill=jedy_blue!15]   (c1)  at (0, -0.80) {Conv + ReLU + Pool};
-        \node[blk, draw=jedy_mid,     fill=jedy_mid!15]    (c2)  at (0, -1.60) {Conv + ReLU + Pool};
-        \node[blk, draw=jedy_alert,   fill=jedy_alert!15]  (fl)  at (0, -2.40) {Flatten};
-        \node[blk, draw=jedy_example, fill=jedy_example!15](fc)  at (0, -3.20) {FC + ReLU};
-        \node[blk, draw=gray,         fill=gray!10]        (out) at (0, -4.00) {Sortie + Softmax};
-
-        \draw[arr] (img) -- (c1);
-        \draw[arr] (c1)  -- (c2);
-        \draw[arr] (c2)  -- (fl);
-        \draw[arr] (fl)  -- (fc);
-        \draw[arr] (fc)  -- (out);
-
-        % Right-side labels
-        \node[font=\tiny, color=jedy_blue,    anchor=west] at (1.75, -1.20) {features};
-        \node[font=\tiny, color=jedy_mid,     anchor=west] at (1.75, -1.60) {abstraites};
-        \node[font=\tiny, color=jedy_example, anchor=west] at (1.75, -3.20) {décision};
-
-        % Separator between extraction and classification
-        \draw[dashed, gray!50] (-1.8, -2.85) -- (1.8, -2.85);
-        \node[font=\tiny, color=jedy_blue,    anchor=east] at (-1.8, -1.20) {Extraction};
-        \node[font=\tiny, color=jedy_example, anchor=east] at (-1.8, -3.60) {Classification};
-      \end{tikzpicture}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-% ============================================================
-\section{Training Loop}
-% ============================================================
-
-\begin{frame}[fragile]{La Training Loop Standard}
-  \begin{columns}[T]
-    \begin{column}{0.37\textwidth}
-      \begin{block}{Les 5 étapes rituelles}
-        \begin{enumerate}\small
-          \item \code{zero\_grad()} : efface les anciens gradients
-          \item \code{model(x)} : forward pass
-          \item \code{criterion(out, y)} : calcul de la perte
-          \item \code{loss.backward()} : autograd
-          \item \code{optimizer.step()} : mise à jour des poids
-        \end{enumerate}
-      \end{block}
-      \smallskip
-      \begin{alertblock}{\small Piège classique}
-        \small Oublier \code{zero\_grad()} $\Rightarrow$ gradients \textbf{accumulés} $\Rightarrow$ divergence
-      \end{alertblock}
-    \end{column}
-    \begin{column}{0.59\textwidth}
-      \begin{lstlisting}[style=pythonstyle]
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters())
-
-for epoch in range(n_epochs):
-    for X, y in train_loader:
-        # 1. Zero gradients
-        optimizer.zero_grad()
-
-        # 2. Forward pass
-        output = model(X)
-
-        # 3. Compute loss
-        loss = criterion(output, y)
-
-        # 4. Backward (autograd)
-        loss.backward()
-
-        # 5. Update weights
-        optimizer.step()
-      \end{lstlisting}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-% ============================================================
-\section{Récapitulatif}
-% ============================================================
 
 \begin{frame}{Récapitulatif : De J3-AM à la Vision}
   \begin{columns}[T]
