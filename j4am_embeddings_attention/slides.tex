@@ -313,6 +313,114 @@
   \end{columns}
 \end{frame}
 
+\begin{frame}{Word2Vec : CBOW vs Skip-gram}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{CBOW \small(Continuous Bag of Words)}
+        \textbf{Entrée} : mots contexte (moyennés)\\
+        \textbf{Sortie} : mot cible\\[4pt]
+        \centering\small
+        $[\text{le},\, \text{dort},\, \text{sur}] \;\to\; \texttt{chat}$
+        \begin{itemize}
+          \item Plus rapide à entraîner
+          \item Meilleur sur grands corpus
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Skip-gram}
+        \textbf{Entrée} : mot cible\\
+        \textbf{Sortie} : mots contexte\\[4pt]
+        \centering\small
+        $\texttt{chat} \;\to\; [\text{le},\, \text{dort},\, \text{sur}]$
+        \begin{itemize}
+          \item Meilleur sur petits corpus
+          \item Plus performant sur mots rares
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+  \bigskip
+  \begin{exampleblock}{Les deux apprennent la même chose}
+    La tâche de prédiction est un \textbf{prétexte} : ce qui compte, c'est la matrice
+    $\W_e \in \R^{V \times d}$ obtenue après entraînement.
+    \textbf{Skip-gram} est le plus utilisé en recherche.
+  \end{exampleblock}
+\end{frame}
+
+\begin{frame}{Entraîner Word2Vec efficacement : Negative Sampling}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Le problème de la softmax}
+        \vspace{-2pt}
+        \[
+          P(w \mid c) = \frac{e^{u_w \cdot v_c}}{\displaystyle\sum_{i=1}^{V} e^{u_i \cdot v_c}}
+        \]
+        \vspace{-4pt}
+        $V = 50\,000$ : \textbf{calcul prohibitif} à chaque étape.
+      \end{alertblock}
+      \begin{block}{Solution}
+        \small Pour chaque paire $(w^+, c)$ positive :
+        \begin{itemize}
+          \item tirer $k$ mots négatifs $w_1^-, \ldots, w_k^-$ au hasard
+          \item maximiser $\sigma(u_{w^+} \cdot v_c)$
+          \item minimiser $\sigma(u_{w_i^-} \cdot v_c)$
+        \end{itemize}
+        Mise à jour sur $k{+}1$ mots seulement. $k = 5$--$20$.
+      \end{block}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{exampleblock}{Exemple}
+        \small\textbf{Corpus} : «~le chat dort sur le tapis~»\\[3pt]
+        Paire positive : (\emph{chat}, \emph{dort})\\[2pt]
+        Paires négatives (aléatoires) :\\[1pt]
+        (\emph{chat}, \emph{table}),
+        (\emph{chat}, \emph{voiture})\ldots\\[3pt]
+        Gain de vitesse $\approx \times\,V / k$.
+      \end{exampleblock}
+      \vspace{2pt}
+      \begin{block}{Tirage pondéré}
+        \small Probabilité $\propto f(w)^{3/4}$ :\\
+        favorise légèrement les mots rares.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{GloVe : co-occurrence globale}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Idée centrale}
+        Word2Vec : fenêtre glissante \textbf{locale}.\\[4pt]
+        GloVe exploite la matrice de co-occurrence \textbf{globale} :
+        \[
+          X_{ij} = \text{nb de fois que } j \text{ apparaît près de } i
+        \]
+        Objectif : apprendre $u_i, v_j$ tels que :
+        \[
+          u_i \cdot v_j + b_i + b_j \;\approx\; \log X_{ij}
+        \]
+        Les vecteurs encodent les \textbf{ratios} de co-occurrence.
+      \end{block}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{exampleblock}{Avantages}
+        \begin{itemize}
+          \item Entraînement très rapide (une passe sur $X$)
+          \item Capture les statistiques globales du corpus
+          \item Analogies vectorielles aussi bonnes que Word2Vec
+        \end{itemize}
+      \end{exampleblock}
+      \vspace{4pt}
+      \begin{block}{Vecteurs pré-entraînés}
+        GloVe-6B (Wikipedia + Gigaword) :\\
+        400\,000 mots, $d \in \{50, 100, 200, 300\}$.\\
+        Disponibles publiquement.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
 \begin{frame}{Algèbre de mots \& similarité cosinus}
   \begin{columns}[T]
     \begin{column}{0.52\textwidth}
@@ -360,6 +468,49 @@
         \draw[dashed, gray!40] (0.35,0.85) -- (0.55,2.05);
         \draw[dashed, gray!40] (1.65,1.35) -- (1.85,2.55);
       \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Embeddings en pratique}
+% ============================================================
+
+\begin{frame}[fragile]{Embeddings en PyTorch : \texttt{nn.Embedding}}
+  \begin{columns}[T]
+    \begin{column}{0.54\textwidth}
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\scriptsize]
+import torch, torch.nn as nn
+
+# Matrice W_e : 10 000 mots, dim 128
+emb = nn.Embedding(num_embeddings=10_000,
+                   embedding_dim=128)
+
+# Indices de tokens  [B=2, T=3]
+idx = torch.tensor([[  3, 47, 892],
+                    [ 12,  0,   1]])
+
+x = emb(idx)  # [2, 3, 128] -- lookup differentiable
+
+# --- Embeddings pre-entraines (GloVe / Word2Vec) ---
+W = torch.FloatTensor(glove_matrix)  # [V, d]
+emb = nn.Embedding.from_pretrained(W, freeze=False)
+\end{lstlisting}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{block}{\texttt{nn.Embedding} en bref}
+        \begin{itemize}
+          \item Matrice $\W_e \in \R^{V \times d}$ apprise par gradient
+          \item \texttt{emb(idx)} : simple \textbf{lookup} de lignes
+          \item Opération \textbf{différentiable}
+        \end{itemize}
+      \end{block}
+      \vspace{4pt}
+      \begin{exampleblock}{\texttt{freeze=False}}
+        Initialiser avec GloVe / Word2Vec,
+        puis continuer l'entraînement :
+        c'est du \textbf{transfer learning} au niveau mot.
+      \end{exampleblock}
     \end{column}
   \end{columns}
 \end{frame}
@@ -497,6 +648,44 @@
 \section*{Récapitulatif}
 % ============================================================
 
+\begin{frame}{Encodage positionnel : vers les Transformers}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Le problème}
+        Les embeddings sont des \textbf{sacs de mots} :\\[3pt]
+        «~le chat mange la souris~» $\equiv$ «~la souris mange le chat~»\\[4pt]
+        $\Rightarrow$ Il faut encoder la \textbf{position} de chaque token.
+      \end{alertblock}
+      \smallskip
+      \begin{block}{Encodage sinusoïdal (Vaswani 2017)}
+        \small
+        \begin{align*}
+          PE_{(pos,\,2i)}   &= \sin\!\Bigl(\tfrac{pos}{10000^{2i/d}}\Bigr)\\[2pt]
+          PE_{(pos,\,2i+1)} &= \cos\!\Bigl(\tfrac{pos}{10000^{2i/d}}\Bigr)
+        \end{align*}
+        \normalsize
+        On \textbf{additionne} à l'embedding : $x_t \leftarrow x_t + PE_t$
+      \end{block}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{exampleblock}{Intuition}
+        \begin{itemize}
+          \item Chaque position $\to$ vecteur unique $\in \R^d$
+          \item Fréquences variées $\to$ positions proches
+                $=$ vecteurs similaires
+          \item \textbf{Aucun paramètre} supplémentaire
+        \end{itemize}
+      \end{exampleblock}
+      \vspace{4pt}
+      \begin{block}{J4-PM $\;\to\;$ Transformers}
+        L'encodage positionnel est la \textbf{première brique}
+        de l'architecture Transformer.\\[3pt]
+        Variante : PE appris (BERT, GPT).
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
 \begin{frame}{Récapitulatif --- Ce qu'on a vu}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
@@ -508,17 +697,25 @@
           \item Espace sémantique : proximité $=$ sens partagé
         \end{itemize}
       \end{block}
+      \vspace{4pt}
+      \begin{block}{En pratique}
+        \begin{itemize}\small
+          \item \texttt{nn.Embedding} : lookup différentiable
+          \item \texttt{from\_pretrained} + \texttt{freeze}
+          \item Encodage positionnel $\to$ Transformers (J4-PM)
+        \end{itemize}
+      \end{block}
     \end{column}
     \begin{column}{0.48\textwidth}
-      \begin{block}{Word2Vec \& propriétés}
+      \begin{block}{Word2Vec \& GloVe}
         \begin{itemize}\small
           \item Hypothèse distributionnelle
-          \item Skip-gram : $\W_e$ comme produit dérivé
-          \item Analogies vectorielles (roi $-$ homme $+$ femme)
-          \item Similarité cosinus $\in [-1,\,1]$
-          \item t-SNE : visualisation des clusters sémantiques
-          \item Polysémie : limite des embeddings statiques
-          \item[$\to$] Embeddings contextuels (J4-PM)
+          \item CBOW vs Skip-gram (tâche prétexte)
+          \item Negative sampling : efficacité sur grand $V$
+          \item GloVe : co-occurrence globale
+          \item Analogies vectorielles, similarité cosinus
+          \item t-SNE : visualisation des clusters
+          \item Polysémie $\to$ embeddings contextuels (J4-PM)
         \end{itemize}
       \end{block}
     \end{column}
