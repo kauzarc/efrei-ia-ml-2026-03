@@ -14,7 +14,7 @@ Supports de cours pour la formation **M2 Développement Fullstack** — 6 jours 
 | `j2am_perceptron` | Classification, perceptron de Rosenblatt, régression logistique | ✅ | ✅ |
 | `j2pm_validation` | Sklearn, overfitting, biais-variance, validation croisée | ✅ | ✅ |
 | `j3am_autograd` | Rétropropagation, micro-autograd from scratch | ✅ | ✅ |
-| `j3pm_pytorch_cnn` | PyTorch, CNN, boucle d'entraînement | 🚧 | 🚧 |
+| `j3pm_pytorch_cnn` | PyTorch, CNN, boucle d'entraînement | ✅ | ✅ |
 | `j4am_embeddings_attention` | Tokenisation, embeddings, Word2Vec, attention | 🚧 | — |
 | `j4pm_transformers_finetuning` | Transformers, transfer learning, fine-tuning HuggingFace | 🚧 | — |
 | `j5am_mlops_industrialisation` | MLOps, FastAPI, Docker, drift, CI/CD | 🚧 | — |
