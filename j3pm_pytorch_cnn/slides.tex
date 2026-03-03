@@ -453,22 +453,21 @@ for epoch in range(n_epochs):
   \end{columns}
 \end{frame}
 
-\begin{frame}{La Convolution : Extraction de Features}
+\begin{frame}{La Convolution : L'Opération de Base}
   \begin{columns}[T]
     \begin{column}{0.44\textwidth}
       \begin{block}{Le Kernel (Filtre)}
         \begin{itemize}
-          \item Petite fenêtre (ex: $3 \times 3$) qui \textbf{glisse} sur l'image
+          \item Petite fenêtre ($K \times K$, ex: $3\times3$) qui \textbf{glisse} sur l'image
           \item \textbf{Localité} : chaque neurone ne voit qu'une zone
-          \item \textbf{Partage des poids} : même filtre partout
-          \item $\Rightarrow$ beaucoup moins de paramètres
+          \item \textbf{Partage des poids} : même filtre partout\\
+                $\Rightarrow$ beaucoup moins de paramètres
         \end{itemize}
       \end{block}
       \smallskip
-      \begin{exampleblock}{Ce que le réseau apprend}
-        Couche 1 : bords, contrastes\\
-        Couche 2 : coins, textures\\
-        Couche $n$ : visages, objets\ldots
+      \begin{exampleblock}{Calcul d'une valeur de sortie}
+        \[ a = \sum_{i,j} w_{ij} \cdot x_{ij} + b \]
+        \small Produit élément par élément entre le kernel et le champ récepteur, puis somme + biais
       \end{exampleblock}
     \end{column}
     \begin{column}{0.52\textwidth}
@@ -513,6 +512,82 @@ for epoch in range(n_epochs):
         \node[draw=jedy_alert, fill=jedy_alert!15, font=\small\bfseries,
               minimum size=0.8cm, circle] at (11.1, 2.5) {$a$};
         \node[font=\tiny, gray] at (11.1, 1.5) {valeur};
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Stride, Padding et Taille de Sortie}
+  \begin{columns}[T]
+    \begin{column}{0.46\textwidth}
+      \begin{block}{Stride $S$ : pas du filtre}
+        \begin{itemize}\small
+          \item $S=1$ : filtre avance pixel par pixel (défaut)
+          \item $S=2$ : saute un pixel $\Rightarrow$ sortie 2$\times$ plus petite
+        \end{itemize}
+      \end{block}
+      \vspace{-4pt}
+      \begin{block}{Padding $P$ : zéros autour}
+        \begin{itemize}\small
+          \item $P=0$ : sortie rétrécie de $K{-}1$ de chaque côté
+          \item $P=\lfloor K/2 \rfloor$ : \textbf{same padding}, taille préservée
+        \end{itemize}
+      \end{block}
+      \vspace{-4pt}
+      \begin{exampleblock}{Taille de sortie}
+        \centering $\displaystyle H_{out} = \left\lfloor \frac{H_{in} - K + 2P}{S} \right\rfloor + 1$
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \begin{lstlisting}[style=pythonstyle, basicstyle=\ttfamily\scriptsize]
+nn.Conv2d(
+    in_channels  = 1,   # canaux entree
+    out_channels = 32,  # nb de filtres
+    kernel_size  = 3,   # K x K
+    stride       = 1,   # S
+    padding      = 1,   # P -> same padding
+)
+# H_in=28, K=3, P=1, S=1
+# H_out = (28 - 3 + 2) / 1 + 1 = 28
+      \end{lstlisting}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Plusieurs Filtres → Feature Maps}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{$N$ filtres = $N$ feature maps}
+        \begin{itemize}
+          \item Chaque filtre détecte un \textbf{pattern différent}
+          \item $N$ filtres $\Rightarrow$ tenseur de sortie $[B,\, N,\, H',\, W']$
+          \item \code{out\_channels = N} dans \code{nn.Conv2d}
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Ce que le réseau apprend}
+        Couche 1 : bords, contrastes\\
+        Couche 2 : coins, textures\\
+        Couche $n$ : formes, objets\ldots
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \centering
+      \begin{tikzpicture}[scale=1.0]
+        % Input (1 channel)
+        \draw[gray!60, fill=gray!10, thick] (0, 0.2) rectangle (1.4, 1.6);
+        \node[font=\scriptsize, gray] at (0.7,-0.15) {$[B,1,H,W]$};
+
+        % Arrow
+        \draw[->, very thick, gray] (1.6, 0.9) -- (2.4, 0.9)
+          node[midway, above, font=\scriptsize, jedy_blue] {$\times N$};
+
+        % Stacked feature maps (back to front)
+        \draw[fill=jedy_example!20, draw=jedy_example, thick] (3.2, 0.0) rectangle (4.4, 1.0);
+        \draw[fill=jedy_mid!20,     draw=jedy_mid,     thick] (3.0, 0.2) rectangle (4.2, 1.2);
+        \draw[fill=jedy_blue!20,    draw=jedy_blue,    thick] (2.8, 0.4) rectangle (4.0, 1.4);
+
+        \node[font=\scriptsize, gray] at (3.6, -0.35) {$[B,N,H',W']$};
       \end{tikzpicture}
     \end{column}
   \end{columns}
@@ -610,34 +685,60 @@ for epoch in range(n_epochs):
   \end{columns}
 \end{frame}
 
-\begin{frame}{Récapitulatif : De J3-AM à la Vision}
+\begin{frame}[fragile]{CNN en PyTorch : Schéma d'Architecture}
+  \begin{lstlisting}[style=pythonstyle, basicstyle=\ttfamily\scriptsize]
+class CNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # --- Extraction de features ---
+        self.conv1 = nn.Conv2d(..., ..., kernel_size=...)
+        self.conv2 = nn.Conv2d(..., ..., kernel_size=...)
+        self.pool  = nn.MaxPool2d(kernel_size=2)
+        # --- Tete de classification ---
+        self.fc1   = nn.Linear(..., ...)
+        self.fc2   = nn.Linear(..., n_classes)
+
+    def forward(self, x):      # x : [B, C, H, W]
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = x.flatten(start_dim=1)  # [B, ...]
+        x = F.relu(self.fc1(x))
+        return self.fc2(x)     # logits [B, n_classes]
+  \end{lstlisting}
+  \begin{block}{Lecture du flux}
+    \footnotesize
+    \textbf{1.}~\code{conv1}+\code{ReLU}+\code{pool} $\to$ feature maps, résolution $\div 2$ \enspace
+    \textbf{2.}~\code{conv2}+\code{ReLU}+\code{pool} $\to$ features abstraites, $\div 2$ \enspace
+    \textbf{3.}~\code{flatten} : 3D $\to$ 1D \\[2pt]
+    \textbf{4.}~\code{fc1}+\code{ReLU} : couche dense \enspace
+    \textbf{5.}~\code{fc2} : logits $\in \R^{n\_classes}$
+  \end{block}
+\end{frame}
+
+\begin{frame}{Récapitulatif — Ce qu'on a vu}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
-      \begin{block}{Concepts maîtrisés}
+      \begin{block}{PyTorch}
         \begin{itemize}
-          \item \textbf{Autograd} : graphe de calcul, chain rule, backward
-          \item \textbf{Tenseurs} : généralisation vectorisée de \code{Value}
-          \item \textbf{torch.nn} : couches, paramètres, forward
-          \item \textbf{Convolutions} : localité, partage des poids
-          \item \textbf{Pooling} : réduction, invariance
-          \item \textbf{Training loop} : les 5 étapes rituelles
+          \item \code{Tensor} = \code{ndarray} + autograd (\code{requires\_grad}, \code{device})
+          \item \code{nn.Module} : couches, \code{forward()}, \code{parameters()}
+          \item \code{torch.optim} : SGD, Adam — même interface
+          \item \code{Dataset} / \code{DataLoader} : batching, shuffling
+          \item Training loop : \code{zero\_grad} / forward / loss / \code{backward} / \code{step}
         \end{itemize}
       \end{block}
     \end{column}
     \begin{column}{0.48\textwidth}
-      \begin{exampleblock}{Transition : MNIST $\to$ Vision complexe}
+      \begin{block}{CNN}
         \begin{itemize}
-          \item MNIST ($28\times28$, 10 classes) : CNN simple
-          \item ImageNet ($224\times224$, 1000 classes) : ResNet, VGG
-          \item Détection d'objets : YOLO, Faster R-CNN
-          \item Segmentation : U-Net
+          \item MLP : explosion des paramètres, perte de topologie
+          \item Convolution : localité, partage des poids, kernel $K\!\times\!K$
+          \item Stride $S$, padding $P$ — formule $H_{out}$
+          \item $N$ filtres $\to$ $N$ feature maps $[B, N, H', W']$
+          \item Pooling : réduction $\times 2$, invariance aux translations
+          \item Architecture : Conv+ReLU+Pool $\to$ Flatten $\to$ FC
         \end{itemize}
-      \end{exampleblock}
-      \smallskip
-      \begin{alertblock}{Demain : Séquences \& Attention}
-        De la vision spatiale aux données \textbf{séquentielles}\\
-        $\Rightarrow$ RNN, LSTM, Transformers
-      \end{alertblock}
+      \end{block}
     \end{column}
   \end{columns}
 \end{frame}
