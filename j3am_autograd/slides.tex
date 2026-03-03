@@ -260,39 +260,6 @@
 \section{Forward \& Backward Pass}
 % ============================================================
 
-\begin{frame}[fragile]{Le Forward Pass}
-  \begin{columns}[T]
-    \begin{column}{0.40\textwidth}
-      \begin{block}{Mécanique}
-        \begin{enumerate}
-          \item Parcourir le graphe de \textbf{gauche à droite}
-          \item Calculer chaque nœud
-          \item \textbf{Stocker} les valeurs intermédiaires
-        \end{enumerate}
-      \end{block}
-      \smallskip
-      \begin{alertblock}{Pourquoi stocker ?}
-        Les valeurs intermédiaires sont \textbf{nécessaires} lors du backward pass pour calculer les dérivées locales
-      \end{alertblock}
-    \end{column}
-    \begin{column}{0.56\textwidth}
-      \begin{lstlisting}[style=pythonstyle]
-x = 2.0
-y = -3.0
-
-# Noeud 1 : addition
-a = x + y   # a = -1.0
-
-# Noeud 2 : multiplication
-b = a * y   # b = 3.0  <- Sortie
-
-print(f"Sortie b = {b}")
-# Sortie b = 3.0
-      \end{lstlisting}
-    \end{column}
-  \end{columns}
-\end{frame}
-
 \begin{frame}{La Chain Rule (Règle de la Chaîne)}
   \begin{columns}[T]
     \begin{column}{0.46\textwidth}
@@ -337,6 +304,39 @@ print(f"Sortie b = {b}")
         \node[font=\normalsize, below=1.8cm of node]
           {$\dfrac{\partial \Loss}{\partial x} = \dfrac{\partial \Loss}{\partial y} \cdot \dfrac{\partial y}{\partial x}$};
       \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Le Forward Pass}
+  \begin{columns}[T]
+    \begin{column}{0.40\textwidth}
+      \begin{block}{Mécanique}
+        \begin{enumerate}
+          \item Parcourir le graphe de \textbf{gauche à droite}
+          \item Calculer chaque nœud
+          \item \textbf{Stocker} les valeurs intermédiaires
+        \end{enumerate}
+      \end{block}
+      \smallskip
+      \begin{alertblock}{Pourquoi stocker ?}
+        Les valeurs intermédiaires sont \textbf{nécessaires} lors du backward pass pour calculer les dérivées locales
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.56\textwidth}
+      \begin{lstlisting}[style=pythonstyle]
+x = 2.0
+y = -3.0
+
+# Noeud 1 : addition
+a = x + y   # a = -1.0
+
+# Noeud 2 : multiplication
+b = a * y   # b = 3.0  <- Sortie
+
+print(f"Sortie b = {b}")
+# Sortie b = 3.0
+      \end{lstlisting}
     \end{column}
   \end{columns}
 \end{frame}
