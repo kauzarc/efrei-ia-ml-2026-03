@@ -493,4 +493,36 @@
   \end{columns}
 \end{frame}
 
+% ============================================================
+\section*{Récapitulatif}
+% ============================================================
+
+\begin{frame}{Récapitulatif --- Ce qu'on a vu}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Tokenisation \& représentations}
+        \begin{itemize}\small
+          \item Niveaux : caractère / mot / sous-mot (BPE)
+          \item One-Hot : creusité, orthogonalité, grande dim.
+          \item Embedding dense $\in \R^d$ : pont discret $\to$ continu
+          \item Espace sémantique : proximité $=$ sens partagé
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Word2Vec \& propriétés}
+        \begin{itemize}\small
+          \item Hypothèse distributionnelle
+          \item Skip-gram : $\W_e$ comme produit dérivé
+          \item Analogies vectorielles (roi $-$ homme $+$ femme)
+          \item Similarité cosinus $\in [-1,\,1]$
+          \item t-SNE : visualisation des clusters sémantiques
+          \item Polysémie : limite des embeddings statiques
+          \item[$\to$] Embeddings contextuels (J4-PM)
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
 \end{document}
