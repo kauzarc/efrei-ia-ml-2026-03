@@ -426,6 +426,52 @@ print(trad("Bonjour le monde"))
   \end{columns}
 \end{frame}
 
+\begin{frame}[fragile]{La tokenisation en pratique}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \begin{block}{Sous-mots (BPE / WordPiece)}
+        Les tokenizers modernes découpent les mots rares en
+        \textbf{sous-unités} pour couvrir toute la langue
+        avec un vocabulaire fixe ($\approx 30\,000$ tokens) :
+        \begin{itemize}
+          \item \texttt{"tokenisation"} $\to$
+                \texttt{["token",\ "\#\#isation"]}
+          \item \texttt{"unhappiness"} $\to$
+                \texttt{["un",\ "\#\#happy",\ "\#\#ness"]}
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{alertblock}{Paramètres critiques}
+        \begin{itemize}
+          \item \texttt{padding} : aligne les séquences du batch
+          \item \texttt{truncation} : limite à \texttt{max\_length}
+          \item \texttt{attention\_mask} : 1~=~vrai token,~0~=~padding
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+\begin{lstlisting}[language=Python]
+from transformers import AutoTokenizer
+
+tok = AutoTokenizer.from_pretrained(
+    "camembert-base")
+
+batch = tok(
+    ["Bonjour",
+     "Je suis etudiant en M2"],
+    padding=True,
+    truncation=True,
+    max_length=128,
+    return_tensors="pt",
+)
+# batch["input_ids"]       [2, L]
+# batch["attention_mask"]  [2, L]
+# L = longueur de la plus longue phrase
+\end{lstlisting}
+    \end{column}
+  \end{columns}
+\end{frame}
+
 \begin{frame}[fragile]{Anatomie du Fine-Tuning --- le mode «~Expert~»}
   \begin{columns}[T]
     \begin{column}{0.52\textwidth}
@@ -464,6 +510,218 @@ tokenizer = AutoTokenizer\
           \item \textbf{Prompt-tuning} : tokens «~soft~»
           \item \textbf{Zero-shot} : sans fine-tuning
         \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Le Trainer --- boucle complète}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+\begin{lstlisting}[language=Python, basicstyle=\tiny\ttfamily]
+from transformers import (
+    TrainingArguments, Trainer,
+    DataCollatorWithPadding)
+
+# dataset tokenise via .map() (cf. slide precedente)
+
+args = TrainingArguments(
+    output_dir="./results",
+    num_train_epochs=3,
+    per_device_train_batch_size=16,
+    eval_strategy="epoch",
+    load_best_model_at_end=True)
+
+trainer = Trainer(
+    model=model,
+    args=args,
+    train_dataset=ds["train"],
+    eval_dataset=ds["test"],
+    data_collator=DataCollatorWithPadding(
+        tokenizer))
+
+trainer.train()
+\end{lstlisting}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Ce que gère le Trainer}
+        \begin{itemize}
+          \item Shuffling, batching, padding dynamique
+          \item Gradient accumulation
+          \item Checkpoints + évaluation automatiques
+        \end{itemize}
+      \end{block}
+      \vspace{2pt}
+      \begin{exampleblock}{Pour aller plus loin}
+        \begin{itemize}
+          \item \texttt{compute\_metrics} : F1 à chaque epoch
+          \item \texttt{callbacks} : early stopping
+          \item \texttt{accelerate} : multi-GPU
+        \end{itemize}
+      \end{exampleblock}
+      \vspace{2pt}
+      \begin{alertblock}{Séquence typique}
+        \texttt{map()} $\to$ \texttt{Trainer()} $\to$
+        \texttt{train()} $\to$ \texttt{push\_to\_hub()}
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Vers les LLM modernes}
+% ============================================================
+
+\begin{frame}{Instruction Tuning \& Alignement (RLHF)}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \begin{alertblock}{Le problème du modèle de base}
+        Un LLM pré-entraîné complète du texte brut ;
+        il ne \textbf{suit pas les instructions} :
+        \begin{itemize}
+          \item Entrée : «~Explique la photosynthèse.~»
+          \item Sortie : «~Explique la photosynthèse.
+                Exercice 3\ldots~» (continuation !)
+        \end{itemize}
+      \end{alertblock}
+      \smallskip
+      \begin{block}{Pipeline d'alignement}
+        \begin{enumerate}
+          \item \textbf{SFT} : fine-tuning supervisé sur des paires
+                question / réponse rédigées par des humains
+          \item \textbf{Reward Model} : apprend à préférer
+                une bonne réponse sur une mauvaise
+          \item \textbf{RLHF} : le LLM est optimisé pour
+                maximiser la récompense humaine
+        \end{enumerate}
+      \end{block}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{exampleblock}{Résultat}
+        \begin{itemize}
+          \item[\textcolor{jedy_example}{$+$}]
+                Suit les instructions précisément
+          \item[\textcolor{jedy_example}{$+$}]
+                Refuse les requêtes dangereuses
+          \item[\textcolor{jedy_example}{$+$}]
+                Répond de façon utile et concise
+        \end{itemize}
+        \vspace{4pt}
+        C'est ce qui transforme GPT-2 en ChatGPT,
+        LLaMA en LLaMA-Chat / Mistral-Instruct.
+      \end{exampleblock}
+      \vspace{4pt}
+      \begin{block}{Variantes modernes}
+        \begin{itemize}
+          \item \textbf{DPO} : plus stable que RLHF classique
+          \item \textbf{Constitutional AI} (Anthropic) :
+                l'IA se critique elle-même
+          \item \textbf{RLAIF} : feedback automatique,
+                sans annotation humaine
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Prompt Engineering}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Zero-shot vs Few-shot}
+        \textbf{Zero-shot} : instruction seule, sans exemple.\\[2pt]
+        \textbf{Few-shot} : 2--5 exemples dans le prompt.
+      \end{block}
+\begin{lstlisting}[language=Python, basicstyle=\tiny\ttfamily]
+# Zero-shot
+prompt = """Classe ce tweet :
+POSITIF ou NEGATIF.
+Tweet: "Ce cours est top !"
+Sentiment:"""
+
+# Few-shot
+prompt = """Tweet: "J'adore !" -> POSITIF
+Tweet: "Nul !"   -> NEGATIF
+Tweet: "Sympa mais long." ->"""
+\end{lstlisting}
+      \begin{alertblock}{Chain-of-Thought (CoT)}
+        Ajouter «~Raisonne étape par étape~»
+        améliore fortement les tâches logiques.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Quand fine-tuner plutôt que prompter ?}
+        \begin{itemize}
+          \item Vocabulaire très spécialisé
+                (médical, légal, code propriétaire)
+          \item Fenêtre de contexte insuffisante
+          \item Coût d'inférence à réduire
+          \item Données confidentielles
+                (pas d'API externe)
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Règle pratique}
+        \textbf{Commencer par le prompting.}\\[2pt]
+        Fine-tuner si les limites sont atteintes ---
+        coût en temps, données et argent.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{RAG --- Retrieval-Augmented Generation}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \begin{alertblock}{Limites des LLM seuls}
+        \begin{itemize}
+          \item Connaissance figée à la date d'entraînement
+          \item Hallucinent des faits non vus
+          \item Ne connaissent pas vos données internes
+                (docs techniques, base clients\ldots)
+        \end{itemize}
+      \end{alertblock}
+      \smallskip
+      \begin{exampleblock}{Solution : RAG}
+        \begin{enumerate}
+          \item \textbf{Indexer} les documents en embeddings
+                dans une base vectorielle
+          \item À chaque question : \textbf{chercher} les $k$
+                passages les plus proches
+          \item \textbf{Injecter} ces passages dans le prompt
+          \item Le LLM \textbf{répond} en se basant sur
+                des sources vérifiées
+        \end{enumerate}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \vspace{-4pt}
+      \begin{center}
+        \begin{tikzpicture}[font=\scriptsize,
+          blk/.style={draw, rounded corners=3pt, align=center,
+                      minimum width=3.0cm, minimum height=0.52cm},
+          arr/.style={->, thick, gray!60}]
+          \node[blk, fill=jedy_blue!12, draw=jedy_blue]
+            (q)   at (0, 0)    {Question utilisateur};
+          \node[blk, fill=jedy_example!12, draw=jedy_example]
+            (db)  at (0,-1.0)  {Base vectorielle};
+          \node[blk, fill=jedy_blue!12, draw=jedy_blue]
+            (ret) at (0,-2.0)  {Top-$k$ passages};
+          \node[blk, fill=jedy_alert!12, draw=jedy_alert]
+            (llm) at (0,-3.0)  {LLM + prompt enrichi};
+          \node[blk, fill=jedy_example!12, draw=jedy_example]
+            (out) at (0,-4.0)  {Réponse sourcée};
+          \draw[arr] (q)   -- (db);
+          \draw[arr] (db)  -- (ret);
+          \draw[arr] (ret) -- (llm);
+          \draw[arr] (llm) -- (out);
+          \draw[->, dashed, gray!50]
+            (q.east) -- ++(0.7,0)
+            -- ++(0,-3.0) -- (llm.east);
+        \end{tikzpicture}
+      \end{center}
+      \begin{block}{Outils courants}
+        LangChain, LlamaIndex, Chroma, FAISS,
+        pgvector (PostgreSQL)
       \end{block}
     \end{column}
   \end{columns}
@@ -527,6 +785,42 @@ tokenizer = AutoTokenizer\
       \begin{alertblock}{Exemple}
         Confondre «~colère~» et «~tristesse~» est moins grave
         que «~positif~» et «~négatif~» --- la matrice le révèle.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Métriques de génération : BLEU \& ROUGE}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{BLEU --- pour la traduction}
+        Mesure la \textbf{précision} : quelle fraction des
+        n-grammes produits apparaît dans la référence ?
+        \vspace{2pt}
+        \begin{itemize}
+          \item Compare les \textbf{n-grammes} produits
+                à la traduction de référence
+          \item BP : pénalité si la sortie est trop courte
+          \item $\in [0,1]$ ; $> 0{,}3$ considéré bon
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{ROUGE --- pour le résumé}
+        Mesure le \textbf{rappel} : quelle fraction des
+        n-grammes de la référence est retrouvée ?
+        \begin{itemize}
+          \item \textbf{ROUGE-1} : unigrammes communs
+          \item \textbf{ROUGE-2} : bigrammes communs
+          \item \textbf{ROUGE-L} : plus longue sous-séquence
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{alertblock}{Limite commune}
+        BLEU et ROUGE sont \textbf{lexicaux} --- ils ratent
+        les reformulations correctes sémantiquement.
+        \textbf{BERTScore} (similarité cosinus d'embeddings)
+        est plus robuste pour évaluer la qualité réelle.
       \end{alertblock}
     \end{column}
   \end{columns}
