@@ -594,6 +594,45 @@ emb = nn.Embedding.from_pretrained(W, freeze=False)
   \end{columns}
 \end{frame}
 
+\begin{frame}{Réduction de dimension : simplifier le modèle aval}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Au-delà de la visualisation}
+        Embeddings $\in \R^{768}$ : espace de haute dimension.\\[4pt]
+        Avec \textbf{PCA} (ou UMAP) : $\R^{768} \to \R^{50}$\\[4pt]
+        $\Rightarrow$ un classifieur \textbf{simple} suffit souvent :
+        \begin{itemize}
+          \item Régression logistique
+          \item SVM
+          \item $k$-NN
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Pipeline typique}
+        \centering\small
+        \texttt{BERT / Word2Vec}
+        $\;\to\;$ \texttt{PCA}
+        $\;\to\;$ \texttt{LogisticRegression}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{exampleblock}{Avantages}
+        \begin{itemize}
+          \item Entraînement \textbf{rapide}
+          \item Moins de données nécessaires
+        \end{itemize}
+      \end{exampleblock}
+      \vspace{4pt}
+      \begin{alertblock}{Limite : surapprentissage}
+        En haute dimension, le classifieur mémorise\\
+        les données d'entraînement (\textbf{overfitting}).\\[3pt]
+        La réduction de dimension \textbf{régularise}\\
+        implicitement le modèle aval.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
 \begin{frame}{Limites des embeddings statiques}
   \begin{columns}[T]
     \begin{column}{0.52\textwidth}
