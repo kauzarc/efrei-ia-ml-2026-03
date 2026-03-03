@@ -168,7 +168,7 @@
           \node[anchor=west, font=\tiny] at (0.57,-2.40) {lune};
         \node[font=\scriptsize, color=gray] at (0,-2.90) {$\vdots$};
         \node[above=0.15cm of r0, font=\small\bfseries, color=jedy_blue]
-          {$v_{\text{chat}}$};
+          {$\mathbf{v}_{\text{chat}}$};
       \end{tikzpicture}
     \end{column}
     \begin{column}{0.60\textwidth}
@@ -176,7 +176,7 @@
         \begin{enumerate}
           \item \textbf{Creusité} : $V = 50\,000$ valeurs, un seul \texttt{1}
           \item \textbf{Orthogonalité} :
-                $v_{\text{chat}} \cdot v_{\text{chien}} = 0$ ---
+                $\mathbf{v}_{\text{chat}} \cdot \mathbf{v}_{\text{chien}} = 0$ ---
                 aucune notion de proximité sémantique
           \item \textbf{Dimensionnalité} : taille vecteur $=$ taille vocabulaire
         \end{enumerate}
@@ -354,7 +354,7 @@
       \begin{alertblock}{Le problème de la softmax}
         \vspace{-2pt}
         \[
-          P(w \mid c) = \frac{e^{u_w \cdot v_c}}{\displaystyle\sum_{i=1}^{V} e^{u_i \cdot v_c}}
+          P(w \mid c) = \frac{e^{\mathbf{u}_w \cdot \mathbf{v}_c}}{\displaystyle\sum_{i=1}^{V} e^{\mathbf{u}_i \cdot \mathbf{v}_c}}
         \]
         \vspace{-4pt}
         $V = 50\,000$ : \textbf{calcul prohibitif} à chaque étape.
@@ -363,8 +363,8 @@
         \small Pour chaque paire $(w^+, c)$ positive :
         \begin{itemize}
           \item tirer $k$ mots négatifs $w_1^-, \ldots, w_k^-$ au hasard
-          \item maximiser $\sigma(u_{w^+} \cdot v_c)$
-          \item minimiser $\sigma(u_{w_i^-} \cdot v_c)$
+          \item maximiser $\sigma(\mathbf{u}_{w^+} \cdot \mathbf{v}_c)$
+          \item minimiser $\sigma(\mathbf{u}_{w_i^-} \cdot \mathbf{v}_c)$
         \end{itemize}
         Mise à jour sur $k{+}1$ mots seulement. $k = 5$--$20$.
       \end{block}
@@ -394,11 +394,11 @@
         Word2Vec : fenêtre glissante \textbf{locale}.\\[4pt]
         GloVe exploite la matrice de co-occurrence \textbf{globale} :
         \[
-          X_{ij} = \text{nb de fois que } j \text{ apparaît près de } i
+          \X_{ij} = \text{nb de fois que } j \text{ apparaît près de } i
         \]
-        Objectif : apprendre $u_i, v_j$ tels que :
+        Objectif : apprendre $\mathbf{u}_i, \mathbf{v}_j$ tels que :
         \[
-          u_i \cdot v_j + b_i + b_j \;\approx\; \log X_{ij}
+          \mathbf{u}_i \cdot \mathbf{v}_j + b_i + b_j \;\approx\; \log \X_{ij}
         \]
         $b_i, b_j$ : biais scalaires par mot (fréquence de base).\\
         Les vecteurs encodent les \textbf{ratios} de co-occurrence.
@@ -428,18 +428,18 @@
       \begin{exampleblock}{Propriété : analogies vectorielles}
         Les relations sémantiques $=$ translations dans $\R^d$ :
         \[
-          \vec{\text{roi}} - \vec{\text{homme}} + \vec{\text{femme}}
-          \;\approx\; \vec{\text{reine}}
+          \mathbf{v}_{\text{roi}} - \mathbf{v}_{\text{homme}} + \mathbf{v}_{\text{femme}}
+          \;\approx\; \mathbf{v}_{\text{reine}}
         \]
         \[
-          \vec{\text{Paris}} - \vec{\text{France}} + \vec{\text{Allemagne}}
-          \;\approx\; \vec{\text{Berlin}}
+          \mathbf{v}_{\text{Paris}} - \mathbf{v}_{\text{France}} + \mathbf{v}_{\text{Allemagne}}
+          \;\approx\; \mathbf{v}_{\text{Berlin}}
         \]
       \end{exampleblock}
       \smallskip
       \begin{block}{Mesure de proximité : similarité cosinus}
         \[
-          \cos(\theta) = \frac{A \cdot B}{\norm{A}\,\norm{B}}
+          \cos(\theta) = \frac{\mathbf{a} \cdot \mathbf{b}}{\norm{\mathbf{a}}\,\norm{\mathbf{b}}}
           \;\in\; [-1,\;1]
         \]
         \vspace{-6pt}
@@ -456,13 +456,13 @@
         \draw[->, gray!60] (0,-0.2) -- (0,2.9) node[above] {dim 2};
         % Vecteurs depuis l'origine
         \draw[->, thick, jedy_mid]     (0,0) -- (0.35,0.85)
-          node[right] {$\vec{\text{homme}}$};
+          node[right] {$\mathbf{v}_{\text{homme}}$};
         \draw[->, thick, jedy_blue]    (0,0) -- (0.55,2.05)
-          node[above] {$\vec{\text{roi}}$};
+          node[above] {$\mathbf{v}_{\text{roi}}$};
         \draw[->, thick, jedy_example] (0,0) -- (1.65,1.35)
-          node[right] {$\vec{\text{femme}}$};
+          node[right] {$\mathbf{v}_{\text{femme}}$};
         \draw[->, thick, jedy_alert]   (0,0) -- (1.85,2.55)
-          node[above] {$\vec{\text{reine}}$};
+          node[above] {$\mathbf{v}_{\text{reine}}$};
         % Parallélogramme (tirets)
         \draw[dashed, gray!60] (0.55,2.05) -- (1.85,2.55);
         \draw[dashed, gray!60] (0.35,0.85) -- (1.65,1.35);
@@ -667,11 +667,11 @@ emb = nn.Embedding.from_pretrained(W, freeze=False)
             \node[box, fill=jedy_blue!15, draw=jedy_blue] (b2) at (0,-1.1)
               {banque (rivi\`ere)};
             \draw[->, jedy_alert, thick] (b1.east) -- (2.0, 0.0)
-              node[right] {$\vec{v}_1$};
+              node[right] {$\mathbf{v}_1$};
             \draw[->, jedy_blue, thick]  (b2.east) -- (2.0,-1.1)
-              node[right] {$\vec{v}_2$};
+              node[right] {$\mathbf{v}_2$};
             \node[font=\tiny\bfseries, color=jedy_example] at (2.2,-0.55)
-              {$v_1 \neq v_2$};
+              {$\mathbf{v}_1 \neq \mathbf{v}_2$};
           \end{tikzpicture}
         \end{center}
       \end{block}
@@ -704,7 +704,7 @@ emb = nn.Embedding.from_pretrained(W, freeze=False)
           PE_{(pos,\,2i+1)} &= \cos\!\Bigl(\tfrac{pos}{10000^{2i/d}}\Bigr)
         \end{align*}
         \normalsize
-        On \textbf{additionne} à l'embedding : $x_t \leftarrow x_t + PE_t$
+        On \textbf{additionne} à l'embedding : $\mathbf{x}_t \leftarrow \mathbf{x}_t + \mathbf{pe}_t$
       \end{block}
     \end{column}
     \begin{column}{0.44\textwidth}
