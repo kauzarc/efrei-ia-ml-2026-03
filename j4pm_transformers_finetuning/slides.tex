@@ -162,6 +162,72 @@
 \section{L'architecture Transformer}
 % ============================================================
 
+\begin{frame}{L'architecture Transformer (Vaswani et al., 2017)}
+  \vspace{-2pt}
+  \centering
+  \begin{tikzpicture}[font=\scriptsize, scale=0.9,
+    blk/.style={draw, rounded corners=2pt, align=center,
+                minimum width=3.1cm, minimum height=0.48cm,
+                fill=jedy_blue!10, draw=jedy_blue},
+    dblk/.style={draw, rounded corners=2pt, align=center,
+                 minimum width=3.1cm, minimum height=0.48cm,
+                 fill=jedy_example!10, draw=jedy_example},
+    io/.style={draw, rounded corners=2pt, align=center,
+               minimum width=3.1cm, minimum height=0.48cm,
+               fill=gray!10, draw=gray!60},
+    arr/.style={->, thick, gray!60}]
+
+    % ===== ENCODER (x=1.7) =====
+    \node[io]  (src)  at (1.7, 0.00) {«~fr~» tokens + PE};
+    \draw[dashed, jedy_blue!60, rounded corners=3pt]
+      (0.1, 0.52) rectangle (3.3, 2.98);
+    \node[font=\tiny\bfseries, color=jedy_blue] at (3.1, 0.70) {$\times$N};
+    \node[blk] (esa)  at (1.7, 0.83) {Self-Attention};
+    \node[blk, minimum height=0.40cm] (ean1) at (1.7, 1.42) {Add \& Norm};
+    \node[blk] (eff)  at (1.7, 1.98) {Feed-Forward};
+    \node[blk, minimum height=0.40cm] (ean2) at (1.7, 2.57) {Add \& Norm};
+    \node[font=\small\bfseries, color=jedy_blue] at (1.7, 3.18) {Encoder};
+
+    % ===== DECODER (x=8.4) =====
+    \node[io]  (tgt)  at (8.4, 0.00) {«~en~» tokens + PE};
+    \draw[dashed, jedy_example!60, rounded corners=3pt]
+      (6.8, 0.52) rectangle (10.0, 4.12);
+    \node[font=\tiny\bfseries, color=jedy_example] at (9.8, 0.70) {$\times$N};
+    \node[dblk] (dmsa) at (8.4, 0.83) {Masked Self-Attention};
+    \node[dblk, minimum height=0.40cm] (dan1) at (8.4, 1.42) {Add \& Norm};
+    \node[dblk] (dca)  at (8.4, 1.98) {Cross-Attention};
+    \node[dblk, minimum height=0.40cm] (dan2) at (8.4, 2.55) {Add \& Norm};
+    \node[dblk] (dff)  at (8.4, 3.10) {Feed-Forward};
+    \node[dblk, minimum height=0.40cm] (dan3) at (8.4, 3.68) {Add \& Norm};
+    \node[font=\small\bfseries, color=jedy_example] at (8.4, 4.28) {Decoder};
+
+    % Sortie
+    \node[io]  (lin) at (8.4, 4.90) {Linear + Softmax};
+    \node[font=\small\bfseries, color=jedy_example] at (8.4, 5.52) {Token prédit};
+
+    % ===== FLÈCHES ENCODER =====
+    \draw[arr] (src.north)  -- (esa.south);
+    \draw[arr] (esa.north)  -- (ean1.south);
+    \draw[arr] (ean1.north) -- (eff.south);
+    \draw[arr] (eff.north)  -- (ean2.south);
+
+    % ===== FLÈCHES DECODER =====
+    \draw[arr] (tgt.north)  -- (dmsa.south);
+    \draw[arr] (dmsa.north) -- (dan1.south);
+    \draw[arr] (dan1.north) -- (dca.south);
+    \draw[arr] (dca.north)  -- (dan2.south);
+    \draw[arr] (dan2.north) -- (dff.south);
+    \draw[arr] (dff.north)  -- (dan3.south);
+    \draw[arr] (dan3.north) -- (lin.south);
+
+    % ===== CROSS-ATTENTION : K, V de l'encoder vers le decoder =====
+    \draw[->, thick, jedy_alert]
+      (ean2.east) -- ++(1.55, 0)
+      node[midway, above, font=\tiny\bfseries, color=jedy_alert] {K,\,V}
+      -- ++(0, -0.59) -- (dca.west);
+  \end{tikzpicture}
+\end{frame}
+
 \begin{frame}{Encoder, Decoder, Seq2Seq}
   \begin{columns}[T]
     \begin{column}{0.31\textwidth}
