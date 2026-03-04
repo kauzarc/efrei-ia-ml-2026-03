@@ -337,48 +337,85 @@
 \section{Hugging Face en pratique}
 % ============================================================
 
-\begin{frame}{L'écosystème Hugging Face}
+\begin{frame}[fragile]{Hugging Face --- Le Hub \& \texttt{datasets}}
   \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-      \begin{block}{The Hub}
-        Le «~GitHub~» des modèles d'IA :
+    \begin{column}{0.50\textwidth}
+      \begin{block}{The Hub --- le GitHub des modèles}
         \begin{itemize}
-          \item $> 100\,000$ modèles prêts à l'emploi
+          \item $> 900\,000$ modèles prêts à l'emploi
           \item Hébergement gratuit des poids
-          \item Versionning, fiches modèles,
+          \item Versionning, fiches modèles (\textit{Model Cards}),
                 benchmarks intégrés
+          \item Chargement direct depuis le code :
         \end{itemize}
-      \end{block}
-      \smallskip
-      \begin{block}{\texttt{datasets}}
-        \begin{itemize}
-          \item Accès instantané à des milliers de
-                bases de données (IMDb, Wikipedia,
-                GLUE, SQuAD\ldots)
-          \item Chargement en une ligne :
-          \item[] \quad\texttt{\small load\_dataset("imdb")}
-        \end{itemize}
+\begin{lstlisting}[language=Python, basicstyle=\tiny\ttfamily]
+from transformers import pipeline
+clf = pipeline("sentiment-analysis",
+    model="distilbert-base-uncased-"
+          "finetuned-sst-2-english")
+\end{lstlisting}
       \end{block}
     \end{column}
-    \begin{column}{0.48\textwidth}
-      \begin{exampleblock}{\texttt{transformers}}
-        Interface \textbf{unifiée} pour tout modèle :
+    \begin{column}{0.46\textwidth}
+      \begin{exampleblock}{\texttt{datasets} --- toutes les données}
+        Accès instantané à des milliers de bases :
         \begin{itemize}
-          \item BERT, RoBERTa, CamemBERT
-          \item GPT-2, LLaMA, Mistral
-          \item T5, BART, Whisper, CLIP\ldots
+          \item IMDb, Wikipedia, GLUE, SQuAD\ldots
+          \item Streaming pour les grands corpus
+          \item Compatibles PyTorch et TensorFlow
         \end{itemize}
-        Même API quel que soit l'architecture.
       \end{exampleblock}
+\begin{lstlisting}[language=Python, basicstyle=\tiny\ttfamily]
+from datasets import load_dataset
+
+ds = load_dataset("glue", "sst2")
+# DatasetDict({train: 67349, ...})
+
+print(ds["train"][0])
+# {'sentence': 'hide new secrets',
+#  'label': 0}
+\end{lstlisting}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Hugging Face --- \texttt{transformers} \& écosystème}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \begin{block}{\texttt{transformers} --- interface unifiée}
+        Même API quel que soit l'architecture :
+        \begin{itemize}
+          \item \textbf{Encodeurs} : BERT, RoBERTa, CamemBERT
+          \item \textbf{Décodeurs} : GPT-2, LLaMA, Mistral
+          \item \textbf{Seq2Seq} : T5, BART, Whisper, CLIP\ldots
+        \end{itemize}
+        \vspace{4pt}
+        \texttt{Auto*} : détecte l'architecture automatiquement.
+      \end{block}
       \smallskip
+      \begin{exampleblock}{Chargement universel}
+        \texttt{AutoTokenizer}, \texttt{AutoModel},\\
+        \texttt{AutoModelForSequenceClassification},\\
+        \texttt{AutoModelForCausalLM}\ldots
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.46\textwidth}
       \begin{alertblock}{Écosystème complet}
         \begin{itemize}
-          \item \texttt{tokenizers} : tokeniseurs rapides (Rust)
+          \item \texttt{tokenizers} : tokeniseurs ultra-rapides (Rust)
           \item \texttt{evaluate} : métriques standardisées
-          \item \texttt{accelerate} : multi-GPU/TPU
-          \item \texttt{PEFT} : fine-tuning efficace (LoRA)
+                (accuracy, F1, BLEU\ldots)
+          \item \texttt{accelerate} : multi-GPU/TPU sans changer le code
+          \item \texttt{PEFT} : fine-tuning efficace (LoRA, QLoRA)
+          \item \texttt{optimum} : export ONNX, quantization
         \end{itemize}
       \end{alertblock}
+      \smallskip
+      \begin{block}{Vision d'ensemble}
+        Hub $\to$ \texttt{datasets} $\to$ \texttt{transformers}
+        $\to$ \texttt{Trainer} $\to$ Hub\\[2pt]
+        Un cycle complet : charger, entraîner, publier.
+      \end{block}
     \end{column}
   \end{columns}
 \end{frame}
@@ -422,52 +459,6 @@ print(trad("Bonjour le monde"))
         \textbf{90\,\% du temps} en entreprise.
         Pas besoin de connaître l'architecture interne.
       \end{alertblock}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-\begin{frame}[fragile]{La tokenisation en pratique}
-  \begin{columns}[T]
-    \begin{column}{0.50\textwidth}
-      \begin{block}{Sous-mots (BPE / WordPiece)}
-        Les tokenizers modernes découpent les mots rares en
-        \textbf{sous-unités} pour couvrir toute la langue
-        avec un vocabulaire fixe ($\approx 30\,000$ tokens) :
-        \begin{itemize}
-          \item \texttt{"tokenisation"} $\to$
-                \texttt{["token",\ "\#\#isation"]}
-          \item \texttt{"unhappiness"} $\to$
-                \texttt{["un",\ "\#\#happy",\ "\#\#ness"]}
-        \end{itemize}
-      \end{block}
-      \smallskip
-      \begin{alertblock}{Paramètres critiques}
-        \begin{itemize}
-          \item \texttt{padding} : aligne les séquences du batch
-          \item \texttt{truncation} : limite à \texttt{max\_length}
-          \item \texttt{attention\_mask} : 1~=~vrai token,~0~=~padding
-        \end{itemize}
-      \end{alertblock}
-    \end{column}
-    \begin{column}{0.46\textwidth}
-\begin{lstlisting}[language=Python]
-from transformers import AutoTokenizer
-
-tok = AutoTokenizer.from_pretrained(
-    "camembert-base")
-
-batch = tok(
-    ["Bonjour",
-     "Je suis etudiant en M2"],
-    padding=True,
-    truncation=True,
-    max_length=128,
-    return_tensors="pt",
-)
-# batch["input_ids"]       [2, L]
-# batch["attention_mask"]  [2, L]
-# L = longueur de la plus longue phrase
-\end{lstlisting}
     \end{column}
   \end{columns}
 \end{frame}
@@ -728,100 +719,49 @@ Tweet: "Sympa mais long." ->"""
 \end{frame}
 
 % ============================================================
-\section{Évaluation}
+\section*{Récapitulatif}
 % ============================================================
 
-\begin{frame}{Évaluation : au-delà de l'accuracy}
-  \begin{columns}[T]
-    \begin{column}{0.50\textwidth}
-      \begin{alertblock}{Pourquoi l'accuracy ment}
-        99\,\% de mails normaux, 1\,\% de spams.\\[2pt]
-        Prédire «~normal~» partout $\to$ \textbf{99\,\%} ---
-        mais le modèle est \textbf{inutile}.
-      \end{alertblock}
-      \smallskip
-      \begin{block}{Précision \& Rappel}
-        \vspace{2pt}
-        $\displaystyle\text{Précision} = \dfrac{TP}{TP{+}FP}$
-        \qquad
-        $\displaystyle\text{Rappel} = \dfrac{TP}{TP{+}FN}$
-        \vspace{2pt}
-      \end{block}
-      \smallskip
-      \begin{exampleblock}{F1-Score --- moyenne harmonique}
-        \[
-          F_1 = 2 \cdot
-          \frac{\text{Précision} \times \text{Rappel}}
-               {\text{Précision} + \text{Rappel}}
-        \]
-      \end{exampleblock}
-    \end{column}
-    \begin{column}{0.46\textwidth}
-      \begin{block}{Matrice de confusion}
-        Visualiser \textbf{où} le modèle se trompe :
-        \vspace{2pt}
-        \begin{center}
-          \begin{tikzpicture}[font=\scriptsize]
-            \node[draw, fill=jedy_example!25,
-                  minimum width=1.5cm, minimum height=0.75cm, align=center,
-                  font=\scriptsize] at (0.75, -0.375)  {TP\\{\tiny vrais +}};
-            \node[draw, fill=jedy_alert!25,
-                  minimum width=1.5cm, minimum height=0.75cm, align=center,
-                  font=\scriptsize] at (2.25, -0.375)  {FP\\{\tiny faux +}};
-            \node[draw, fill=jedy_alert!25,
-                  minimum width=1.5cm, minimum height=0.75cm, align=center,
-                  font=\scriptsize] at (0.75, -1.125)  {FN\\{\tiny faux --}};
-            \node[draw, fill=jedy_example!25,
-                  minimum width=1.5cm, minimum height=0.75cm, align=center,
-                  font=\scriptsize] at (2.25, -1.125)  {TN\\{\tiny vrais --}};
-            \node[font=\tiny, color=gray] at (0.75,  0.1)  {Prédit +};
-            \node[font=\tiny, color=gray] at (2.25,  0.1)  {Prédit --};
-            \node[font=\tiny, color=gray, rotate=90] at (-0.1,-0.375) {Réel +};
-            \node[font=\tiny, color=gray, rotate=90] at (-0.1,-1.125) {Réel --};
-          \end{tikzpicture}
-        \end{center}
-      \end{block}
-      \vspace{2pt}
-      \begin{alertblock}{Exemple}
-        Confondre «~colère~» et «~tristesse~» est moins grave
-        que «~positif~» et «~négatif~» --- la matrice le révèle.
-      \end{alertblock}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-\begin{frame}{Métriques de génération : BLEU \& ROUGE}
+\begin{frame}{Récapitulatif --- Ce qu'on a vu}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
-      \begin{block}{BLEU --- pour la traduction}
-        Mesure la \textbf{précision} : quelle fraction des
-        n-grammes produits apparaît dans la référence ?
-        \vspace{2pt}
-        \begin{itemize}
-          \item Compare les \textbf{n-grammes} produits
-                à la traduction de référence
-          \item BP : pénalité si la sortie est trop courte
-          \item $\in [0,1]$ ; $> 0{,}3$ considéré bon
+      \begin{block}{Attention \& Transformer}
+        \begin{itemize}\small
+          \item Polysémie $\to$ besoin d'embeddings contextuels
+          \item Mécanisme QKV : score de pertinence + softmax
+          \item Multi-Head : plusieurs types de relations en parallèle
+          \item Architecture : Encoder (BERT), Decoder (GPT),
+                Seq2Seq (T5)
+        \end{itemize}
+      \end{block}
+      \vspace{4pt}
+      \begin{block}{Transfer Learning}
+        \begin{itemize}\small
+          \item Pre-training : apprendre la langue sur tout Internet
+          \item Fine-tuning : adapter en quelques minutes sur une tâche
+          \item Alternatives légères : LoRA, prompt-tuning, zero-shot
         \end{itemize}
       \end{block}
     \end{column}
     \begin{column}{0.48\textwidth}
-      \begin{block}{ROUGE --- pour le résumé}
-        Mesure le \textbf{rappel} : quelle fraction des
-        n-grammes de la référence est retrouvée ?
-        \begin{itemize}
-          \item \textbf{ROUGE-1} : unigrammes communs
-          \item \textbf{ROUGE-2} : bigrammes communs
-          \item \textbf{ROUGE-L} : plus longue sous-séquence
+      \begin{block}{Hugging Face en pratique}
+        \begin{itemize}\small
+          \item Hub : 900k+ modèles, versionning, Model Cards
+          \item \texttt{datasets} + \texttt{transformers} : une ligne
+                pour charger données et modèles
+          \item \texttt{pipeline} : inférence clé en main (90\,\% des cas)
+          \item \texttt{Trainer} : boucle d'entraînement complète
+          \item Écosystème : tokenizers, evaluate, accelerate, PEFT
         \end{itemize}
       \end{block}
-      \smallskip
-      \begin{alertblock}{Limite commune}
-        BLEU et ROUGE sont \textbf{lexicaux} --- ils ratent
-        les reformulations correctes sémantiquement.
-        \textbf{BERTScore} (similarité cosinus d'embeddings)
-        est plus robuste pour évaluer la qualité réelle.
-      \end{alertblock}
+      \vspace{4pt}
+      \begin{block}{LLM modernes}
+        \begin{itemize}\small
+          \item RLHF : aligner le modèle sur les préférences humaines
+          \item Prompt engineering : zero-shot, few-shot, CoT
+          \item RAG : ancrer les réponses dans des documents réels
+        \end{itemize}
+      \end{block}
     \end{column}
   \end{columns}
 \end{frame}
