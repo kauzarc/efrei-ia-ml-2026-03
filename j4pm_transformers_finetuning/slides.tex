@@ -333,6 +333,49 @@
   \end{columns}
 \end{frame}
 
+\begin{frame}[fragile]{Anatomie du Fine-Tuning}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Les 3 composants obligatoires}
+        \begin{enumerate}
+          \item \textbf{Tokenizer} : identique au modèle pré-entraîné
+          \item \textbf{Model Head} : couche de sortie remplacée
+                (ex: $30\,000 \to 2$ classes)
+          \item \textbf{Trainer} : boucle d'entraînement optimisée
+        \end{enumerate}
+      \end{block}
+      \vspace{2pt}
+\begin{lstlisting}[language=Python]
+from transformers import (
+    AutoTokenizer,
+    AutoModelForSequenceClassification,
+)
+model = AutoModelForSequenceClassification\
+  .from_pretrained("camembert-base",
+                   num_labels=2)
+tokenizer = AutoTokenizer\
+  .from_pretrained("camembert-base")
+\end{lstlisting}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{exampleblock}{Pourquoi le Tokenizer doit coïncider ?}
+        Le modèle a appris des embeddings pour des IDs
+        précis. Si l'on utilise un tokenizer différent,
+        les IDs ne correspondent plus aux poids ---
+        le modèle produit du bruit.
+      \end{exampleblock}
+      \vspace{2pt}
+      \begin{block}{Alternatives légères}
+        \begin{itemize}
+          \item \textbf{LoRA / QLoRA} : $< 1\,\%$ des params
+          \item \textbf{Prompt-tuning} : tokens «~soft~»
+          \item \textbf{Zero-shot} : sans fine-tuning
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
 % ============================================================
 \section{Hugging Face en pratique}
 % ============================================================
@@ -459,49 +502,6 @@ print(trad("Bonjour le monde"))
         \textbf{90\,\% du temps} en entreprise.
         Pas besoin de connaître l'architecture interne.
       \end{alertblock}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-\begin{frame}[fragile]{Anatomie du Fine-Tuning --- le mode «~Expert~»}
-  \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      \begin{block}{Les 3 composants obligatoires}
-        \begin{enumerate}
-          \item \textbf{Tokenizer} : identique au modèle pré-entraîné
-          \item \textbf{Model Head} : couche de sortie remplacée
-                (ex: $30\,000 \to 2$ classes)
-          \item \textbf{Trainer} : boucle d'entraînement optimisée
-        \end{enumerate}
-      \end{block}
-      \vspace{2pt}
-\begin{lstlisting}[language=Python]
-from transformers import (
-    AutoTokenizer,
-    AutoModelForSequenceClassification,
-)
-model = AutoModelForSequenceClassification\
-  .from_pretrained("camembert-base",
-                   num_labels=2)
-tokenizer = AutoTokenizer\
-  .from_pretrained("camembert-base")
-\end{lstlisting}
-    \end{column}
-    \begin{column}{0.44\textwidth}
-      \begin{exampleblock}{Pourquoi le Tokenizer doit coïncider ?}
-        Le modèle a appris des embeddings pour des IDs
-        précis. Si l'on utilise un tokenizer différent,
-        les IDs ne correspondent plus aux poids ---
-        le modèle produit du bruit.
-      \end{exampleblock}
-      \vspace{2pt}
-      \begin{block}{Alternatives légères}
-        \begin{itemize}
-          \item \textbf{LoRA / QLoRA} : $< 1\,\%$ des params
-          \item \textbf{Prompt-tuning} : tokens «~soft~»
-          \item \textbf{Zero-shot} : sans fine-tuning
-        \end{itemize}
-      \end{block}
     \end{column}
   \end{columns}
 \end{frame}
