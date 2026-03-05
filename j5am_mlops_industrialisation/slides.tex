@@ -75,6 +75,44 @@
 \section{Sérialiser et optimiser}
 % ============================================================
 
+\begin{frame}{Sérialisation --- sauvegarder un modèle entraîné}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Le problème}
+        L'entraînement dure des heures.\\[4pt]
+        Comment \textbf{sauvegarder} le modèle sur disque
+        pour le réutiliser en production,
+        sans avoir à tout réentraîner ?
+      \end{alertblock}
+      \vspace{4pt}
+      \begin{block}{Sérialisation}
+        Convertir l'état interne du modèle
+        (poids, architecture) en une \textbf{suite d'octets}
+        écrite dans un fichier.\\[4pt]
+        La désérialisation recrée l'objet en mémoire.
+      \end{block}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{exampleblock}{Les approches en Python / PyTorch}
+        \begin{itemize}
+          \item \textbf{Pickle} --- réflexe natif Python
+          \item \textbf{state\_dict} --- poids seuls (PyTorch)
+          \item \textbf{ONNX} --- graphe portable universel
+          \item \textbf{safetensors} --- sans exécution de code
+        \end{itemize}
+      \end{exampleblock}
+      \vspace{4pt}
+      \begin{block}{Critères de choix}
+        \begin{itemize}
+          \item Sécurité (source inconnue ?)
+          \item Portabilité (Java, mobile, navigateur ?)
+          \item Performance à l'inférence
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
 \begin{frame}[fragile]{Sérialisation (1/2) --- le danger de Pickle}
   \begin{columns}[T]
     \begin{column}{0.52\textwidth}
@@ -255,45 +293,38 @@ out = sess.run(None, {"x": x_np})
 
 \begin{frame}[fragile]{Serving avec FastAPI --- l'architecture Singleton}
   \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
+    \begin{column}{0.48\textwidth}
       \begin{alertblock}{Anti-pattern à bannir}
         Charger le modèle \textbf{dans} la route API $\to$
         500 Mo rechargés à chaque requête $\to$
         latence + RAM saturée.
       \end{alertblock}
-      \vspace{2pt}
-\begin{lstlisting}[language=Python]
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Le pattern Singleton}
+        Le modèle est chargé \textbf{une seule fois} au démarrage,
+        partagé entre toutes les requêtes.
+        \texttt{lifespan} gère le startup et le shutdown proprement.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+  \vspace{4pt}
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\scriptsize, numbers=none]
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.state.model = load_model("model.onnx")
+    app.state.model = load_model("model.onnx")   # startup : charge une seule fois
     yield
-    app.state.model = None
+    app.state.model = None                        # shutdown : libere la memoire
+
 app = FastAPI(lifespan=lifespan)
+
 @app.post("/predict")
 async def predict(data: InputData):
-    return app.state.model.run(data)
+    return app.state.model.run(data)              # modele deja en memoire, pas de reload
 \end{lstlisting}
-    \end{column}
-    \begin{column}{0.44\textwidth}
-      \begin{exampleblock}{Le pattern Singleton}
-        Le modèle est chargé \textbf{une seule fois}
-        au démarrage, maintenu en mémoire
-        partagée entre toutes les requêtes.
-      \end{exampleblock}
-      \vspace{2pt}
-      \begin{block}{Événements \texttt{lifespan}}
-        \begin{itemize}
-          \item \textbf{Startup :} charger modèle,
-                connexion BDD, warmup GPU
-          \item \textbf{Shutdown :} libérer GPU,
-                fermer connexions proprement
-        \end{itemize}
-      \end{block}
-    \end{column}
-  \end{columns}
 \end{frame}
 
 \begin{frame}{FastAPI pour les devs Fullstack}
@@ -506,53 +537,106 @@ CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0"]
           \item \textbf{Ré-entraîner} sur les nouvelles données
         \end{enumerate}
       \end{exampleblock}
-      \vspace{2pt}
-      \begin{block}{Outils}
-        \textbf{Evidently} \textbullet{} \textbf{WhyLogs}
-        \textbullet{} \textbf{MLflow} \textbullet{} \textbf{Grafana}
+    \end{column}
+  \end{columns}
+  \vspace{4pt}
+  \begin{block}{Outils}
+    \begin{columns}[T]
+      \begin{column}{0.23\textwidth}
+        \textbf{Evidently} --- rapports de drift données/modèle en HTML ou JSON
+      \end{column}
+      \begin{column}{0.23\textwidth}
+        \textbf{WhyLogs} --- profiling léger, intégrable directement dans la route API
+      \end{column}
+      \begin{column}{0.23\textwidth}
+        \textbf{MLflow} --- versioning des runs, comparaison de métriques entre modèles
+      \end{column}
+      \begin{column}{0.23\textwidth}
+        \textbf{Grafana} --- dashboards temps réel sur la latence et les erreurs applicatives
+      \end{column}
+    \end{columns}
+  \end{block}
+\end{frame}
+
+\begin{frame}{CI/CD pour le Machine Learning}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Pipeline CI/CD ML}
+        \begin{enumerate}
+          \item \textbf{Tests unitaires :} preprocessing et postprocessing
+          \item \textbf{Tests modèle :} accuracy $>$ seuil sur validation figé
+          \item \textbf{Build \& push} de l'image Docker
+          \item \textbf{Déploiement :} staging $\to$ prod
+        \end{enumerate}
       \end{block}
+      \smallskip
+      \begin{block}{Outils courants}
+        \textbf{GitHub Actions} \textbullet{}
+        \textbf{GitLab CI} \textbullet{}
+        \textbf{DVC} (versionner les données) \textbullet{}
+        \textbf{MLflow} (tracker les runs)
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Stratégies de déploiement}
+        \begin{itemize}
+          \item \textbf{Canary :} 5\,\% du trafic sur le nouveau modèle ---
+                rollback immédiat si dégradation
+          \item \textbf{A/B Testing :} deux modèles en parallèle,
+                comparaison contrôlée sur population réelle
+          \item \textbf{Shadow mode :} le nouveau modèle tourne en parallèle,
+                logs seulement, zéro impact client
+        \end{itemize}
+      \end{exampleblock}
+      \smallskip
+      \begin{alertblock}{Règle d'or}
+        Un modèle ne va jamais en prod sans avoir
+        \textbf{passé les tests} et \textbf{été validé en staging}.
+      \end{alertblock}
     \end{column}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Conclusion --- CI/CD pour le ML}
+\begin{frame}{Récapitulatif --- Ce qu'on a vu}
   \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      \begin{block}{Automatisation : CI/CD ML}
-        \begin{itemize}
-          \item \textbf{Tests unitaires :} preprocessing,
-                postprocessing
-          \item \textbf{Tests modèle :} accuracy $>$ seuil minimal
-                sur un jeu de validation figé
-          \item \textbf{Build \& push} de l'image Docker
-          \item \textbf{Déploiement :} staging puis prod
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Sérialisation \& Optimisation}
+        \small
+        \begin{itemize}\setlength{\itemsep}{1pt}
+          \item Pickle : natif mais exécute du code arbitraire au chargement
+          \item ONNX : graphe figé, portable (C++, JS, mobile)
+          \item \texttt{state\_dict} / \texttt{safetensors} : poids seuls, sûrs
+          \item Quantization (Float32 $\to$ Int8), pruning, compilation hardware
         \end{itemize}
       \end{block}
-      \smallskip
-      \begin{exampleblock}{Stratégies de déploiement}
-        \begin{itemize}
-          \item \textbf{Canary :} 5\,\% du trafic
-                sur le nouveau modèle
-          \item \textbf{A/B Testing :} comparaison contrôlée
-          \item \textbf{Shadow mode :} logs sans impact client
+      \vspace{3pt}
+      \begin{block}{Serving avec FastAPI}
+        \small
+        \begin{itemize}\setlength{\itemsep}{1pt}
+          \item Pattern Singleton via \texttt{lifespan} : modèle chargé une seule fois
+          \item Pydantic : validation automatique des entrées
+          \item Pipeline : JSON $\to$ preprocessing $\to$ inférence $\to$ JSON
         \end{itemize}
-      \end{exampleblock}
+      \end{block}
     \end{column}
-    \begin{column}{0.44\textwidth}
-      \begin{alertblock}{Ce que vous avez appris}
-        \begin{itemize}
-          \item Sérialiser avec ONNX pour la portabilité
-          \item Servir avec FastAPI (pattern Singleton)
-          \item Conteneuriser avec Docker (non-root,
-                layer caching)
-          \item Surveiller les dérives en production
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Docker}
+        \small
+        \begin{itemize}\setlength{\itemsep}{1pt}
+          \item Images slim, \texttt{python:3.10-slim} comme base
+          \item Layer caching : dépendances avant le code source
+          \item Non-root : \texttt{useradd} + \texttt{USER} obligatoire en prod
         \end{itemize}
-      \end{alertblock}
-      \smallskip
-      \begin{exampleblock}{Place au Challenge !}
-        \textbf{Vous avez le moteur, vous avez la boîte} ---
-        maintenant mettez votre modèle en production.
-      \end{exampleblock}
+      \end{block}
+      \vspace{3pt}
+      \begin{block}{Monitoring \& CI/CD}
+        \small
+        \begin{itemize}\setlength{\itemsep}{1pt}
+          \item Data Drift / Concept Drift : surveiller les distributions en prod
+          \item Pipeline CI/CD : tests unitaires $\to$ build Docker $\to$ staging $\to$ prod
+          \item Déploiement : canary, A/B testing, shadow mode
+        \end{itemize}
+      \end{block}
     \end{column}
   \end{columns}
 \end{frame}
