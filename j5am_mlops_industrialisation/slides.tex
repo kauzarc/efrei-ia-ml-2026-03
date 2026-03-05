@@ -156,14 +156,17 @@ with open("model.pkl", "rb") as f:
   \begin{columns}[T]
     \begin{column}{0.52\textwidth}
       \begin{exampleblock}{ONNX --- Open Neural Network Exchange}
-        Modèle sous forme de \textbf{graphe statique figé} :
+        Modèle exporté sous forme de \textbf{graphe statique figé}.\\[4pt]
+        À l'inférence, \textbf{plus besoin de remonter le gradient} :
+        le graphe peut être optimisé par le compilateur
+        (fusion d'opérations, constant folding, quantization).
         \begin{itemize}
           \item \textbf{Standard universel :} portable partout
-          \item \textbf{Vitesse :} souvent plus rapide que PyTorch brut
+          \item \textbf{Vitesse :} plus rapide que PyTorch brut car
+                aucun overhead d'autograd
         \end{itemize}
       \end{exampleblock}
-      \vspace{2pt}
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\scriptsize]
 import torch.onnx
 torch.onnx.export(
     model, dummy_input, "model.onnx",
@@ -205,36 +208,48 @@ out = sess.run(None, {"x": x_np})
   \end{columns}
 \end{frame}
 
-\begin{frame}{L'IA «~On-Edge~» --- zéro serveur, zéro latence}
+\begin{frame}[fragile]{Model Registry --- versionner ses modèles comme son code}
   \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      \begin{block}{Concept}
-        Faire tourner l'IA \textbf{directement chez l'utilisateur} :
-        navigateur, mobile, IoT.\\[4pt]
-        \textbf{Outils :}
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{Le problème sans registry}
         \begin{itemize}
-          \item \textbf{ONNX Runtime Web} --- modèle ONNX dans le navigateur
-          \item \textbf{TensorFlow.js} --- JavaScript natif
-          \item \textbf{MediaPipe / CoreML} --- vision sur mobile
+          \item \texttt{model\_final.onnx},
+                \texttt{model\_final\_v2.onnx},
+                \texttt{model\_ok\_cette\_fois.onnx}...
+          \item Impossible de savoir quel modèle tourne en prod
+          \item Impossible de rollback proprement
         \end{itemize}
+      \end{alertblock}
+      \vspace{4pt}
+      \begin{block}{Principe}
+        Un \textbf{Model Registry} est à vos modèles
+        ce que Git est à votre code :
+        chaque version est taguée, traçable,
+        et peut être promue ou revertée.
       \end{block}
     \end{column}
-    \begin{column}{0.44\textwidth}
-      \begin{exampleblock}{Avantages stratégiques}
-        \begin{itemize}
-          \item \textbf{Coût :} facture serveur proche de 0€ ---
-                le client fournit la puissance de calcul
-          \item \textbf{Confidentialité :} la donnée ne quitte
-                jamais l'appareil --- RGPD-friendly par design
-          \item \textbf{Réactivité :} pas de latence réseau,
-                idéal pour la vidéo temps réel
-        \end{itemize}
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Avec MLflow}
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\scriptsize, numbers=none]
+import mlflow
+
+with mlflow.start_run():
+    mlflow.log_metric("f1", 0.91)
+    mlflow.log_param("lr", 1e-4)
+    mlflow.onnx.log_model(model, "model")
+
+# Promouvoir en production
+client = mlflow.MlflowClient()
+client.transition_model_version_stage(
+    name="sentiment", version=3,
+    stage="Production"
+)
+\end{lstlisting}
       \end{exampleblock}
-      \vspace{2pt}
-      \begin{alertblock}{Contrainte}
-        Taille limitée par la RAM du device ---
-        d'où l'importance de la quantization.
-      \end{alertblock}
+      \begin{block}{Metadata à tracer}
+        Dataset utilisé \textbullet{} hyperparamètres
+        \textbullet{} métriques \textbullet{} auteur \textbullet{} date
+      \end{block}
     \end{column}
   \end{columns}
 \end{frame}
@@ -410,21 +425,94 @@ async def predict(data: InputData):
         at (11.6,-1.0) {Client\\REST/JSON};
     \end{tikzpicture}
   \end{center}
-  \medskip
+\end{frame}
+
+\begin{frame}[fragile]{Train/Serve Skew --- le bug silencieux}
   \begin{columns}[T]
-    \begin{column}{0.50\textwidth}
-      \begin{alertblock}{Point critique : cohérence du prétraitement}
-        Le preprocessing doit être \textbf{strictement identique}
-        au code d'entraînement --- même scaler, même tokenizer,
-        mêmes paramètres.
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{Le bug le plus fréquent en prod}
+        Le preprocessing à l'entraînement et celui
+        dans l'API ne font \textbf{pas exactement la même chose}.\\[4pt]
+        Le modèle reçoit des données qu'il n'a jamais vues ---
+        les prédictions se dégradent \textbf{silencieusement},
+        sans erreur, sans exception.
       \end{alertblock}
+      \vspace{4pt}
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\scriptsize, numbers=none]
+# Entrainement
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_raw)
+
+# API -- BUG : nouveau scaler, nouveaux stats !
+scaler2 = StandardScaler()
+X = scaler2.fit_transform([user_input])
+\end{lstlisting}
     \end{column}
-    \begin{column}{0.46\textwidth}
-      \begin{exampleblock}{Bonne pratique}
-        Empaqueter le prétraitement \textbf{dans} le modèle
-        ONNX ou le versionner avec lui
-        (ex: \texttt{sklearn Pipeline} sérialisé avec \texttt{safetensors}).
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Solution : un seul objet, versionné avec le modèle}
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\scriptsize, numbers=none]
+# Entrainement : serialiser le scaler
+import joblib
+scaler = StandardScaler().fit(X_raw)
+joblib.dump(scaler, "scaler-v3.pkl")
+
+# API : charger le MEME scaler
+scaler = joblib.load("scaler-v3.pkl")
+X = scaler.transform([user_input])  # OK
+\end{lstlisting}
       \end{exampleblock}
+      \vspace{2pt}
+      \begin{block}{Règle d'or}
+        Préprocesseur et modèle sont \textbf{un même artefact} :
+        versionnés ensemble, déployés ensemble.\\[2pt]
+        Idéal : empaqueter le preprocessing \textbf{dans} le modèle ONNX
+        ou un \texttt{sklearn Pipeline}.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{L'IA «~On-Edge~» --- zéro serveur, zéro latence}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{Le problème du serving classique}
+        Chaque requête transite par un serveur :
+        \begin{itemize}
+          \item Latence réseau incompatible avec la vidéo temps réel
+          \item Coût infrastructure qui explose à l'échelle
+          \item Données sensibles qui quittent l'appareil
+          \item Indisponible hors connexion
+        \end{itemize}
+      \end{alertblock}
+      \vspace{4pt}
+      \begin{exampleblock}{On-Edge : l'inférence chez l'utilisateur}
+        \begin{itemize}
+          \item \textbf{ONNX Runtime Web} --- modèle ONNX dans le navigateur
+          \item \textbf{TensorFlow.js} --- JavaScript natif
+          \item \textbf{MediaPipe / CoreML} --- vision sur mobile
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Avantages}
+        \begin{itemize}\setlength{\itemsep}{1pt}
+          \item \textbf{Latence :} pas de round-trip réseau
+          \item \textbf{Coût :} le client fournit la puissance de calcul
+          \item \textbf{Confidentialité :} données jamais envoyées --- RGPD-friendly
+          \item \textbf{Résilience :} fonctionne hors connexion
+        \end{itemize}
+      \end{block}
+      \vspace{2pt}
+      \begin{alertblock}{Contraintes}
+        \begin{itemize}\setlength{\itemsep}{1pt}
+          \item \textbf{RAM et CPU :} mobile $\ll$ serveur ---
+                quantization et pruning indispensables
+          \item \textbf{Hétérogénéité :} iOS, Android, navigateurs
+                --- comportements différents selon le hardware
+          \item \textbf{Mise à jour :} impossible de patcher le modèle
+                sans mise à jour de l'app
+        \end{itemize}
+      \end{alertblock}
     \end{column}
   \end{columns}
 \end{frame}
