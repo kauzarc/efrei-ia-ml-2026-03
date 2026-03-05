@@ -288,18 +288,48 @@ client.transition_model_version_stage(
       \end{block}
     \end{column}
   \end{columns}
-  \medskip
-  \begin{center}
-    \begin{tikzpicture}[font=\scriptsize]
-      \node[draw, rounded corners=3pt, fill=jedy_blue!10, draw=jedy_blue,
-            align=center, minimum width=12cm, minimum height=0.65cm]
-        {Ordre recommandé :
-         \textbf{Quantization} $\to$
-         \textbf{Pruning} $\to$
-         \textbf{Compilation} ---
-         chaque étape s'applique indépendamment};
-    \end{tikzpicture}
-  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Optimisation en pratique --- quand appliquer quoi}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{exampleblock}{Quantization --- 3 lignes, impact immédiat}
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\scriptsize, numbers=none]
+import torch
+
+# Post-Training Dynamic Quantization
+model_int8 = torch.quantization.quantize_dynamic(
+    model,
+    {torch.nn.Linear},   # couches a quantizer
+    dtype=torch.qint8
+)
+# Taille / 4, vitesse x2-3 sur CPU
+torch.onnx.export(model_int8, dummy, "model_int8.onnx")
+\end{lstlisting}
+      \end{exampleblock}
+      \vspace{2pt}
+      \begin{alertblock}{Quantization-Aware Training (QAT)}
+        Si la perte de précision PTQ est trop importante :
+        simuler la quantization \textbf{pendant} l'entraînement
+        pour que le modèle s'y adapte.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Quand choisir quoi ?}
+        \begin{itemize}\setlength{\itemsep}{3pt}
+          \item \textbf{Quantization} --- toujours, en premier.
+                Gain immédiat, risque minimal.
+          \item \textbf{Pruning} --- modèle trop lourd
+                même après quantization.
+                Nécessite un fine-tuning post-pruning.
+          \item \textbf{Compilation hardware} ---
+                hardware cible fixé et connu à l'avance
+                (GPU NVIDIA en prod, Apple Silicon, etc.).
+                Gain max mais portabilité nulle.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 % ============================================================
@@ -646,26 +676,9 @@ CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0"]
   \end{block}
 \end{frame}
 
-\begin{frame}{CI/CD pour le Machine Learning}
+\begin{frame}{Stratégies de déploiement ML}
   \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-      \begin{block}{Pipeline CI/CD ML}
-        \begin{enumerate}
-          \item \textbf{Tests unitaires :} preprocessing et postprocessing
-          \item \textbf{Tests modèle :} accuracy $>$ seuil sur validation figé
-          \item \textbf{Build \& push} de l'image Docker
-          \item \textbf{Déploiement :} staging $\to$ prod
-        \end{enumerate}
-      \end{block}
-      \smallskip
-      \begin{block}{Outils courants}
-        \textbf{GitHub Actions} \textbullet{}
-        \textbf{GitLab CI} \textbullet{}
-        \textbf{DVC} (versionner les données) \textbullet{}
-        \textbf{MLflow} (tracker les runs)
-      \end{block}
-    \end{column}
-    \begin{column}{0.48\textwidth}
+    \begin{column}{0.52\textwidth}
       \begin{exampleblock}{Stratégies de déploiement}
         \begin{itemize}
           \item \textbf{Canary :} 5\,\% du trafic sur le nouveau modèle ---
@@ -676,10 +689,66 @@ CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0"]
                 logs seulement, zéro impact client
         \end{itemize}
       \end{exampleblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Outils courants}
+        \textbf{GitHub Actions} \textbullet{}
+        \textbf{GitLab CI} \textbullet{}
+        \textbf{DVC} (versionner les données) \textbullet{}
+        \textbf{MLflow} (tracker les runs)
+      \end{block}
       \smallskip
       \begin{alertblock}{Règle d'or}
         Un modèle ne va jamais en prod sans avoir
         \textbf{passé les tests} et \textbf{été validé en staging}.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{CI/CD ML --- le pipeline en pratique}
+  \begin{columns}[T]
+    \begin{column}{0.54\textwidth}
+\begin{lstlisting}[language=bash, basicstyle=\ttfamily\scriptsize, numbers=none]
+# .github/workflows/ml-pipeline.yml
+name: ML Pipeline
+on:
+  push:
+    branches: [main]        # tests a chaque push
+  schedule:
+    - cron: "0 2 * * 1"    # retrain chaque lundi
+  workflow_dispatch:        # retrain manuel
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Tests preprocessing
+        run: pytest tests/test_preprocessing.py
+      - name: Eval modele
+        run: python eval.py --min-f1 0.85
+      - name: Build & push Docker
+        run: docker build -t model:${{ github.sha }} . && docker push registry/model:${{ github.sha }}
+      - name: Deploy staging
+        run: ./deploy.sh staging ${{ github.sha }}
+\end{lstlisting}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{block}{Ce qui diffère du CI/CD web}
+        \begin{itemize}\setlength{\itemsep}{1pt}
+          \item \textbf{Tests modèle :} accuracy, F1, latence ---
+                pas juste des assertions unitaires
+          \item \textbf{Déclencheurs multiples :}
+                push (tests), schedule (retrain),
+                drift détecté (retrain d'urgence)
+          \item \textbf{Artefacts lourds :} modèles de plusieurs gigaoctets ---
+                stocker dans un registry (MLflow, S3), pas dans git
+        \end{itemize}
+      \end{block}
+      \begin{alertblock}{Retrain $\neq$ redéploiement}
+        Un retrain produit un \textbf{candidat} ---
+        à valider (tests + staging) avant promotion en production.
       \end{alertblock}
     \end{column}
   \end{columns}
