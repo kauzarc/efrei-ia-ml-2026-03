@@ -128,8 +128,8 @@
       \end{block}
       \smallskip
       \begin{alertblock}{Objectif minimal}
-        Battre la baseline de l'intervenant : le modèle
-        «~prédire la moyenne~».
+        Battre la \textbf{baseline fournie} : arbre de décision
+        simple --- MAE $\approx 1.45$ mois.
       \end{alertblock}
     \end{column}
   \end{columns}
@@ -141,16 +141,16 @@
       \begin{block}{Fichiers fournis}
         \begin{itemize}
           \item \textbf{train.csv :} données d'entraînement avec
-                la colonne Age
+                la colonne Age (15\,000 exemples)
           \item \textbf{test.csv :} données sans étiquettes ---
-                vos prédictions ici
-          \item \textbf{sample\_submission.csv :} format attendu
+                vos prédictions ici (10\,000 exemples)
         \end{itemize}
       \end{block}
       \smallskip
       \begin{block}{Format de soumission}
-        Un fichier CSV avec deux colonnes :
-        \texttt{id} et \texttt{Age}.
+        Fichier \textbf{submission.csv} avec deux colonnes :
+        \texttt{id} et \texttt{Age}.\\[4pt]
+        Sauvegardez dans \texttt{/kaggle/working/}.
       \end{block}
     \end{column}
     \begin{column}{0.44\textwidth}
@@ -166,7 +166,7 @@
       \end{alertblock}
       \smallskip
       \begin{exampleblock}{Fin des soumissions}
-        Matin du J6 à \textbf{09h00}.\\
+        \textbf{Dimanche 22 mars à 23h55.}\\
         Votre validation locale est votre meilleur guide.
       \end{exampleblock}
     \end{column}
@@ -198,7 +198,7 @@
     \begin{column}{0.46\textwidth}
       \begin{block}{Choix du modèle}
         \begin{itemize}
-          \item \textbf{Baseline :} régression linéaire
+          \item \textbf{Baseline :} arbre de décision (fourni)
           \item \textbf{Ensembles :} Random Forest,
                 Gradient Boosting
           \item \textbf{Boosting :} XGBoost, LightGBM
@@ -269,27 +269,27 @@
       \begin{block}{Accès à la compétition}
         \begin{enumerate}
           \item Connectez-vous sur \textbf{kaggle.com}
-          \item Rejoignez la compétition via le lien fourni
-          \item Téléchargez \texttt{train.csv} et \texttt{test.csv}
-          \item Première soumission : la baseline
+          \item Rejoignez via le lien d'invitation :\\
+                {\footnotesize\texttt{kaggle.com/t/e57371844bcb4a0d96affb7875ec7373}}
+          \item Créez un notebook Kaggle (GPU off, internet on)
+          \item Exécutez la baseline --- première soumission
         \end{enumerate}
       \end{block}
       \smallskip
       \begin{block}{Organisation suggérée}
         \begin{itemize}
           \item \textbf{J5 PM :} EDA + baseline + feature engineering
-          \item \textbf{J6 matin :} modèles avancés, tuning,
-                soumission finale avant 09h00
+          \item \textbf{J6 :} modèles avancés, tuning,
+                soumission finale avant le \textbf{22/03 23h55}
         \end{itemize}
       \end{block}
     \end{column}
     \begin{column}{0.44\textwidth}
       \begin{exampleblock}{Par où commencer ?}
         \begin{enumerate}
-          \item Charger les données, afficher \texttt{.describe()}
-          \item Encoder \textbf{Sex}, vérifier les NaN
-          \item Entraîner une \textbf{régression linéaire}
-          \item Soumettre --- avoir un score de référence
+          \item Ouvrir le \textbf{notebook baseline} fourni
+          \item L'exécuter et soumettre --- score de référence
+          \item Explorer les données : \texttt{.describe()}, corrélations
           \item Itérer : features, modèle, hyperparamètres
         \end{enumerate}
       \end{exampleblock}
