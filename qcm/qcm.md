@@ -9,10 +9,10 @@ Questions orientées compréhension conceptuelle. Format : 3 options (A/B/C), un
 **Q1.** Pourquoi préfère-t-on utiliser NumPy plutôt que des boucles Python pour les opérations sur les tableaux ?
 
 A. NumPy est plus lisible et produit du code plus court
-B. Les opérations vectorisées NumPy sont exécutées en C compilé, bien plus rapides que les boucles Python ✓
-C. Python ne supporte pas les boucles sur des tableaux numériques
+B. Python ne supporte pas les boucles sur des tableaux numériques
+C. Les opérations vectorisées NumPy sont exécutées en C compilé, bien plus rapides que les boucles Python ✓
 
-> **Réponse : B** — NumPy délègue les calculs à des routines C/Fortran optimisées ; les boucles Python sont interprétées et ont un overhead important par itération.
+> **Réponse : C** — NumPy délègue les calculs à des routines C/Fortran optimisées ; les boucles Python sont interprétées et ont un overhead important par itération.
 
 ---
 
@@ -68,11 +68,11 @@ C. Elle garantit la convergence de la descente de gradient vers un minimum globa
 
 **Q7.** Quelle est la différence entre un DataFrame Pandas et un tableau NumPy ?
 
-A. Pandas est plus lent que NumPy car il est écrit en Python pur
-B. Un DataFrame a des colonnes nommées, des index, et peut contenir des types hétérogènes — NumPy est homogène et sans étiquette ✓
+A. Un DataFrame a des colonnes nommées, des index, et peut contenir des types hétérogènes — NumPy est homogène et sans étiquette ✓
+B. Pandas est plus lent que NumPy car il est écrit en Python pur
 C. NumPy peut stocker des données textuelles, pas Pandas
 
-> **Réponse : B** — Pandas est conçu pour les données tabulaires avec métadonnées (noms de colonnes, index, types mixtes) ; NumPy est optimisé pour le calcul numérique homogène.
+> **Réponse : A** — Pandas est conçu pour les données tabulaires avec métadonnées (noms de colonnes, index, types mixtes) ; NumPy est optimisé pour le calcul numérique homogène.
 
 ---
 
@@ -101,10 +101,10 @@ C. Ce sont trois noms différents pour la même chose selon le domaine d'applica
 **Q2.** Pourquoi ne peut-on pas évaluer un modèle uniquement sur ses données d'entraînement ?
 
 A. Les données d'entraînement sont trop volumineuses pour être utilisées en évaluation
-B. Un modèle peut apprendre par cœur les exemples d'entraînement (overfitting) sans avoir la capacité de généraliser ✓
-C. Les métriques calculées sur les données d'entraînement sont moins précises statistiquement
+B. Les métriques calculées sur les données d'entraînement sont moins précises statistiquement
+C. Un modèle peut apprendre par cœur les exemples d'entraînement (overfitting) sans avoir la capacité de généraliser ✓
 
-> **Réponse : B** — L'objectif est la généralisation : un modèle qui mémorise son jeu d'entraînement obtient 100% mais échoue sur de nouvelles données.
+> **Réponse : C** — L'objectif est la généralisation : un modèle qui mémorise son jeu d'entraînement obtient 100% mais échoue sur de nouvelles données.
 
 ---
 
@@ -120,41 +120,41 @@ C. Une mesure de l'écart entre les prédictions du modèle et les valeurs réel
 
 **Q4.** Quel est l'effet d'un taux d'apprentissage (learning rate) trop élevé lors de l'optimisation ?
 
-A. L'entraînement est plus lent car les mises à jour sont trop grandes
-B. Les mises à jour des poids sont trop grandes : on dépasse le minimum et la loss diverge ou oscille ✓
+A. Les mises à jour des poids sont trop grandes : on dépasse le minimum et la loss diverge ou oscille ✓
+B. L'entraînement est plus lent car les mises à jour sont trop grandes
 C. Le modèle converge plus vite vers un meilleur minimum global
 
-> **Réponse : B** — Un learning rate trop grand fait « sauter » par-dessus le minimum ; trop petit, la convergence est lente — il faut trouver le bon équilibre.
+> **Réponse : A** — Un learning rate trop grand fait « sauter » par-dessus le minimum ; trop petit, la convergence est lente — il faut trouver le bon équilibre.
 
 ---
 
 **Q5.** Quelle est la différence entre le gradient descent en batch, stochastique et mini-batch ?
 
 A. Batch = 1 exemple ; stochastique = tout le dataset ; mini-batch = un sous-ensemble
-B. Batch = tout le dataset par itération ; stochastique = 1 exemple ; mini-batch = un sous-ensemble (ex: 32 exemples) ✓
-C. Ce sont des noms différents pour la même algorithme selon la taille du modèle
+B. Ce sont des noms différents pour la même algorithme selon la taille du modèle
+C. Batch = tout le dataset par itération ; stochastique = 1 exemple ; mini-batch = un sous-ensemble (ex: 32 exemples) ✓
 
-> **Réponse : B** — La taille du lot utilisé pour calculer le gradient change le bruit des mises à jour et l'utilisation mémoire/GPU.
+> **Réponse : C** — La taille du lot utilisé pour calculer le gradient change le bruit des mises à jour et l'utilisation mémoire/GPU.
 
 ---
 
 **Q6.** Pourquoi utilise-t-on le mini-batch en pratique plutôt que le batch ou le SGD pur ?
 
 A. Le mini-batch est mathématiquement plus précis que les deux autres méthodes
-B. Il équilibre stabilité du gradient (vs SGD bruyant) et efficacité GPU (vectorisation) tout en permettant de traiter des datasets qui ne tiennent pas en RAM ✓
-C. Le mini-batch est la seule méthode compatible avec la rétropropagation
+B. Le mini-batch est la seule méthode compatible avec la rétropropagation
+C. Il équilibre stabilité du gradient (vs SGD bruyant) et efficacité GPU (vectorisation) tout en permettant de traiter des datasets qui ne tiennent pas en RAM ✓
 
-> **Réponse : B** — Le mini-batch exploite le parallélisme GPU (tenseurs en batch), introduit du bruit régularisant utile, et reste plus stable que le SGD pur.
+> **Réponse : C** — Le mini-batch exploite le parallélisme GPU (tenseurs en batch), introduit du bruit régularisant utile, et reste plus stable que le SGD pur.
 
 ---
 
 **Q7.** Pourquoi ne peut-on pas toujours utiliser la solution analytique pour la régression linéaire ?
 
 A. La solution analytique n'existe que pour les problèmes à une seule variable
-B. Inverser la matrice `(XᵀX)` a une complexité O(p³) et peut être instable si les features sont colinéaires, rendant la descente de gradient préférable pour les grands datasets ✓
-C. La solution analytique donne des poids non interprétables
+B. La solution analytique donne des poids non interprétables
+C. Inverser la matrice `(XᵀX)` a une complexité O(p³) et peut être instable si les features sont colinéaires, rendant la descente de gradient préférable pour les grands datasets ✓
 
-> **Réponse : B** — L'équation normale `w = (XᵀX)⁻¹Xᵀy` est exacte mais coûteuse (p features) et numériquement instable ; le GD s'adapte mieux aux grandes dimensions.
+> **Réponse : C** — L'équation normale `w = (XᵀX)⁻¹Xᵀy` est exacte mais coûteuse (p features) et numériquement instable ; le GD s'adapte mieux aux grandes dimensions.
 
 ---
 
@@ -202,21 +202,21 @@ C. Elle convertit les sorties en probabilités entre 0 et 1
 
 **Q4.** Pourquoi ReLU est-elle préférée à d'autres fonctions non-linéaires en pratique ?
 
-A. ReLU est la seule fonction d'activation qui garantit la convergence du réseau
-B. Son gradient est constant (1 pour x>0), ce qui évite le problème du gradient qui disparaît (vanishing gradient) et son calcul est très rapide ✓
+A. Son gradient est constant (1 pour x>0), ce qui évite le problème du gradient qui disparaît (vanishing gradient) et son calcul est très rapide ✓
+B. ReLU est la seule fonction d'activation qui garantit la convergence du réseau
 C. ReLU produit toujours des sorties entre -1 et 1, stabilisant l'entraînement
 
-> **Réponse : B** — Sigmoid et tanh saturent (gradient → 0), bloquant la rétropropagation dans les couches profondes. ReLU n'a pas ce problème pour x>0.
+> **Réponse : A** — Sigmoid et tanh saturent (gradient → 0), bloquant la rétropropagation dans les couches profondes. ReLU n'a pas ce problème pour x>0.
 
 ---
 
 **Q5.** Quelle est la limitation fondamentale du perceptron de Rosenblatt à une seule couche ?
 
-A. Il est trop lent à entraîner pour des datasets de grande taille
-B. Il ne peut apprendre que des frontières de décision linéaires, et est incapable de séparer des données non linéairement séparables ✓
+A. Il ne peut apprendre que des frontières de décision linéaires, et est incapable de séparer des données non linéairement séparables ✓
+B. Il est trop lent à entraîner pour des datasets de grande taille
 C. Il ne fonctionne que pour la classification binaire, pas multi-classe
 
-> **Réponse : B** — Le théorème de convergence du perceptron garantit qu'il trouve une solution si et seulement si les données sont linéairement séparables.
+> **Réponse : A** — Le théorème de convergence du perceptron garantit qu'il trouve une solution si et seulement si les données sont linéairement séparables.
 
 ---
 
@@ -232,31 +232,31 @@ C. XOR est utilisé pour initialiser les poids des réseaux profonds
 
 **Q7.** À quoi sert la fonction softmax dans une classification multi-classe ?
 
-A. Elle sélectionne la classe avec le score le plus élevé parmi toutes les classes
-B. Elle convertit un vecteur de scores bruts (logits) en une distribution de probabilités qui somme à 1 ✓
+A. Elle convertit un vecteur de scores bruts (logits) en une distribution de probabilités qui somme à 1 ✓
+B. Elle sélectionne la classe avec le score le plus élevé parmi toutes les classes
 C. Elle normalise les entrées du réseau pour accélérer l'entraînement
 
-> **Réponse : B** — Softmax(`zᵢ`) = `exp(zᵢ) / Σ exp(zⱼ)` ; chaque sortie est entre 0 et 1 et la somme vaut 1 — interprétable comme une probabilité.
+> **Réponse : A** — Softmax(`zᵢ`) = `exp(zᵢ) / Σ exp(zⱼ)` ; chaque sortie est entre 0 et 1 et la somme vaut 1 — interprétable comme une probabilité.
 
 ---
 
 **Q8.** Que signifie que la sortie du softmax est une distribution de probabilité ?
 
 A. Les sorties sont triées par ordre décroissant de probabilité
-B. Chaque valeur est entre 0 et 1, et leur somme vaut exactement 1 — on peut interpréter chaque sortie comme la probabilité d'appartenir à une classe ✓
-C. Le réseau garantit que sa prédiction est correcte avec la probabilité indiquée
+B. Le réseau garantit que sa prédiction est correcte avec la probabilité indiquée
+C. Chaque valeur est entre 0 et 1, et leur somme vaut exactement 1 — on peut interpréter chaque sortie comme la probabilité d'appartenir à une classe ✓
 
-> **Réponse : B** — C'est une propriété mathématique du softmax, pas une garantie de calibration ; un modèle peut être confiant et faux.
+> **Réponse : C** — C'est une propriété mathématique du softmax, pas une garantie de calibration ; un modèle peut être confiant et faux.
 
 ---
 
 **Q9.** Pourquoi ajouter des couches cachées avec des non-linéarités permet-il de résoudre XOR ?
 
-A. Les couches supplémentaires augmentent le nombre de paramètres, permettant la mémorisation
-B. Chaque couche apprend une représentation intermédiaire ; la couche cachée peut transformer l'espace des features en un espace linéairement séparable ✓
+A. Chaque couche apprend une représentation intermédiaire ; la couche cachée peut transformer l'espace des features en un espace linéairement séparable ✓
+B. Les couches supplémentaires augmentent le nombre de paramètres, permettant la mémorisation
 C. Les non-linéarités introduisent du bruit qui aide à éviter l'overfitting sur XOR
 
-> **Réponse : B** — La couche cachée réorganise l'espace d'entrée ; dans la nouvelle représentation, XOR devient linéairement séparable.
+> **Réponse : A** — La couche cachée réorganise l'espace d'entrée ; dans la nouvelle représentation, XOR devient linéairement séparable.
 
 ---
 
@@ -265,50 +265,50 @@ C. Les non-linéarités introduisent du bruit qui aide à éviter l'overfitting 
 **Q1.** Comment distingue-t-on l'overfitting de l'underfitting en pratique ?
 
 A. Overfitting = loss d'entraînement élevée ; underfitting = loss d'entraînement basse
-B. Overfitting = faible loss d'entraînement mais forte loss de validation ; underfitting = forte loss sur les deux ✓
-C. Overfitting = modèle trop petit ; underfitting = modèle trop grand
+B. Overfitting = modèle trop petit ; underfitting = modèle trop grand
+C. Overfitting = faible loss d'entraînement mais forte loss de validation ; underfitting = forte loss sur les deux ✓
 
-> **Réponse : B** — L'overfitting se détecte par l'écart entre les courbes train et validation ; l'underfitting se voit par de mauvaises performances partout.
+> **Réponse : C** — L'overfitting se détecte par l'écart entre les courbes train et validation ; l'underfitting se voit par de mauvaises performances partout.
 
 ---
 
 **Q2.** Pourquoi un modèle avec 100% de précision en entraînement n'est-il pas forcément bon ?
 
 A. 100% de précision indique un bug dans le code d'entraînement
-B. Le modèle a peut-être mémorisé les données d'entraînement (overfitting) sans apprendre les patterns généralisables ✓
-C. La précision n'est pas une métrique fiable ; il faut toujours utiliser la F1-score
+B. La précision n'est pas une métrique fiable ; il faut toujours utiliser la F1-score
+C. Le modèle a peut-être mémorisé les données d'entraînement (overfitting) sans apprendre les patterns généralisables ✓
 
-> **Réponse : B** — Un modèle qui mémorise les exemples d'entraînement atteint 100%, mais ses performances sur de nouvelles données peuvent être médiocres.
+> **Réponse : C** — Un modèle qui mémorise les exemples d'entraînement atteint 100%, mais ses performances sur de nouvelles données peuvent être médiocres.
 
 ---
 
 **Q3.** À quoi sert le jeu de validation, distinct du jeu de test ?
 
 A. Le jeu de validation est utilisé pour l'entraînement final ; le jeu de test pour les itérations intermédiaires
-B. Le jeu de validation sert à sélectionner les hyperparamètres et l'architecture sans « contaminer » le jeu de test, qui ne sert qu'à l'évaluation finale ✓
-C. Le jeu de validation est plus petit que le jeu de test pour économiser des données d'entraînement
+B. Le jeu de validation est plus petit que le jeu de test pour économiser des données d'entraînement
+C. Le jeu de validation sert à sélectionner les hyperparamètres et l'architecture sans « contaminer » le jeu de test, qui ne sert qu'à l'évaluation finale ✓
 
-> **Réponse : B** — Utiliser le test set pour choisir un modèle revient à optimiser dessus ; le test set doit rester « invisible » jusqu'à l'évaluation finale.
+> **Réponse : C** — Utiliser le test set pour choisir un modèle revient à optimiser dessus ; le test set doit rester « invisible » jusqu'à l'évaluation finale.
 
 ---
 
 **Q4.** Qu'est-ce que le compromis biais-variance ?
 
 A. Le choix entre un modèle rapide (biais élevé) et un modèle précis (variance élevée)
-B. Un modèle complexe a peu de biais mais forte variance (sensible aux données) ; un modèle simple a fort biais mais faible variance ; l'erreur totale est la somme des deux ✓
-C. Le biais mesure l'erreur sur les données d'entraînement, la variance mesure l'erreur sur le test
+B. Le biais mesure l'erreur sur les données d'entraînement, la variance mesure l'erreur sur le test
+C. Un modèle complexe a peu de biais mais forte variance (sensible aux données) ; un modèle simple a fort biais mais faible variance ; l'erreur totale est la somme des deux ✓
 
-> **Réponse : B** — Erreur = Biais² + Variance + Bruit irréductible ; trouver la bonne complexité du modèle minimise cette somme.
+> **Réponse : C** — Erreur = Biais² + Variance + Bruit irréductible ; trouver la bonne complexité du modèle minimise cette somme.
 
 ---
 
 **Q5.** Un modèle trop simple souffre-t-il plutôt de biais ou de variance ?
 
 A. De variance élevée, car il ne peut pas s'adapter aux données
-B. De biais élevé, car il fait des hypothèses trop restrictives sur la forme de la relation entre features et cible ✓
-C. Ni l'un ni l'autre — un modèle simple est toujours préférable (principe du rasoir d'Occam)
+B. Ni l'un ni l'autre — un modèle simple est toujours préférable (principe du rasoir d'Occam)
+C. De biais élevé, car il fait des hypothèses trop restrictives sur la forme de la relation entre features et cible ✓
 
-> **Réponse : B** — Un modèle trop simple (ex : régression linéaire sur des données non linéaires) sous-ajuste systématiquement : c'est du biais (erreur structurelle).
+> **Réponse : C** — Un modèle trop simple (ex : régression linéaire sur des données non linéaires) sous-ajuste systématiquement : c'est du biais (erreur structurelle).
 
 ---
 
@@ -325,10 +325,10 @@ C. La k-fold garantit que le modèle ne fait jamais d'overfitting
 **Q7.** Quelle est la différence entre un hyperparamètre et un paramètre appris ?
 
 A. Les hyperparamètres sont des paramètres internes du modèle ; les paramètres appris sont fournis par l'utilisateur
-B. Les paramètres appris (poids, biais) sont optimisés par la descente de gradient ; les hyperparamètres (learning rate, nb de couches) sont fixés avant l'entraînement ✓
-C. Il n'y a pas de différence : les deux sont optimisés pendant l'entraînement
+B. Il n'y a pas de différence : les deux sont optimisés pendant l'entraînement
+C. Les paramètres appris (poids, biais) sont optimisés par la descente de gradient ; les hyperparamètres (learning rate, nb de couches) sont fixés avant l'entraînement ✓
 
-> **Réponse : B** — Les hyperparamètres contrôlent le processus d'apprentissage et ne sont pas mis à jour par rétropropagation ; on les choisit par validation croisée ou grid search.
+> **Réponse : C** — Les hyperparamètres contrôlent le processus d'apprentissage et ne sont pas mis à jour par rétropropagation ; on les choisit par validation croisée ou grid search.
 
 ---
 
@@ -346,21 +346,21 @@ C. Les métriques sur le test set sont moins fiables que celles sur le validatio
 
 **Q1.** Pourquoi a-t-on besoin de la rétropropagation pour entraîner un réseau profond ?
 
-A. La rétropropagation accélère le calcul des prédictions (forward pass)
-B. Elle calcule efficacement le gradient de la loss par rapport à chaque paramètre du réseau en appliquant la chain rule de la sortie vers l'entrée ✓
+A. Elle calcule efficacement le gradient de la loss par rapport à chaque paramètre du réseau en appliquant la chain rule de la sortie vers l'entrée ✓
+B. La rétropropagation accélère le calcul des prédictions (forward pass)
 C. Elle permet de paralléliser l'entraînement sur plusieurs GPUs
 
-> **Réponse : B** — Sans rétropropagation, calculer ∂L/∂wᵢ pour chaque poids serait prohibitivement coûteux ; backprop le fait en un seul passage arrière.
+> **Réponse : A** — Sans rétropropagation, calculer ∂L/∂wᵢ pour chaque poids serait prohibitivement coûteux ; backprop le fait en un seul passage arrière.
 
 ---
 
 **Q2.** Qu'est-ce que le "problème de l'attribution du crédit" (credit assignment problem) ?
 
-A. Le problème de distribuer les données d'entraînement équitablement entre les couches
-B. La difficulté à déterminer quelle(s) connexion(s) ou neurone(s) du réseau sont responsables d'une erreur de prédiction, surtout dans les couches profondes ✓
+A. La difficulté à déterminer quelle(s) connexion(s) ou neurone(s) du réseau sont responsables d'une erreur de prédiction, surtout dans les couches profondes ✓
+B. Le problème de distribuer les données d'entraînement équitablement entre les couches
 C. La gestion des conflits quand plusieurs gradients s'appliquent au même poids
 
-> **Réponse : B** — Chaque couche contribue à l'erreur finale ; backprop résout ce problème en propageant les gradients couche par couche depuis la sortie.
+> **Réponse : A** — Chaque couche contribue à l'erreur finale ; backprop résout ce problème en propageant les gradients couche par couche depuis la sortie.
 
 ---
 
@@ -386,11 +386,11 @@ C. Forward = calcul des gradients ; backward = mise à jour des poids
 
 **Q5.** Pourquoi empiler des couches linéaires sans non-linéarités entre elles n'a aucun intérêt ?
 
-A. Les couches linéaires sont trop lentes à calculer en séquence
-B. La composition de transformations linéaires est elle-même une transformation linéaire : `W₂(W₁x) = (W₂W₁)x`, donc tout le réseau reste équivalent à une seule couche ✓
+A. La composition de transformations linéaires est elle-même une transformation linéaire : `W₂(W₁x) = (W₂W₁)x`, donc tout le réseau reste équivalent à une seule couche ✓
+B. Les couches linéaires sont trop lentes à calculer en séquence
 C. Les gradients explosent lors de la rétropropagation à travers plusieurs couches linéaires
 
-> **Réponse : B** — Peu importe le nombre de couches linéaires empilées, le modèle reste une régression linéaire ; les non-linéarités sont indispensables pour l'expressivité.
+> **Réponse : A** — Peu importe le nombre de couches linéaires empilées, le modèle reste une régression linéaire ; les non-linéarités sont indispensables pour l'expressivité.
 
 ---
 
@@ -418,21 +418,21 @@ C. Pour empêcher les gradients de dépasser 1 et déstabiliser l'entraînement
 
 **Q1.** Quelle est la différence entre un tenseur PyTorch et un tableau NumPy ?
 
-A. Les tenseurs PyTorch ne supportent que les entiers ; NumPy supporte les flottants
-B. Les tenseurs PyTorch peuvent résider sur GPU et participent au graphe de calcul pour la différentiation automatique ; les tableaux NumPy sont CPU uniquement et sans autograd ✓
+A. Les tenseurs PyTorch peuvent résider sur GPU et participent au graphe de calcul pour la différentiation automatique ; les tableaux NumPy sont CPU uniquement et sans autograd ✓
+B. Les tenseurs PyTorch ne supportent que les entiers ; NumPy supporte les flottants
 C. NumPy est plus rapide que PyTorch pour toutes les opérations numériques
 
-> **Réponse : B** — PyTorch étend NumPy avec le support GPU et l'autograd, essentiels pour entraîner des réseaux de neurones efficacement.
+> **Réponse : A** — PyTorch étend NumPy avec le support GPU et l'autograd, essentiels pour entraîner des réseaux de neurones efficacement.
 
 ---
 
 **Q2.** À quoi sert le flag `requires_grad` dans PyTorch ?
 
 A. Il indique que le tenseur doit être copié avant toute opération pour éviter les modifications en place
-B. Il signale à PyTorch de suivre les opérations sur ce tenseur dans le graphe de calcul, permettant de calculer automatiquement son gradient lors du backward ✓
-C. Il force le tenseur à rester sur CPU même si un GPU est disponible
+B. Il force le tenseur à rester sur CPU même si un GPU est disponible
+C. Il signale à PyTorch de suivre les opérations sur ce tenseur dans le graphe de calcul, permettant de calculer automatiquement son gradient lors du backward ✓
 
-> **Réponse : B** — Seuls les tenseurs avec `requires_grad=True` (les poids du modèle) accumulent les gradients ; les données d'entrée n'en ont pas besoin.
+> **Réponse : C** — Seuls les tenseurs avec `requires_grad=True` (les poids du modèle) accumulent les gradients ; les données d'entrée n'en ont pas besoin.
 
 ---
 
@@ -448,21 +448,21 @@ C. Les MLP produisent des sorties continues, inadaptées à la classification d'
 
 **Q4.** Qu'est-ce que le partage de poids dans une convolution ?
 
-A. Les poids sont partagés entre plusieurs réseaux entraînés en parallèle (data parallelism)
-B. Le même filtre (noyau) est appliqué à toutes les positions de l'image, réduisant drastiquement le nombre de paramètres et apprenant des features invariantes aux translations ✓
+A. Le même filtre (noyau) est appliqué à toutes les positions de l'image, réduisant drastiquement le nombre de paramètres et apprenant des features invariantes aux translations ✓
+B. Les poids sont partagés entre plusieurs réseaux entraînés en parallèle (data parallelism)
 C. Les couches adjacentes d'un CNN partagent la moitié de leurs poids pour accélérer l'entraînement
 
-> **Réponse : B** — Un filtre de taille 3×3×3 a seulement 27 paramètres quelle que soit la taille de l'image ; il détecte le même pattern où qu'il apparaisse.
+> **Réponse : A** — Un filtre de taille 3×3×3 a seulement 27 paramètres quelle que soit la taille de l'image ; il détecte le même pattern où qu'il apparaisse.
 
 ---
 
 **Q5.** Quelle est la différence entre stride et padding dans une couche de convolution ?
 
 A. Le stride contrôle la taille du filtre ; le padding contrôle le nombre de filtres
-B. Le stride est le pas de déplacement du filtre (contrôle la réduction spatiale) ; le padding ajoute des zéros en bordure pour contrôler la taille de sortie ✓
-C. Stride et padding sont deux noms pour le même paramètre selon les frameworks
+B. Stride et padding sont deux noms pour le même paramètre selon les frameworks
+C. Le stride est le pas de déplacement du filtre (contrôle la réduction spatiale) ; le padding ajoute des zéros en bordure pour contrôler la taille de sortie ✓
 
-> **Réponse : B** — Stride=2 divise la résolution par 2 ; padding='same' conserve la résolution de sortie égale à celle d'entrée.
+> **Réponse : C** — Stride=2 divise la résolution par 2 ; padding='same' conserve la résolution de sortie égale à celle d'entrée.
 
 ---
 
@@ -488,21 +488,21 @@ C. `nn.Module` optimise automatiquement l'architecture du réseau selon les donn
 
 **Q8.** Comment les CNN apprennent-ils des représentations hiérarchiques des images ?
 
-A. Chaque couche voit l'image entière à une résolution différente (pyramide gaussienne)
-B. Les premières couches détectent des features simples (bords, couleurs) ; les couches profondes combinent ces features pour détecter des structures complexes (yeux, visages, objets) ✓
+A. Les premières couches détectent des features simples (bords, couleurs) ; les couches profondes combinent ces features pour détecter des structures complexes (yeux, visages, objets) ✓
+B. Chaque couche voit l'image entière à une résolution différente (pyramide gaussienne)
 C. Les CNN utilisent une attention multi-têtes pour pondérer les différentes régions de l'image
 
-> **Réponse : B** — Cette hiérarchie émergente est une propriété clé des CNN ; les features deviennent de plus en plus abstraites et sémantiques au fur et à mesure qu'on monte dans le réseau.
+> **Réponse : A** — Cette hiérarchie émergente est une propriété clé des CNN ; les features deviennent de plus en plus abstraites et sémantiques au fur et à mesure qu'on monte dans le réseau.
 
 ---
 
 **Q9.** Quelles sont les étapes typiques d'une boucle d'entraînement PyTorch ?
 
-A. `forward → backward → zero_grad → optimizer.step`
-B. `zero_grad → forward → compute loss → backward → optimizer.step` ✓
+A. `zero_grad → forward → compute loss → backward → optimizer.step` ✓
+B. `forward → backward → zero_grad → optimizer.step`
 C. `optimizer.step → forward → compute loss → backward → zero_grad`
 
-> **Réponse : B** — L'ordre est : remettre les gradients à zéro, calculer la prédiction, calculer la loss, propager les gradients, puis mettre à jour les poids.
+> **Réponse : A** — L'ordre est : remettre les gradients à zéro, calculer la prédiction, calculer la loss, propager les gradients, puis mettre à jour les poids.
 
 ---
 
@@ -530,71 +530,71 @@ C. BPE compresse les textes pour réduire la mémoire nécessaire à l'entraîne
 
 **Q3.** Quel est le problème principal de l'encodage one-hot pour représenter des mots ?
 
-A. One-hot ne peut pas représenter plus de 1000 mots différents
-B. Les vecteurs sont de dimension égale à la taille du vocabulaire (très grands et creux) et ne capturent aucune similarité sémantique entre les mots ✓
+A. Les vecteurs sont de dimension égale à la taille du vocabulaire (très grands et creux) et ne capturent aucune similarité sémantique entre les mots ✓
+B. One-hot ne peut pas représenter plus de 1000 mots différents
 C. L'encodage one-hot est trop lent à calculer pour un vocabulaire de taille normale
 
-> **Réponse : B** — "chat" et "chien" ont des vecteurs orthogonaux en one-hot (distance identique à "chat" et "aéroport"), alors qu'ils sont sémantiquement proches.
+> **Réponse : A** — "chat" et "chien" ont des vecteurs orthogonaux en one-hot (distance identique à "chat" et "aéroport"), alors qu'ils sont sémantiquement proches.
 
 ---
 
 **Q4.** Qu'est-ce qu'un embedding dense ?
 
 A. Une technique de compression qui réduit la taille des modèles de langage
-B. Une représentation vectorielle de dimension réduite (ex: 300 dimensions) apprise par le réseau, où des mots sémantiquement similaires ont des vecteurs proches ✓
-C. Un encodage qui utilise tous les bits disponibles pour maximiser l'information par dimension
+B. Un encodage qui utilise tous les bits disponibles pour maximiser l'information par dimension
+C. Une représentation vectorielle de dimension réduite (ex: 300 dimensions) apprise par le réseau, où des mots sémantiquement similaires ont des vecteurs proches ✓
 
-> **Réponse : B** — Contrairement au one-hot (creux, dimension = taille vocabulaire), un embedding dense est compact et encode la sémantique dans la géométrie de l'espace.
+> **Réponse : C** — Contrairement au one-hot (creux, dimension = taille vocabulaire), un embedding dense est compact et encode la sémantique dans la géométrie de l'espace.
 
 ---
 
 **Q5.** Qu'est-ce que l'hypothèse distributionnelle sur laquelle repose Word2Vec ?
 
-A. Les mots fréquents sont plus importants que les mots rares pour la signification d'un texte
-B. La signification d'un mot peut être inférée de son contexte : les mots qui apparaissent dans des contextes similaires ont des significations similaires ✓
+A. La signification d'un mot peut être inférée de son contexte : les mots qui apparaissent dans des contextes similaires ont des significations similaires ✓
+B. Les mots fréquents sont plus importants que les mots rares pour la signification d'un texte
 C. La distribution statistique des mots dans un corpus suit une loi de puissance (loi de Zipf)
 
-> **Réponse : B** — « You shall know a word by the company it keeps » (Firth, 1957) ; Word2Vec exploite cette hypothèse en entraînant des vecteurs à prédire le contexte.
+> **Réponse : A** — « You shall know a word by the company it keeps » (Firth, 1957) ; Word2Vec exploite cette hypothèse en entraînant des vecteurs à prédire le contexte.
 
 ---
 
 **Q6.** Que signifie que deux mots ont une similarité cosinus proche de 1 ?
 
-A. Leurs vecteurs d'embedding sont de même norme (même fréquence dans le corpus)
-B. Leurs vecteurs pointent dans la même direction dans l'espace des embeddings, indiquant une forte similarité sémantique ou contextuelle ✓
+A. Leurs vecteurs pointent dans la même direction dans l'espace des embeddings, indiquant une forte similarité sémantique ou contextuelle ✓
+B. Leurs vecteurs d'embedding sont de même norme (même fréquence dans le corpus)
 C. Les deux mots apparaissent exactement le même nombre de fois dans le corpus d'entraînement
 
-> **Réponse : B** — La similarité cosinus mesure l'angle entre vecteurs, pas leur norme ; cos(θ)=1 → même direction → contextes d'utilisation similaires → sémantique proche.
+> **Réponse : A** — La similarité cosinus mesure l'angle entre vecteurs, pas leur norme ; cos(θ)=1 → même direction → contextes d'utilisation similaires → sémantique proche.
 
 ---
 
 **Q7.** Pourquoi des analogies comme "roi - homme + femme ≈ reine" émergent-elles des embeddings ?
 
 A. Ces analogies sont programmées explicitement dans le dictionnaire de Word2Vec
-B. L'entraînement sur de grands corpus fait émerger des directions vectorielles correspondant à des relations sémantiques (genre, royauté) régulières dans le langage ✓
-C. C'est un artefact du preprocessing qui retire les stop words et crée ces relations artificiellement
+B. C'est un artefact du preprocessing qui retire les stop words et crée ces relations artificiellement
+C. L'entraînement sur de grands corpus fait émerger des directions vectorielles correspondant à des relations sémantiques (genre, royauté) régulières dans le langage ✓
 
-> **Réponse : B** — Ces structures algébriques émergent spontanément ; la direction "homme → femme" encode le genre et est cohérente pour de nombreuses paires.
+> **Réponse : C** — Ces structures algébriques émergent spontanément ; la direction "homme → femme" encode le genre et est cohérente pour de nombreuses paires.
 
 ---
 
 **Q8.** Quel est le problème de la polysémie avec les embeddings statiques comme Word2Vec ?
 
 A. Word2Vec ne peut pas représenter les mots polysémiques car ils ont plusieurs orthographes
-B. Un mot polysémique (ex: "banque") reçoit un unique vecteur, moyenne floue de tous ses sens — les modèles contextuels (BERT) résolvent ce problème avec des représentations dépendant du contexte ✓
-C. La polysémie fait exploser la taille du vocabulaire, rendant le modèle trop lent
+B. La polysémie fait exploser la taille du vocabulaire, rendant le modèle trop lent
+C. Un mot polysémique (ex: "banque") reçoit un unique vecteur, moyenne floue de tous ses sens — les modèles contextuels (BERT) résolvent ce problème avec des représentations dépendant du contexte ✓
 
-> **Réponse : B** — "banque" (établissement financier) et "banque" (rive d'une rivière) sont fusionnés en un seul vecteur qui ne capture bien aucun des deux sens.
+> **Réponse : C** — "banque" (établissement financier) et "banque" (rive d'une rivière) sont fusionnés en un seul vecteur qui ne capture bien aucun des deux sens.
 
 ---
 
 **Q9.** Quelle information importante un sac de mots (bag-of-words) ignore-t-il ?
 
-A. La fréquence des mots dans le document
-B. L'ordre des mots et les relations syntaxiques entre eux ✓
+A. L'ordre des mots et les relations syntaxiques entre eux ✓
+B. La fréquence des mots dans le document
 C. La longueur totale du document
 
-> **Réponse : B** — "le chat mange la souris" et "la souris mange le chat" ont le même bag-of-words ; l'ordre syntaxique, crucial pour le sens, est perdu.
+> **Réponse : A** — "le chat mange la souris" et "la souris mange le chat" ont le même bag-of-words ; l'ordre syntaxique, crucial pour le sens, est perdu.
 
 ---
 
@@ -602,11 +602,11 @@ C. La longueur totale du document
 
 **Q1.** Quel avantage l'attention offre-t-elle par rapport aux RNNs pour traiter des séquences ?
 
-A. L'attention est plus simple à implémenter et nécessite moins de mémoire GPU
-B. L'attention permet à chaque position de la séquence d'accéder directement à toutes les autres positions en une seule opération, éliminant le goulot d'étranglement séquentiel des RNNs ✓
+A. L'attention permet à chaque position de la séquence d'accéder directement à toutes les autres positions en une seule opération, éliminant le goulot d'étranglement séquentiel des RNNs ✓
+B. L'attention est plus simple à implémenter et nécessite moins de mémoire GPU
 C. L'attention est bidirectionnelle alors que les RNNs ne peuvent traiter les séquences que dans un sens
 
-> **Réponse : B** — Les RNNs souffrent du "long-range dependency" problem (l'information est diluée sur de longues séquences) ; l'attention y accède en O(1).
+> **Réponse : A** — Les RNNs souffrent du "long-range dependency" problem (l'information est diluée sur de longues séquences) ; l'attention y accède en O(1).
 
 ---
 
@@ -623,30 +623,30 @@ C. Query, Key et Value sont trois couches linéaires indépendantes sans interpr
 **Q3.** Quelle est la différence entre un Transformer encodeur (BERT) et décodeur (GPT) ?
 
 A. L'encodeur traite des images, le décodeur traite du texte
-B. L'encodeur lit toute la séquence en parallèle avec attention bidirectionnelle (adapté à la compréhension) ; le décodeur génère token par token avec attention causale (adapté à la génération) ✓
-C. L'encodeur utilise des connexions résiduelles, le décodeur non
+B. L'encodeur utilise des connexions résiduelles, le décodeur non
+C. L'encodeur lit toute la séquence en parallèle avec attention bidirectionnelle (adapté à la compréhension) ; le décodeur génère token par token avec attention causale (adapté à la génération) ✓
 
-> **Réponse : B** — BERT est pré-entraîné avec masking (voit le contexte gauche ET droit) ; GPT prédit le token suivant (voit seulement le contexte gauche), d'où l'attention causale.
+> **Réponse : C** — BERT est pré-entraîné avec masking (voit le contexte gauche ET droit) ; GPT prédit le token suivant (voit seulement le contexte gauche), d'où l'attention causale.
 
 ---
 
 **Q4.** Pourquoi l'encodage positionnel est-il nécessaire dans un Transformer ?
 
-A. Il compresse les séquences longues pour réduire la mémoire nécessaire à l'attention
-B. L'attention est invariante à l'ordre des tokens ; sans encodage positionnel, le modèle ne saurait pas distinguer "chien mord homme" de "homme mord chien" ✓
+A. L'attention est invariante à l'ordre des tokens ; sans encodage positionnel, le modèle ne saurait pas distinguer "chien mord homme" de "homme mord chien" ✓
+B. Il compresse les séquences longues pour réduire la mémoire nécessaire à l'attention
 C. Il permet au modèle de traiter des séquences de longueur variable sans padding
 
-> **Réponse : B** — Contrairement aux RNNs qui traitent séquentiellement, l'attention est une opération d'ensemble ; l'ordre doit être injecté explicitement via les encodages positionnels.
+> **Réponse : A** — Contrairement aux RNNs qui traitent séquentiellement, l'attention est une opération d'ensemble ; l'ordre doit être injecté explicitement via les encodages positionnels.
 
 ---
 
 **Q5.** Qu'est-ce que le transfer learning ?
 
-A. La copie des poids d'un modèle vers un autre sans ré-entraînement
-B. La réutilisation d'un modèle pré-entraîné sur une grande tâche générale comme point de départ pour une tâche spécifique, transférant les représentations apprises ✓
+A. La réutilisation d'un modèle pré-entraîné sur une grande tâche générale comme point de départ pour une tâche spécifique, transférant les représentations apprises ✓
+B. La copie des poids d'un modèle vers un autre sans ré-entraînement
 C. Le transfert de données d'entraînement entre différentes équipes pour entraîner des modèles partagés
 
-> **Réponse : B** — Au lieu de partir de poids aléatoires, on initialise avec un modèle déjà entraîné ; les features apprises (bords pour CNN, syntaxe pour NLP) sont réutilisées.
+> **Réponse : A** — Au lieu de partir de poids aléatoires, on initialise avec un modèle déjà entraîné ; les features apprises (bords pour CNN, syntaxe pour NLP) sont réutilisées.
 
 ---
 
@@ -663,20 +663,20 @@ C. Pre-training et fine-tuning désignent les deux phases d'un même entraîneme
 **Q7.** Pourquoi utilise-t-on le F1-score plutôt que la précision (accuracy) pour évaluer un modèle de classification ?
 
 A. Le F1-score est toujours plus élevé que l'accuracy, ce qui le rend plus optimiste
-B. L'accuracy est trompeuse sur des données déséquilibrées — un modèle qui prédit toujours la classe majoritaire obtient un score élevé sans rien apprendre ✓
-C. Le F1-score est la seule métrique compatible avec les modèles de type Transformer
+B. Le F1-score est la seule métrique compatible avec les modèles de type Transformer
+C. L'accuracy est trompeuse sur des données déséquilibrées — un modèle qui prédit toujours la classe majoritaire obtient un score élevé sans rien apprendre ✓
 
-> **Réponse : B** — Sur un dataset avec 95% de négatifs, un modèle qui prédit toujours "négatif" obtient 95% d'accuracy. Le F1-score combine précision et rappel, ce qui pénalise ce type de comportement.
+> **Réponse : C** — Sur un dataset avec 95% de négatifs, un modèle qui prédit toujours "négatif" obtient 95% d'accuracy. Le F1-score combine précision et rappel, ce qui pénalise ce type de comportement.
 
 ---
 
 **Q8.** Quel problème la RAG (Retrieval-Augmented Generation) résout-elle ?
 
 A. Elle accélère l'inférence en récupérant des réponses pré-calculées dans un cache
-B. Elle permet au LLM d'accéder à des informations récentes ou spécifiques au domaine non vues à l'entraînement, réduisant les hallucinations ✓
-C. Elle compresse les LLMs pour les déployer sur des appareils avec peu de mémoire
+B. Elle compresse les LLMs pour les déployer sur des appareils avec peu de mémoire
+C. Elle permet au LLM d'accéder à des informations récentes ou spécifiques au domaine non vues à l'entraînement, réduisant les hallucinations ✓
 
-> **Réponse : B** — Le LLM a des connaissances figées à la date de son entraînement ; RAG récupère des documents pertinents et les injecte dans le contexte pour ancrer la réponse.
+> **Réponse : C** — Le LLM a des connaissances figées à la date de son entraînement ; RAG récupère des documents pertinents et les injecte dans le contexte pour ancrer la réponse.
 
 ---
 
@@ -694,31 +694,31 @@ C. Le fine-tuning est toujours préférable au prompt engineering car il donne d
 
 **Q1.** Quel est le principal inconvénient de Pickle pour déployer un modèle en production ?
 
-A. Pickle est limité aux petits modèles et ne supporte pas les réseaux de neurones profonds
-B. Un fichier Pickle est lié à une version Python et une version de bibliothèque spécifiques — il peut ne plus fonctionner après une mise à jour ✓
+A. Un fichier Pickle est lié à une version Python et une version de bibliothèque spécifiques — il peut ne plus fonctionner après une mise à jour ✓
+B. Pickle est limité aux petits modèles et ne supporte pas les réseaux de neurones profonds
 C. Pickle compresse mal les modèles, produisant des fichiers trop volumineux
 
-> **Réponse : B** — Un modèle sérialisé avec Pickle en Python 3.9 + PyTorch 1.x peut échouer à charger en Python 3.11 + PyTorch 2.x. C'est pour ça qu'on lui préfère ONNX en production.
+> **Réponse : A** — Un modèle sérialisé avec Pickle en Python 3.9 + PyTorch 1.x peut échouer à charger en Python 3.11 + PyTorch 2.x. C'est pour ça qu'on lui préfère ONNX en production.
 
 ---
 
 **Q2.** Quel est l'avantage du format ONNX par rapport à un format natif PyTorch ?
 
 A. ONNX produit des modèles plus petits et plus précis que les formats natifs
-B. ONNX est un format interopérable : le modèle peut être exécuté par différents runtimes (ONNX Runtime, TensorRT, OpenVINO) et sur différentes plateformes sans dépendance à PyTorch ✓
-C. ONNX est le seul format supporté par les APIs cloud (AWS, GCP, Azure)
+B. ONNX est le seul format supporté par les APIs cloud (AWS, GCP, Azure)
+C. ONNX est un format interopérable : le modèle peut être exécuté par différents runtimes (ONNX Runtime, TensorRT, OpenVINO) et sur différentes plateformes sans dépendance à PyTorch ✓
 
-> **Réponse : B** — Entraîner en PyTorch et déployer via ONNX Runtime permet d'optimiser l'inférence indépendamment du framework d'entraînement.
+> **Réponse : C** — Entraîner en PyTorch et déployer via ONNX Runtime permet d'optimiser l'inférence indépendamment du framework d'entraînement.
 
 ---
 
 **Q3.** Pourquoi faut-il éviter de charger le modèle dans la fonction de route d'une API ?
 
 A. Les fonctions de route n'ont pas accès au système de fichiers pour lire le modèle
-B. Le modèle serait rechargé à chaque requête, causant une latence inacceptable et une consommation mémoire excessive — il doit être chargé une fois au démarrage (pattern Singleton) ✓
-C. FastAPI n'est pas compatible avec les modèles PyTorch ou TensorFlow
+B. FastAPI n'est pas compatible avec les modèles PyTorch ou TensorFlow
+C. Le modèle serait rechargé à chaque requête, causant une latence inacceptable et une consommation mémoire excessive — il doit être chargé une fois au démarrage (pattern Singleton) ✓
 
-> **Réponse : B** — Charger un modèle peut prendre plusieurs secondes ; le charger à l'initialisation de l'application garantit que toutes les requêtes utilisent la même instance déjà chargée.
+> **Réponse : C** — Charger un modèle peut prendre plusieurs secondes ; le charger à l'initialisation de l'application garantit que toutes les requêtes utilisent la même instance déjà chargée.
 
 ---
 
@@ -735,10 +735,10 @@ C. Le décalage temporel entre le moment où un modèle est entraîné et celui 
 **Q5.** Qu'est-ce que la quantification d'un modèle ?
 
 A. La mesure de la qualité d'un modèle avec des métriques standardisées
-B. La réduction de la précision numérique des poids (ex: float32 → int8) pour réduire la taille du modèle et accélérer l'inférence, au prix d'une légère perte de précision ✓
-C. La compression du modèle en supprimant les couches inutilisées (pruning)
+B. La compression du modèle en supprimant les couches inutilisées (pruning)
+C. La réduction de la précision numérique des poids (ex: float32 → int8) pour réduire la taille du modèle et accélérer l'inférence, au prix d'une légère perte de précision ✓
 
-> **Réponse : B** — Un modèle quantifié en int8 est ~4x plus petit et plus rapide à l'inférence ; c'est une technique clé pour le déploiement on-edge.
+> **Réponse : C** — Un modèle quantifié en int8 est ~4x plus petit et plus rapide à l'inférence ; c'est une technique clé pour le déploiement on-edge.
 
 ---
 
@@ -754,11 +754,11 @@ C. Data drift est détectable automatiquement, concept drift nécessite une supe
 
 **Q7.** Pourquoi containeriser un modèle avec Docker améliore-t-il la reproductibilité ?
 
-A. Docker chiffre le modèle pour le protéger contre le vol de propriété intellectuelle
-B. Le container encapsule toutes les dépendances (Python, librairies, versions exactes) dans une image immuable qui s'exécute identiquement sur n'importe quel hôte ✓
+A. Le container encapsule toutes les dépendances (Python, librairies, versions exactes) dans une image immuable qui s'exécute identiquement sur n'importe quel hôte ✓
+B. Docker chiffre le modèle pour le protéger contre le vol de propriété intellectuelle
 C. Docker permet de distribuer l'inférence sur plusieurs machines automatiquement
 
-> **Réponse : B** — "Works on my machine" disparaît : l'image Docker garantit que dev, staging et prod utilisent exactement le même environnement.
+> **Réponse : A** — "Works on my machine" disparaît : l'image Docker garantit que dev, staging et prod utilisent exactement le même environnement.
 
 ---
 
@@ -774,11 +774,11 @@ C. Il remplace le besoin de tests unitaires en vérifiant automatiquement la qua
 
 **Q9.** Quelle est la différence entre un déploiement canary et un déploiement A/B testing ?
 
-A. Canary = déploiement sur tous les serveurs simultanément ; A/B = déploiement progressif sur un serveur à la fois
-B. Canary = rollout progressif vers 100% des utilisateurs pour détecter les problèmes tôt avec possibilité de rollback ; A/B = partage délibéré et durable du trafic pour comparer deux versions et mesurer l'impact ✓
+A. Canary = rollout progressif vers 100% des utilisateurs pour détecter les problèmes tôt avec possibilité de rollback ; A/B = partage délibéré et durable du trafic pour comparer deux versions et mesurer l'impact ✓
+B. Canary = déploiement sur tous les serveurs simultanément ; A/B = déploiement progressif sur un serveur à la fois
 C. Canary est pour les modèles ML, A/B testing est pour les applications web classiques
 
-> **Réponse : B** — Canary vise à réduire le risque du déploiement ; A/B testing vise à mesurer l'impact métier — les objectifs et durées sont différents.
+> **Réponse : A** — Canary vise à réduire le risque du déploiement ; A/B testing vise à mesurer l'impact métier — les objectifs et durées sont différents.
 
 ---
 
