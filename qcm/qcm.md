@@ -26,13 +26,13 @@ C. La copie d'un tableau en mémoire pour éviter les effets de bord
 
 ---
 
-<!-- **Q3.** À quoi sert le produit scalaire entre deux vecteurs géométriquement ?
+**Q3.** Quelle est la différence entre `A @ B` et `A * B` pour deux matrices NumPy ?
 
-A. Il mesure la distance euclidienne entre les deux vecteurs
-B. Il calcule l'aire du parallélogramme formé par les deux vecteurs
-C. Il mesure à quel point deux vecteurs pointent dans la même direction (projection de l'un sur l'autre) ✓
+A. `@` effectue le produit élément par élément, `*` effectue le produit matriciel
+B. `@` effectue le produit matriciel (somme des produits ligne×colonne), `*` effectue le produit élément par élément ✓
+C. Les deux sont équivalents si les matrices ont la même forme
 
-> **Réponse : C** — Le produit scalaire vaut `‖a‖ ‖b‖ cos θ` ; il est maximal quand les vecteurs sont colinéaires et nul quand ils sont orthogonaux. -->
+> **Réponse : B** — `A @ B` est le produit matriciel (équivalent à `np.matmul`) : le résultat `(i,j)` est le produit scalaire de la ligne `i` de A avec la colonne `j` de B. `A * B` multiplie chaque élément avec son homologue — les formes doivent être compatibles au sens du broadcasting.
 
 ---
 
@@ -76,13 +76,13 @@ C. NumPy peut stocker des données textuelles, pas Pandas
 
 ---
 
-<!-- **Q8.** Pourquoi le maximum de vraisemblance conduit-il à minimiser l'erreur quadratique moyenne (MSE) dans le cas d'un bruit gaussien ?
+**Q8.** Pourquoi normaliser les features avant d'appliquer la descente de gradient ?
 
-A. Par convention mathématique, les deux formules sont équivalentes par définition
-B. En supposant que les erreurs suivent une loi gaussienne, maximiser la log-vraisemblance revient à minimiser la somme des carrés des résidus ✓
-C. Le bruit gaussien annule les termes croisés, laissant uniquement les termes quadratiques
+A. La normalisation est obligatoire pour que NumPy puisse effectuer les calculs matriciels
+B. Sans normalisation, les features à grande échelle dominent le gradient — les pas sont trop grands dans certaines directions et trop petits dans d'autres ✓
+C. La normalisation améliore uniquement la lisibilité du code, sans impact sur l'optimisation
 
-> **Réponse : B** — La log-vraisemblance d'un modèle gaussien donne `log p(y|x) = -½σ² Σ(yᵢ - ŷᵢ)²` + constante, donc maximiser revient à minimiser la MSE. -->
+> **Réponse : B** — Si une feature varie de 0 à 1000 et une autre de 0 à 1, le gradient sera très sensible à la première et quasi-insensible à la seconde. Normaliser rend les pas équilibrés dans toutes les directions et accélère la convergence.
 
 ---
 
@@ -476,13 +476,13 @@ C. Il sélectionne les filtres les plus importants et supprime les autres pour r
 
 ---
 
-<!-- **Q7.** Que représente un "feature map" en sortie d'une couche convolutive ?
+**Q7.** Pourquoi faire hériter son modèle de `nn.Module` dans PyTorch ?
 
-A. Une carte indiquant quelles parties de l'image ont été utilisées pour l'entraînement
-B. La réponse du filtre à chaque position de l'image : une carte 2D montrant où et avec quelle intensité le pattern détecté par ce filtre est présent ✓
-C. Une représentation compressée de l'image entière sous forme de vecteur 1D
+A. `nn.Module` enregistre automatiquement les paramètres et offre des fonctionnalités essentielles ✓
+B. C'est une convention de nommage sans impact fonctionnel
+C. `nn.Module` optimise automatiquement l'architecture du réseau selon les données
 
-> **Réponse : B** — Si un filtre détecte les bords horizontaux, sa feature map aura des valeurs élevées aux positions où des bords horizontaux apparaissent dans l'image. -->
+> **Réponse : A** — En déclarant les couches dans `__init__`, PyTorch sait quels tenseurs sont des paramètres apprenables. Cela débloque tout l'écosystème : passer les poids à l'optimiseur, les déplacer sur GPU, les sauvegarder et les recharger.
 
 ---
 
@@ -660,13 +660,13 @@ C. Pre-training et fine-tuning désignent les deux phases d'un même entraîneme
 
 ---
 
-<!-- **Q7.** Pourquoi les couches basses d'un modèle pré-entraîné sont-elles souvent gelées lors du fine-tuning ?
+**Q7.** Pourquoi utilise-t-on le F1-score plutôt que la précision (accuracy) pour évaluer un modèle de classification ?
 
-A. Les couches basses contiennent les poids les plus importants qu'il ne faut pas modifier
-B. Elles encodent des features génériques et bas-niveau (syntaxe, bords) transférables à toutes les tâches ; les modifier sur peu de données risque de détruire ces représentations utiles (catastrophic forgetting) ✓
-C. Geler les couches basses accélère l'entraînement sans impact sur les performances
+A. Le F1-score est toujours plus élevé que l'accuracy, ce qui le rend plus optimiste
+B. L'accuracy est trompeuse sur des données déséquilibrées — un modèle qui prédit toujours la classe majoritaire obtient un score élevé sans rien apprendre ✓
+C. Le F1-score est la seule métrique compatible avec les modèles de type Transformer
 
-> **Réponse : B** — On gèle pour préserver les représentations génériques ; on n'entraîne que les couches hautes et la tête de classification qui doivent s'adapter à la tâche cible. -->
+> **Réponse : B** — Sur un dataset avec 95% de négatifs, un modèle qui prédit toujours "négatif" obtient 95% d'accuracy. Le F1-score combine précision et rappel, ce qui pénalise ce type de comportement.
 
 ---
 
@@ -692,13 +692,13 @@ C. Le fine-tuning est toujours préférable au prompt engineering car il donne d
 
 ## J5AM — MLOps & Industrialisation
 
-<!-- **Q1.** Quel est le principal risque d'utiliser Pickle pour sérialiser un modèle en production ?
+**Q1.** Quel est le principal inconvénient de Pickle pour déployer un modèle en production ?
 
-A. Pickle produit des fichiers trop volumineux pour être déployés en production
-B. Pickle peut exécuter du code arbitraire lors de la désérialisation — un fichier .pkl malveillant peut compromettre le serveur ✓
-C. Pickle n'est compatible qu'avec Python 2, rendant les modèles inutilisables en Python 3
+A. Pickle est limité aux petits modèles et ne supporte pas les réseaux de neurones profonds
+B. Un fichier Pickle est lié à une version Python et une version de bibliothèque spécifiques — il peut ne plus fonctionner après une mise à jour ✓
+C. Pickle compresse mal les modèles, produisant des fichiers trop volumineux
 
-> **Réponse : B** — La désérialisation Pickle exécute le code Python stocké dans le fichier ; un attaquant peut l'exploiter pour une exécution de code à distance (RCE). -->
+> **Réponse : B** — Un modèle sérialisé avec Pickle en Python 3.9 + PyTorch 1.x peut échouer à charger en Python 3.11 + PyTorch 2.x. C'est pour ça qu'on lui préfère ONNX en production.
 
 ---
 
