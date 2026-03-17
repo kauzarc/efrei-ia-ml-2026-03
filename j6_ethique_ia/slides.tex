@@ -1,0 +1,746 @@
+% ============================================================
+%  J6 — IA, Éthique & Société
+%  Julien Rolland — M2 Développement Fullstack
+% ============================================================
+\documentclass[aspectratio=169, 10pt]{beamer}
+\input{../shared/preamble}
+
+\title[Éthique \& IA]{IA, Éthique \& Société}
+\subtitle{Jour 6}
+\date{Jour 6}
+
+% ============================================================
+\begin{document}
+% ============================================================
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Plan du module}
+  \tableofcontents
+\end{frame}
+
+% ============================================================
+\section{Pourquoi l'éthique en IA maintenant ?}
+% ============================================================
+
+\begin{frame}{L'IA prend des décisions réelles}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Ce n'est plus de la recherche}
+        Des systèmes d'IA décident \textbf{aujourd'hui} :
+        \begin{itemize}
+          \item Si votre crédit est accordé
+          \item Si votre CV est lu par un recruteur
+          \item Quelle peine de prison recommander
+          \item Quelle publicité vous montrer
+          \item Si une tumeur est maligne
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Une asymétrie de pouvoir}
+        \begin{itemize}
+          \item La personne affectée ne sait souvent
+                \textbf{pas qu'un algorithme} a décidé
+          \item Elle ne peut ni \textbf{contester}
+                ni \textbf{comprendre} la décision
+          \item Les erreurs se \textbf{reproduisent à l'échelle}
+                — pas une personne, des millions
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{La question centrale}
+        Qui est responsable quand un algorithme
+        se trompe — et que cette erreur coûte cher
+        à quelqu'un ?
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Trois cas qui ont marqué les esprits}
+  \begin{columns}[T]
+    \begin{column}{0.31\textwidth}
+      \begin{alertblock}{COMPAS --- Justice pénale (2016)}
+        Algorithme prédit le risque de récidive
+        aux États-Unis.\\[4pt]
+        Étude ProPublica : les faux positifs
+        («~va récidiver~» alors que non)
+        étaient \textbf{deux fois plus fréquents}
+        pour les prévenus noirs que blancs.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{alertblock}{Amazon Hiring (2018)}
+        Outil de tri de CV entraîné sur
+        les embauches des 10 années précédentes.\\[4pt]
+        Résultat : pénalisait automatiquement
+        les CV contenant le mot \textbf{«~femmes~»}
+        (ex: «~capitaine de l'équipe féminine~»).\\[4pt]
+        Arrêté en interne avant déploiement.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{alertblock}{Google Translate --- Genre (2017)}
+        Traduction du turc (sans genre grammatical)
+        vers l'anglais.\\[4pt]
+        «~O bir doktor~» (il/elle est médecin)
+        $\to$ \textbf{«~He is a doctor~»}\\[2pt]
+        «~O bir hemşire~» (il/elle est infirmier/e)
+        $\to$ \textbf{«~She is a nurse~»}\\[4pt]
+        Le modèle reproduit les stéréotypes
+        présents dans le corpus d'entraînement.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Les biais}
+% ============================================================
+
+\begin{frame}{D'où vient un biais ?}
+  \begin{center}
+    \begin{tikzpicture}[font=\small,
+      blk/.style={draw, rounded corners=4pt, align=center,
+                  minimum width=2.2cm, minimum height=0.9cm,
+                  fill=jedy_blue!10, draw=jedy_blue},
+      bad/.style={draw, rounded corners=4pt, align=center,
+                  minimum width=2.0cm, minimum height=0.7cm,
+                  fill=jedy_alert!20, draw=jedy_alert},
+      arr/.style={->, thick, jedy_mid}]
+      \node[blk] (data)  at (0,   0) {Données};
+      \node[blk] (model) at (4,   0) {Modèle};
+      \node[blk] (pred)  at (8,   0) {Décision};
+      \node[blk] (world) at (-3,  0) {Monde réel};
+      \draw[arr] (world) -- (data);
+      \draw[arr] (data)  -- (model);
+      \draw[arr] (model) -- (pred);
+      \node[bad] at (0,  -1.5) {Biais de\\représentation};
+      \node[bad] at (0,  -2.5) {Biais historique};
+      \node[bad] at (4,  -1.5) {Biais de proxy};
+      \node[bad] at (4,  -2.5) {Choix de la loss};
+      \node[bad] at (8,  -1.5) {Biais\\d'interprétation};
+      \draw[->, dashed, jedy_alert] (0, -1.2) -- (data.south);
+      \draw[->, dashed, jedy_alert] (4, -1.2) -- (model.south);
+      \draw[->, dashed, jedy_alert] (8, -1.2) -- (pred.south);
+    \end{tikzpicture}
+  \end{center}
+  \vspace{4pt}
+  \begin{block}{Idée clé}
+    Un biais peut s'introduire \textbf{à chaque étape} du pipeline —
+    même avec les meilleures intentions.
+    Avoir un bon score de test ne garantit pas l'absence de biais.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Biais de représentation}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Quand les données ne reflètent pas le monde}
+        Si certaines populations sont \textbf{sous-représentées}
+        dans le dataset, le modèle apprend moins bien pour elles.\\[4pt]
+        Exemples :
+        \begin{itemize}
+          \item Reconnaissance faciale entraînée sur
+                des visages majoritairement blancs
+          \item Données médicales historiquement
+                collectées sur des hommes
+          \item Textes sur internet sur-représentant
+                certains groupes, langues, cultures
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{exampleblock}{Le cas des embeddings --- pont avec J4}
+        Vous avez vu que les embeddings capturent
+        des relations sémantiques :
+        \begin{center}
+          \texttt{roi -- homme + femme $\approx$ reine}
+        \end{center}
+        \vspace{4pt}
+        Le même mécanisme donne :
+        \begin{center}
+          \texttt{médecin -- homme + femme $\approx$ infirmière}
+        \end{center}
+        \vspace{4pt}
+        Le modèle ne «~pense~» pas de façon sexiste.
+        Il reflète fidèlement les \textbf{associations présentes
+        dans le texte humain} qui l'a formé.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Biais historique}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Apprendre du passé pour perpétuer ses inégalités}
+        Si les données d'entraînement reflètent
+        des \textbf{décisions passées inéquitables},
+        le modèle les reproduit — et les amplifie.\\[4pt]
+        Exemples :
+        \begin{itemize}
+          \item Historique de crédits refusés
+                à certains quartiers $\to$ le modèle
+                refuse les candidats de ces quartiers
+          \item Postes à responsabilité historiquement
+                occupés par des hommes $\to$ le modèle
+                favorise les profils masculins
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{La boucle de rétroaction}
+        \begin{center}
+          \begin{tikzpicture}[font=\scriptsize,
+            blk/.style={draw, rounded corners=3pt, align=center,
+                        minimum width=2.0cm, minimum height=0.6cm,
+                        fill=jedy_blue!10, draw=jedy_blue},
+            arr/.style={->, thick, jedy_mid}]
+            \node[blk] (hist) at (0,  1.4) {Inégalités\\historiques};
+            \node[blk] (data) at (2.4, 0)  {Données\\biaisées};
+            \node[blk] (mod)  at (2.4,-1.4) {Modèle\\biaisé};
+            \node[blk] (dec)  at (0,  -1.4) {Décisions\\biaisées};
+            \draw[arr] (hist) -- (data);
+            \draw[arr] (data) -- (mod);
+            \draw[arr] (mod)  -- (dec);
+            \draw[arr] (dec)  -- (hist);
+          \end{tikzpicture}
+        \end{center}
+      \end{block}
+      \begin{exampleblock}{Le danger}
+        Le modèle semble \textbf{objectif} car il s'appuie
+        sur des données réelles.
+        Mais il cristallise des inégalités
+        qu'on pourrait vouloir corriger.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Biais de proxy}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Contourner une interdiction sans le savoir}
+        Il est \textbf{illégal} d'utiliser l'ethnie, le genre
+        ou la religion pour certaines décisions.\\[4pt]
+        Mais d'autres variables \textbf{corrèlent fortement}
+        avec ces attributs protégés :
+        \begin{itemize}
+          \item Code postal $\leftrightarrow$ ethnie
+          \item Prénom $\leftrightarrow$ genre, origine
+          \item École $\leftrightarrow$ classe sociale
+        \end{itemize}
+        Le modèle peut discriminer \textbf{indirectement}
+        sans jamais voir la variable interdite.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Le problème de la «~neutralité~» des données}
+        Retirer la variable sensible du dataset
+        \textbf{ne suffit pas} si des proxys restent.\\[4pt]
+        Exemple : un modèle de scoring de crédit
+        qui n'utilise pas l'ethnie peut quand même
+        discriminer via le code postal.
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Ce qu'il faut faire}
+        \begin{itemize}
+          \item Identifier les variables corrélées
+          \item Auditer les performances \textbf{par sous-groupe}
+          \item Mesurer l'impact différentiel des décisions
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Le biais n'est pas toujours visible}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Une bonne accuracy peut cacher une injustice}
+        Un modèle avec \textbf{95\,\% d'accuracy globale}
+        peut avoir des performances très différentes
+        selon les groupes :
+        \begin{itemize}
+          \item 98\,\% sur la majorité
+          \item 70\,\% sur une minorité sous-représentée
+        \end{itemize}
+        La métrique globale \textbf{masque} la disproportion.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{L'évaluation par tranches (\textit{slicing})}
+        Évaluer les performances \textbf{séparément}
+        sur des sous-groupes pertinents :
+        genre, âge, origine, région, etc.\\[4pt]
+        Si les écarts sont importants,
+        la métrique globale est trompeuse.
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Règle pratique}
+        Pour chaque modèle déployé :
+        \textbf{«~Que se passe-t-il pour les groupes
+        les moins représentés dans le dataset ?~»}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Fairness}
+% ============================================================
+
+\begin{frame}{Qu'est-ce qu'un modèle «~juste~» ?}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Trois intuitions, toutes légitimes}
+        \begin{enumerate}
+          \item \textbf{«~Traiter tout le monde pareil~»}\\
+                Le taux d'acceptation doit être identique
+                dans chaque groupe.
+          \vspace{4pt}
+          \item \textbf{«~Même chance pour les qualifiés~»}\\
+                Parmi ceux qui méritent d'être acceptés,
+                chacun a la même chance de l'être.
+          \vspace{4pt}
+          \item \textbf{«~Quand je dis 70\,\%, c'est vrai~»}\\
+                Si le modèle prédit 70\,\% de risque,
+                70\,\% des cas doivent effectivement
+                se réaliser, quel que soit le groupe.
+        \end{enumerate}
+      \end{block}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{alertblock}{Le problème}
+        Ces trois intuitions semblent raisonnables.
+        Mais elles se \textbf{contredisent mathématiquement}
+        dès que les groupes ont des distributions
+        différentes dans la population.\\[6pt]
+        On ne peut pas satisfaire les trois
+        en même temps — sauf cas triviaux.
+      \end{alertblock}
+      \smallskip
+      \begin{exampleblock}{Ce que ça implique}
+        Choisir une définition de la fairness,
+        c'est faire un \textbf{choix de valeurs},
+        pas un choix technique.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Trois définitions formelles de la fairness}
+  \begin{columns}[T]
+    \begin{column}{0.31\textwidth}
+      \begin{block}{Demographic Parity}
+        Le taux de prédictions positives
+        est \textbf{identique} dans chaque groupe.\\[4pt]
+        \textit{Ex : autant de crédits accordés
+        aux hommes qu'aux femmes, en proportion.}\\[4pt]
+        \small Ne tient pas compte
+        des différences réelles
+        entre groupes.
+      \end{block}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{block}{Equal Opportunity}
+        Parmi les vrais positifs, le \textbf{taux de rappel}
+        est identique dans chaque groupe.\\[4pt]
+        \textit{Ex : les candidats qualifiés ont
+        la même chance d'être sélectionnés,
+        quel que soit leur genre.}\\[4pt]
+        \small Se concentre sur ceux
+        qui «~méritent~» la prédiction positive.
+      \end{block}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{block}{Calibration}
+        Si le modèle prédit 70\,\% de risque,
+        70\,\% des cas se réalisent
+        \textbf{dans chaque groupe}.\\[4pt]
+        \textit{Ex : un score de récidive de 0,7
+        signifie la même chose
+        pour tous les prévenus.}\\[4pt]
+        \small Garantit la cohérence
+        du score, pas l'égalité des taux.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Le théorème d'impossibilité}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{On ne peut pas tout avoir}
+        Choderbow, Hardt, Pitassi (2017) ont démontré
+        formellement que \textbf{demographic parity},
+        \textbf{equal opportunity} et \textbf{calibration}
+        ne peuvent pas être satisfaites simultanément
+        si les groupes ont des taux de base différents.\\[4pt]
+        Ce n'est pas un problème d'algorithme —
+        c'est une \textbf{impossibilité mathématique}.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Ce que ça change en pratique}
+        \begin{itemize}
+          \item Il faut \textbf{choisir} quelle définition
+                correspond aux valeurs du contexte
+          \item Ce choix doit être \textbf{explicite
+                et documenté}
+          \item Il est légitime que différentes
+                applications fassent des choix différents
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Exemple}
+        Un système de recrutement et un système
+        de diagnostic médical n'ont pas les mêmes
+        valeurs — et ne devraient pas utiliser
+        la même définition de «~juste~».
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Que faire en pratique ?}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{exampleblock}{Démarche recommandée}
+        \begin{enumerate}
+          \item \textbf{Identifier les groupes sensibles}
+                pertinents pour votre application
+          \item \textbf{Choisir la définition} de fairness
+                adaptée au contexte et aux parties prenantes
+          \item \textbf{Évaluer par sous-groupes}
+                dès la phase de développement
+          \item \textbf{Documenter} le choix et les résultats
+          \item \textbf{Monitorer} en production
+                — les biais peuvent évoluer
+        \end{enumerate}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Outils disponibles}
+        \begin{itemize}
+          \item \textbf{Fairlearn} (Microsoft) ---
+                métriques, visualisation et mitigation
+          \item \textbf{AI Fairness 360} (IBM) ---
+                bibliothèque de métriques et algorithmes
+          \item \textbf{What-If Tool} (Google) ---
+                exploration interactive du modèle
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{alertblock}{Aucun outil ne décide à votre place}
+        Ces outils mesurent.
+        La décision sur la définition de «~juste~»
+        reste un \textbf{choix humain}.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{RGPD \& cadre légal}
+% ============================================================
+
+\begin{frame}{RGPD --- les grands principes}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Ce que le RGPD encadre}
+        Toute collecte et traitement de
+        \textbf{données personnelles} de citoyens européens,
+        quel que soit l'endroit où l'organisation opère.\\[4pt]
+        Cinq principes fondamentaux :
+        \begin{itemize}
+          \item \textbf{Finalité :} données collectées
+                pour un but précis, pas réutilisées
+                à d'autres fins sans accord
+          \item \textbf{Minimisation :} ne collecter
+                que ce qui est nécessaire
+          \item \textbf{Consentement :} explicite,
+                libre, éclairé et révocable
+          \item \textbf{Durée limitée :} pas de rétention
+                indéfinie des données
+          \item \textbf{Sécurité :} obligation de protéger
+                les données contre les fuites
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{exampleblock}{Droits des personnes}
+        \begin{itemize}
+          \item \textbf{Droit d'accès :} savoir quelles
+                données on détient sur eux
+          \item \textbf{Droit de rectification :}
+                corriger des données inexactes
+          \item \textbf{Droit à l'effacement :}
+                «~droit à l'oubli~»
+          \item \textbf{Droit d'opposition :}
+                refuser certains traitements
+        \end{itemize}
+      \end{exampleblock}
+      \smallskip
+      \begin{alertblock}{Sanctions}
+        Jusqu'à \textbf{4\,\% du chiffre d'affaires mondial}
+        ou 20\,M€ — le plus élevé des deux.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{RGPD \& IA --- ce que ça change pour un dev}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Article 22 --- Droit à l'explication}
+        Toute personne soumise à une \textbf{décision
+        entièrement automatisée} ayant des effets
+        juridiques ou significatifs a le droit :
+        \begin{itemize}
+          \item D'obtenir une \textbf{intervention humaine}
+          \item D'\textbf{exprimer son point de vue}
+          \item De \textbf{contester} la décision
+          \item D'obtenir une \textbf{explication}
+                sur la logique utilisée
+        \end{itemize}
+        \vspace{2pt}
+        \small Un modèle de scoring de crédit
+        ou de tri de CV entre dans ce cadre.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Concrètement pour vous}
+        \begin{itemize}
+          \item Ne pas utiliser de données personnelles
+                pour entraîner un modèle
+                \textbf{sans base légale}
+          \item Implémenter un mécanisme de
+                \textbf{suppression des données}
+                d'un utilisateur si demandé
+                (et ses données d'entraînement ?)
+          \item Documenter \textbf{ce que fait le modèle}
+                de façon compréhensible
+          \item Prévoir un \textbf{circuit de contestation}
+                pour les décisions automatisées
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Responsabilité \& gouvernance}
+% ============================================================
+
+\begin{frame}{Qui est responsable ?}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Une chaîne de responsabilité floue}
+        Quand un modèle cause un préjudice,
+        qui est responsable ?
+        \begin{itemize}
+          \item Le \textbf{développeur} qui a codé le modèle ?
+          \item Le \textbf{data scientist} qui a choisi
+                les données et les métriques ?
+          \item L'\textbf{entreprise} qui l'a déployé ?
+          \item Le \textbf{client} qui l'utilise ?
+          \item Le \textbf{fournisseur de données} ?
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{La réponse actuelle du droit}
+        Le droit n'a pas encore de réponse claire
+        pour les systèmes d'IA.\\[4pt]
+        En pratique : l'\textbf{entreprise} qui déploie
+        est responsable devant la loi
+        (comme pour un produit défectueux).\\[4pt]
+        L'\textbf{AI Act} européen tente de formaliser
+        cette chaîne de responsabilité.
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Ce que ça implique pour vous}
+        En tant que développeur, vous faites partie
+        de cette chaîne.
+        Documenter vos choix vous protège.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{L'AI Act européen}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Principe : classification par risque}
+        L'AI Act (2024) classe les systèmes d'IA
+        selon leur niveau de risque :
+      \end{block}
+      \vspace{4pt}
+      \begin{center}
+        \begin{tikzpicture}[font=\scriptsize]
+          \fill[jedy_alert!40]  (0,2.4) -- (3,2.4) -- (1.5,3.2) -- cycle;
+          \fill[jedy_alert!20]  (0,1.6) -- (3,1.6) -- (3,2.4) -- (0,2.4) -- cycle;
+          \fill[jedy_mid!20]    (0,0.8) -- (3,0.8) -- (3,1.6) -- (0,1.6) -- cycle;
+          \fill[jedy_example!20](0,0)   -- (3,0)   -- (3,0.8) -- (0,0.8) -- cycle;
+          \node[font=\scriptsize\bfseries] at (1.5, 2.7) {Inacceptable};
+          \node[font=\scriptsize\bfseries] at (1.5, 2.0) {Haut risque};
+          \node[font=\scriptsize\bfseries] at (1.5, 1.2) {Risque limité};
+          \node[font=\scriptsize\bfseries] at (1.5, 0.4) {Risque minimal};
+        \end{tikzpicture}
+      \end{center}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{alertblock}{Inacceptable --- interdit}
+        Notation sociale des citoyens,
+        reconnaissance faciale de masse
+        dans les espaces publics.
+      \end{alertblock}
+      \smallskip
+      \begin{alertblock}{Haut risque --- obligations strictes}
+        Recrutement, crédit, justice, santé,
+        éducation, infrastructure critique.
+        $\to$ Audit, traçabilité, supervision humaine obligatoires.
+      \end{alertblock}
+      \smallskip
+      \begin{block}{Risque limité --- transparence}
+        Chatbots : obligation de signaler
+        que c'est une IA.
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Risque minimal --- libre}
+        Filtres photo, jeux vidéo, spam.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Bonnes pratiques}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Model Card}
+        Document qui accompagne chaque modèle :
+        \begin{itemize}
+          \item Objectif et cas d'usage prévus
+          \item Données d'entraînement (source, biais connus)
+          \item Performances globales et par sous-groupes
+          \item Limites et cas d'usage déconseillés
+          \item Informations de contact
+        \end{itemize}
+        \vspace{2pt}
+        \small Proposé par Mitchell et al. (Google, 2019).
+        Adopté par Hugging Face pour tous les modèles.
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Auditabilité}
+        \begin{itemize}
+          \item Logger les décisions pour pouvoir
+                les \textbf{expliquer et contester}
+          \item Versionner données, code et modèle
+                ensemble (\textbf{traçabilité})
+          \item Garder un \textbf{humain dans la boucle}
+                pour les décisions à fort impact
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{block}{Tests sur des slices critiques}
+        Ne pas se contenter de métriques globales.
+        Tester \textbf{explicitement} les sous-groupes
+        qui pourraient être désavantagés
+        avant chaque déploiement.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Votre rôle en tant que développeur}
+% ============================================================
+
+\begin{frame}{Ce que vous pouvez faire dès maintenant}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{exampleblock}{Checklist avant déploiement}
+        \begin{itemize}
+          \item[$\square$] Ai-je évalué les performances
+                \textbf{par sous-groupes} ?
+          \item[$\square$] Les données d'entraînement
+                sont-elles \textbf{représentatives} ?
+          \item[$\square$] Des variables \textbf{proxy}
+                ont-elles pu s'introduire ?
+          \item[$\square$] La définition de fairness
+                choisie est-elle \textbf{documentée} ?
+          \item[$\square$] Un humain peut-il
+                \textbf{contester} une décision ?
+          \item[$\square$] Le traitement des données
+                respecte-t-il le \textbf{RGPD} ?
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Ce n'est pas qu'un problème d'experts}
+        Ces questions ne concernent pas seulement
+        les data scientists ou les juristes.\\[4pt]
+        En tant que \textbf{développeur fullstack},
+        vous allez :
+        \begin{itemize}
+          \item Intégrer des modèles dans des produits
+          \item Concevoir les interfaces de collecte
+                de données
+          \item Implémenter les circuits de contestation
+          \item Décider comment présenter les prédictions
+        \end{itemize}
+        Chacun de ces choix a un impact éthique.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Pour aller plus loin}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Lectures}
+        \begin{itemize}
+          \item \textbf{Weapons of Math Destruction}\\
+                Cathy O'Neil (2016)\\
+                \small Cas concrets d'algorithmes nuisibles
+          \vspace{4pt}
+          \item \textbf{The Alignment Problem}\\
+                Brian Christian (2020)\\
+                \small Pourquoi aligner l'IA sur les valeurs humaines est difficile
+          \vspace{4pt}
+          \item \textbf{Fairness and Machine Learning}\\
+                Barocas, Hardt, Narayanan (en ligne, gratuit)\\
+                \small La référence académique
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Outils}
+        \begin{itemize}
+          \item \textbf{Fairlearn} (Microsoft) ---
+                métriques de fairness pour sklearn
+          \item \textbf{AI Fairness 360} (IBM) ---
+                détection et mitigation de biais
+          \item \textbf{SHAP / LIME} ---
+                explicabilité des prédictions
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Mot de la fin}
+        L'IA est un outil puissant.
+        Comme tout outil, son impact dépend
+        des \textbf{intentions et de l'attention}
+        de ceux qui le construisent.\\[4pt]
+        Vous êtes dans cette chaîne.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\end{document}
