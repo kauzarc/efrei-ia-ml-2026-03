@@ -141,34 +141,67 @@
     \begin{column}{0.52\textwidth}
       \begin{alertblock}{Quand les données ne reflètent pas le monde}
         Si certaines populations sont \textbf{sous-représentées}
-        dans le dataset, le modèle apprend moins bien pour elles.\\[4pt]
+        dans le dataset, le modèle apprend moins bien pour elles —
+        même si la performance globale semble bonne.\\[4pt]
         Exemples :
         \begin{itemize}
           \item Reconnaissance faciale entraînée sur
                 des visages majoritairement blancs
-          \item Données médicales historiquement
-                collectées sur des hommes
           \item Textes sur internet sur-représentant
                 certains groupes, langues, cultures
         \end{itemize}
       \end{alertblock}
     \end{column}
     \begin{column}{0.44\textwidth}
-      \begin{exampleblock}{Le cas des embeddings --- pont avec J4}
-        Vous avez vu que les embeddings capturent
-        des relations sémantiques :
-        \begin{center}
-          \texttt{roi -- homme + femme $\approx$ reine}
-        \end{center}
-        \vspace{4pt}
-        Le même mécanisme donne :
-        \begin{center}
-          \texttt{médecin -- homme + femme $\approx$ infirmière}
-        \end{center}
-        \vspace{4pt}
-        Le modèle ne «~pense~» pas de façon sexiste.
-        Il reflète fidèlement les \textbf{associations présentes
-        dans le texte humain} qui l'a formé.
+      \begin{block}{Mécanisme}
+        Le modèle optimise pour minimiser l'erreur
+        sur l'ensemble du dataset.\\[4pt]
+        Les groupes majoritaires «~pèsent~» davantage
+        dans la loss — le modèle leur donne
+        implicitement la priorité.
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Conséquence}
+        Un modèle avec 95\,\% d'accuracy globale
+        peut n'avoir que 70\,\% sur un sous-groupe
+        minoritaire — sans que ça se voie
+        dans la métrique globale.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Biais de représentation --- exemple}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{MIT Gender Shades (Buolamwini \& Gebru, 2018)}
+        Audit de 3 systèmes de reconnaissance faciale commerciaux
+        (Microsoft, IBM, Face++).\\[4pt]
+        Taux d'erreur sur la classification du genre :
+        \begin{itemize}
+          \item Hommes à peau claire : \textbf{0,8\,\%}
+          \item Femmes à peau sombre : \textbf{34,7\,\%}
+        \end{itemize}
+        Les datasets d'entraînement étaient composés
+        majoritairement de visages masculins et à peau claire.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Pourquoi ce biais ?}
+        Les datasets «~standard~» de l'époque
+        (LFW, IJB-A) étaient constitués
+        de photos de célébrités — majoritairement
+        occidentales et masculines.\\[4pt]
+        Le modèle n'avait jamais vu assez d'exemples
+        de femmes à peau sombre pour apprendre
+        leurs caractéristiques.
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Impact}
+        Cette étude a poussé Microsoft, IBM et Amazon
+        à réviser leurs systèmes et à publier
+        des engagements formels sur la diversité
+        des données d'entraînement.
       \end{exampleblock}
     \end{column}
   \end{columns}
@@ -221,6 +254,42 @@
   \end{columns}
 \end{frame}
 
+\begin{frame}{Biais historique --- exemple}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Amazon Hiring (2018)}
+        Outil de tri de CV entraîné sur les embauches
+        des 10 années précédentes.\\[4pt]
+        Ces 10 ans reflétaient une industrie tech
+        \textbf{largement dominée par des hommes}.\\[4pt]
+        Résultat : le modèle pénalisait automatiquement
+        les CV contenant le mot \textbf{«~femmes~»}
+        (ex : «~capitaine de l'équipe féminine~»)
+        et les diplômes d'universités féminines.\\[4pt]
+        Arrêté en interne avant déploiement.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{exampleblock}{Les embeddings --- pont avec J4}
+        Vous avez vu que les embeddings capturent
+        des relations sémantiques :
+        \begin{center}
+          \texttt{roi -- homme + femme $\approx$ reine}
+        \end{center}
+        \vspace{4pt}
+        Le même mécanisme donne :
+        \begin{center}
+          \texttt{médecin -- homme + femme $\approx$ infirmière}
+        \end{center}
+        \vspace{4pt}
+        Le corpus reflète des \textbf{associations historiques} :
+        les textes anciens décrivent les médecins
+        presque exclusivement au masculin.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
 \begin{frame}{Biais de proxy}
   \begin{columns}[T]
     \begin{column}{0.52\textwidth}
@@ -253,6 +322,41 @@
           \item Auditer les performances \textbf{par sous-groupe}
           \item Mesurer l'impact différentiel des décisions
         \end{itemize}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Biais de proxy --- exemple}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{COMPAS --- Justice pénale (2016)}
+        Algorithme de prédiction du risque de récidive
+        utilisé dans les tribunaux américains.\\[4pt]
+        L'ethnie n'est \textbf{pas dans les variables} du modèle.\\[4pt]
+        Mais il utilise : quartier de résidence,
+        casier judiciaire de proches, type de délit —
+        toutes variables \textbf{corrélées avec l'ethnie}
+        du fait de l'histoire du système judiciaire.\\[4pt]
+        Étude ProPublica : faux positifs deux fois plus
+        fréquents pour les prévenus noirs que blancs.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Le mécanisme}
+        Les concepteurs de COMPAS ont \textbf{intentionnellement
+        exclu} la variable ethnie.\\[4pt]
+        Pourtant, la discrimination persiste
+        car les proxys transmettent l'information.\\[4pt]
+        C'est la définition du biais de proxy :
+        un biais qui survit à la suppression
+        de la variable protégée.
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Ce qu'il aurait fallu faire}
+        Mesurer le taux d'erreur \textbf{séparément}
+        pour chaque groupe ethnique — et corriger
+        si les disparités sont significatives.
       \end{exampleblock}
     \end{column}
   \end{columns}
@@ -449,47 +553,91 @@
 \section{RGPD \& cadre légal}
 % ============================================================
 
-\begin{frame}{RGPD --- les grands principes}
+\begin{frame}{RGPD --- le consentement et ses principes}
   \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      \begin{block}{Ce que le RGPD encadre}
-        Toute collecte et traitement de
-        \textbf{données personnelles} de citoyens européens,
-        quel que soit l'endroit où l'organisation opère.\\[4pt]
-        Cinq principes fondamentaux :
+    \begin{column}{0.46\textwidth}
+      \begin{alertblock}{Le principe central}
+        Toute collecte de \textbf{données personnelles}
+        de citoyens européens requiert un consentement
+        \textbf{explicite, libre, éclairé et révocable}.\\[2pt]
+        \small Quel que soit l'endroit où l'organisation opère.
+      \end{alertblock}
+      \vspace{4pt}
+      \begin{center}
+        \begin{tikzpicture}[font=\small,
+          center/.style={draw, rounded corners=4pt, align=center,
+                        minimum width=2.2cm, minimum height=0.8cm,
+                        fill=jedy_alert!25, draw=jedy_alert},
+          deriv/.style={draw, rounded corners=3pt, align=center,
+                        minimum width=1.7cm, minimum height=0.6cm,
+                        fill=jedy_blue!10, draw=jedy_blue, font=\scriptsize},
+          arr/.style={->, thick, jedy_mid}]
+          \node[center] (cons) at (0, 0) {\textbf{Consentement}};
+          \node[deriv] (fin) at (0,    1.5) {Finalité};
+          \node[deriv] (min) at (2.6,  0)   {Minimisation};
+          \node[deriv] (dur) at (0,   -1.5) {Durée limitée};
+          \node[deriv] (sec) at (-2.6, 0)   {Sécurité};
+          \draw[arr] (cons) -- (fin);
+          \draw[arr] (cons) -- (min);
+          \draw[arr] (cons) -- (dur);
+          \draw[arr] (cons) -- (sec);
+        \end{tikzpicture}
+      \end{center}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \begin{block}{Quatre principes pour rendre le consentement effectif}
         \begin{itemize}
-          \item \textbf{Finalité :} données collectées
-                pour un but précis, pas réutilisées
-                à d'autres fins sans accord
-          \item \textbf{Minimisation :} ne collecter
-                que ce qui est nécessaire
-          \item \textbf{Consentement :} explicite,
-                libre, éclairé et révocable
-          \item \textbf{Durée limitée :} pas de rétention
-                indéfinie des données
-          \item \textbf{Sécurité :} obligation de protéger
-                les données contre les fuites
+          \item \textbf{Finalité :} les données ne peuvent être utilisées
+                qu'au but précis pour lequel la personne a consenti
+          \item \textbf{Minimisation :} ne collecter que ce qui est
+                strictement nécessaire à ce but
+          \item \textbf{Durée limitée :} pas de rétention au-delà
+                de ce que le but justifie
+          \item \textbf{Sécurité :} obligation de protéger les données
+                contre les fuites et accès non autorisés
         \end{itemize}
       \end{block}
     \end{column}
-    \begin{column}{0.44\textwidth}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{RGPD --- droits des personnes \& sanctions}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
       \begin{exampleblock}{Droits des personnes}
+        Ces droits sont les mécanismes concrets
+        pour exercer et retirer son consentement :
         \begin{itemize}
           \item \textbf{Droit d'accès :} savoir quelles
                 données on détient sur eux
           \item \textbf{Droit de rectification :}
                 corriger des données inexactes
           \item \textbf{Droit à l'effacement :}
-                «~droit à l'oubli~»
+                «~droit à l'oubli~» — y compris
+                les données d'entraînement d'un modèle
           \item \textbf{Droit d'opposition :}
-                refuser certains traitements
+                refuser certains traitements,
+                notamment le profilage automatisé
         \end{itemize}
       \end{exampleblock}
-      \smallskip
+    \end{column}
+    \begin{column}{0.44\textwidth}
       \begin{alertblock}{Sanctions}
         Jusqu'à \textbf{4\,\% du chiffre d'affaires mondial}
-        ou 20\,M€ — le plus élevé des deux.
+        ou 20\,M€ — le plus élevé des deux.\\[4pt]
+        Exemples réels :
+        \begin{itemize}
+          \item Amazon : 746\,M€ (2021)
+          \item Meta : 1,2\,Md€ (2023)
+          \item Google : 50\,M€ (2019)
+        \end{itemize}
       \end{alertblock}
+      \smallskip
+      \begin{block}{Qui est concerné ?}
+        Toute organisation traitant des données
+        de citoyens européens — même si elle
+        est basée hors de l'UE.
+      \end{block}
     \end{column}
   \end{columns}
 \end{frame}
@@ -573,24 +721,31 @@
   \end{columns}
 \end{frame}
 
-\begin{frame}{L'AI Act européen}
+\begin{frame}[shrink=3]{L'AI Act européen}
   \begin{columns}[T]
     \begin{column}{0.52\textwidth}
       \begin{block}{Principe : classification par risque}
         L'AI Act (2024) classe les systèmes d'IA
         selon leur niveau de risque :
       \end{block}
-      \vspace{4pt}
       \begin{center}
         \begin{tikzpicture}[font=\scriptsize]
-          \fill[jedy_alert!40]  (0,2.4) -- (3,2.4) -- (1.5,3.2) -- cycle;
-          \fill[jedy_alert!20]  (0,1.6) -- (3,1.6) -- (3,2.4) -- (0,2.4) -- cycle;
-          \fill[jedy_mid!20]    (0,0.8) -- (3,0.8) -- (3,1.6) -- (0,1.6) -- cycle;
-          \fill[jedy_example!20](0,0)   -- (3,0)   -- (3,0.8) -- (0,0.8) -- cycle;
-          \node[font=\scriptsize\bfseries] at (1.5, 2.7) {Inacceptable};
-          \node[font=\scriptsize\bfseries] at (1.5, 2.0) {Haut risque};
-          \node[font=\scriptsize\bfseries] at (1.5, 1.2) {Risque limité};
-          \node[font=\scriptsize\bfseries] at (1.5, 0.4) {Risque minimal};
+          % Risque minimal (base)
+          \filldraw[fill=jedy_example!20, draw=jedy_example!70]
+            (0,0) -- (5,0) -- (4.375,0.875) -- (0.625,0.875) -- cycle;
+          % Risque limité
+          \filldraw[fill=jedy_mid!20, draw=jedy_mid!70]
+            (0.625,0.875) -- (4.375,0.875) -- (3.75,1.75) -- (1.25,1.75) -- cycle;
+          % Haut risque
+          \filldraw[fill=jedy_alert!20, draw=jedy_alert!70]
+            (1.25,1.75) -- (3.75,1.75) -- (3.125,2.625) -- (1.875,2.625) -- cycle;
+          % Inacceptable (sommet)
+          \filldraw[fill=jedy_alert!50, draw=jedy_alert]
+            (1.875,2.625) -- (3.125,2.625) -- (2.5,3.5) -- cycle;
+          \node[font=\scriptsize\bfseries] at (2.5, 0.44) {Risque minimal};
+          \node[font=\scriptsize\bfseries] at (2.5, 1.31) {Risque limité};
+          \node[font=\scriptsize\bfseries] at (2.5, 2.19) {Haut risque};
+          \node[font=\scriptsize\bfseries] at (2.5, 3.03) {Inacceptable};
         \end{tikzpicture}
       \end{center}
     \end{column}
@@ -600,18 +755,15 @@
         reconnaissance faciale de masse
         dans les espaces publics.
       \end{alertblock}
-      \smallskip
       \begin{alertblock}{Haut risque --- obligations strictes}
         Recrutement, crédit, justice, santé,
         éducation, infrastructure critique.
         $\to$ Audit, traçabilité, supervision humaine obligatoires.
       \end{alertblock}
-      \smallskip
       \begin{block}{Risque limité --- transparence}
         Chatbots : obligation de signaler
         que c'est une IA.
       \end{block}
-      \smallskip
       \begin{exampleblock}{Risque minimal --- libre}
         Filtres photo, jeux vidéo, spam.
       \end{exampleblock}
