@@ -981,32 +981,50 @@
   \end{columns}
 \end{frame}
 
-\begin{frame}{Pour aller plus loin}
+\begin{frame}{Récapitulatif}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
-      \begin{block}{Lectures}
+      \begin{block}{Biais \& Fairness}
         \begin{itemize}
-          \item \textbf{Weapons of Math Destruction}\\
-                Cathy O'Neil (2016)\\
-                \small Cas concrets d'algorithmes nuisibles
-          \vspace{4pt}
-          \item \textbf{The Alignment Problem}\\
-                Brian Christian (2020)\\
-                \small Pourquoi aligner l'IA sur les valeurs humaines est difficile
-          \vspace{4pt}
-          \item \textbf{Fairness and Machine Learning}\\
-                Barocas, Hardt, Narayanan (en ligne, gratuit)\\
-                \small La référence académique
+          \item Biais de \textbf{représentation},
+                \textbf{historique}, \textbf{proxy}
+          \item Une bonne accuracy globale
+                peut \textbf{masquer} des disparités
+          \item Trois définitions de fairness —
+                \textbf{incompatibles} entre elles
+          \item Choisir, c'est faire un \textbf{choix de valeurs}
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{block}{RGPD \& Responsabilité}
+        \begin{itemize}
+          \item Consentement, minimisation,
+                droit à l'effacement
+          \item Article 22 : droit à l'explication
+                pour les décisions automatisées
+          \item AI Act : classification par risque
         \end{itemize}
       \end{block}
     \end{column}
     \begin{column}{0.48\textwidth}
-      \begin{exampleblock}{Mot de la fin}
-        L'IA est un outil puissant.
-        Comme tout outil, son impact dépend
-        des \textbf{intentions et de l'attention}
-        de ceux qui le construisent.\\[4pt]
-        Vous êtes dans cette chaîne.
+      \begin{block}{Alignement}
+        \begin{itemize}
+          \item Optimiser une métrique
+                $\neq$ atteindre le bon objectif
+          \item Le modèle \textbf{trouvera} les failles
+                de la spécification
+          \item RLHF : une réponse partielle —
+                sycophancy, reward hacking
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Votre rôle}
+        \begin{itemize}
+          \item Évaluer \textbf{par sous-groupes}
+          \item Documenter les \textbf{choix de fairness}
+          \item Respecter le \textbf{RGPD}
+          \item Garder un \textbf{humain dans la boucle}
+        \end{itemize}
       \end{exampleblock}
     \end{column}
   \end{columns}
@@ -1014,9 +1032,15 @@
 
 \begin{frame}[plain]
   \begin{center}
-    \vspace{1.5cm}
-    {\Large\bfseries Merci de votre attention}\\[1.2cm]
-    {\large Questions ?}\\[2cm]
+    \vspace{0.8cm}
+    {\large L'IA est un outil puissant.
+    Comme tout outil, son impact dépend\\
+    des \textbf{intentions et de l'attention}
+    de ceux qui le construisent.\\[0.3cm]
+    Vous êtes dans cette chaîne.}\\[1cm]
+    \textcolor{jedy_mid}{\rule{8cm}{0.4pt}}\\[0.8cm]
+    {\Large\bfseries Merci de votre attention}\\[0.6cm]
+    {\large Questions ?}\\[0.8cm]
     \textcolor{jedy_mid}{\rule{6cm}{0.4pt}}\\[0.4cm]
     {\small Julien Rolland — M2 Développement Fullstack}\\[0.2cm]
     {\small IA, Deep Learning \& Machine Learning — Jour 6}
