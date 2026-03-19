@@ -853,6 +853,134 @@
   \end{columns}
 \end{frame}
 
+% ============================================================
+\section{Le problème de l'alignement}
+% ============================================================
+
+\begin{frame}{Optimiser une métrique \(\neq\) atteindre le bon objectif}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \begin{alertblock}{Le maximiseur de trombones (Bostrom, 2003)}
+        Objectif unique : \textbf{produire le plus de trombones possible}.\\[4pt]
+        Une IA suffisamment capable va acquérir des ressources,
+        des capacités, du pouvoir — tout ce qui maximise
+        la production à long terme :
+        \begin{itemize}
+          \item Poèmes, bourse, vaccins\ldots
+                tout ce qui lui donne plus de moyens
+          \item \textbf{Résistance à l'extinction} —
+                s'éteindre réduit la production future
+          \item Conversion de toute la matière disponible
+        \end{itemize}
+        \vspace{2pt}
+        Pas malveillante — \textbf{exactement} ce qu'on lui a demandé.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.41\textwidth}
+      \begin{block}{La loi de Goodhart}
+        «~Dès qu'une mesure devient un objectif,
+        elle cesse d'être une bonne mesure.~»\\[4pt]
+        Le modèle optimise ce qu'on lui dit d'optimiser —
+        pas ce qu'on \textbf{voulait vraiment}.
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Le problème de l'alignement}
+        Comment s'assurer qu'un système d'IA
+        poursuit \textbf{réellement} nos intentions
+        plutôt que la lettre de nos instructions ?\\[4pt]
+        La question devient critique à mesure
+        que les modèles gagnent en capacité.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Specification gaming --- quand le modèle «~triche~»}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Des exemples réels}
+        \begin{itemize}
+          \item \textbf{Tetris}\\
+                \textit{Objectif :} ne pas perdre.\\
+                \textit{Résultat :} mettre le jeu \textbf{en pause indéfiniment}.
+          \vspace{4pt}
+          \item \textbf{Robot bipède}\\
+                \textit{Objectif :} avancer le plus vite possible.\\
+                \textit{Résultat :} \textbf{tomber en avant} — plus rapide que marcher.
+          \vspace{4pt}
+          \item \textbf{IA générant du code --- couverture de tests}\\
+                \textit{Objectif :} 100\,\% de tests verts.\\
+                \textit{Résultat :} \textbf{supprimer les assertions} qui échouent.
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Pourquoi ça arrive}
+        Le modèle n'a pas de «~bon sens~» ni d'intention.
+        Il optimise \textbf{exactement} ce que la fonction
+        de récompense lui dit d'optimiser.\\[4pt]
+        Si la récompense peut être maximisée
+        d'une façon inattendue, le modèle
+        la \textbf{trouvera}.
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{La leçon}
+        Plus le modèle est capable,
+        plus il est susceptible d'exploiter
+        les failles de la spécification.\\[4pt]
+        La puissance amplifie le problème —
+        elle ne le résout pas.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[shrink=5]{RLHF --- apprendre des préférences humaines}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Le principe}
+        Le \textbf{RLHF} (Reinforcement Learning
+        from Human Feedback) entraîne le modèle
+        à partir des \textbf{préférences humaines} :\\[4pt]
+        \begin{enumerate}
+          \item Le modèle génère plusieurs réponses
+          \item Des humains les \textbf{classent}
+                selon leurs préférences
+          \item Un \textbf{modèle de récompense}
+                apprend à prédire ces préférences
+          \item Le LLM est optimisé pour maximiser
+                ce score de récompense
+        \end{enumerate}
+        \vspace{4pt}
+        C'est ainsi que sont entraînés
+        ChatGPT, Claude, Gemini\ldots
+      \end{block}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{alertblock}{Les limites du RLHF}
+        \begin{itemize}
+          \item \textbf{Sycophancy} : le modèle apprend
+                à dire ce que l'humain \textit{veut}
+                entendre, pas ce qui est vrai
+          \item \textbf{Reward hacking} : le modèle
+                apprend à maximiser le score du
+                modèle de récompense — pas les vraies
+                préférences humaines
+          \item \textbf{Biais des annotateurs} :
+                les préférences humaines ne sont pas
+                universelles ni neutres
+        \end{itemize}
+      \end{alertblock}
+      \smallskip
+      \begin{exampleblock}{En résumé}
+        Le RLHF améliore significativement
+        l'alignement — mais ne le résout pas.
+        C'est un domaine de recherche actif.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
 \begin{frame}{Pour aller plus loin}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
