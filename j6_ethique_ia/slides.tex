@@ -270,7 +270,7 @@
       \end{alertblock}
     \end{column}
     \begin{column}{0.44\textwidth}
-      \begin{exampleblock}{Les embeddings --- pont avec J4}
+      \begin{exampleblock}{Les embeddings}
         Vous avez vu que les embeddings capturent
         des relations sémantiques :
         \begin{center}
@@ -398,80 +398,136 @@
 \section{Fairness}
 % ============================================================
 
-\begin{frame}{Qu'est-ce qu'un modèle «~juste~» ?}
+
+% --- Fairness 1/3 ---
+\begin{frame}{Fairness (1/3) --- Demographic Parity}
   \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      \begin{block}{Trois intuitions, toutes légitimes}
-        \begin{enumerate}
-          \item \textbf{«~Traiter tout le monde pareil~»}\\
-                Le taux d'acceptation doit être identique
-                dans chaque groupe.
-          \vspace{4pt}
-          \item \textbf{«~Même chance pour les qualifiés~»}\\
-                Parmi ceux qui méritent d'être acceptés,
-                chacun a la même chance de l'être.
-          \vspace{4pt}
-          \item \textbf{«~Quand je dis 70\,\%, c'est vrai~»}\\
-                Si le modèle prédit 70\,\% de risque,
-                70\,\% des cas doivent effectivement
-                se réaliser, quel que soit le groupe.
-        \end{enumerate}
+    \begin{column}{0.46\textwidth}
+      \begin{block}{Définition}
+        \[ P(\hat{Y}{=}1 \mid G{=}A) = P(\hat{Y}{=}1 \mid G{=}B) \]
       \end{block}
-    \end{column}
-    \begin{column}{0.44\textwidth}
-      \begin{alertblock}{Le problème}
-        Ces trois intuitions semblent raisonnables.
-        Mais elles se \textbf{contredisent mathématiquement}
-        dès que les groupes ont des distributions
-        différentes dans la population.\\[6pt]
-        On ne peut pas satisfaire les trois
-        en même temps — sauf cas triviaux.
-      \end{alertblock}
-      \smallskip
-      \begin{exampleblock}{Ce que ça implique}
-        Choisir une définition de la fairness,
-        c'est faire un \textbf{choix de valeurs},
-        pas un choix technique.
+      \vspace{-4pt}
+      \begin{itemize}
+        \item Même \textbf{taux de prédictions positives}
+              dans chaque groupe
+        \item Indépendant des caractéristiques individuelles
+      \end{itemize}
+      \begin{exampleblock}{Exemple}
+        Recrutement : proportion de CV retenus
+        identique pour hommes et femmes
       \end{exampleblock}
+      \begin{alertblock}{Limite}
+        Ne tient pas compte des différences
+        réelles entre groupes
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[scale=1.05, font=\small]
+        \draw[->] (0,0) -- (4.0,0) node[right]{Groupe};
+        \draw[->] (0,0) -- (0,3.0) node[above]{Taux accepté};
+        \fill[jedy_mid!80]   (0.3,0) rectangle (1.7,2.2);
+        \fill[jedy_alert!80] (2.3,0) rectangle (3.7,2.2);
+        \node[below] at (1.0,0) {A};
+        \node[below] at (3.0,0) {B};
+        \node[above] at (1.0,2.2) {40\,\%};
+        \node[above] at (3.0,2.2) {40\,\%};
+        \draw[dashed, gray!60, thick] (0,2.2) -- (4.0,2.2);
+      \end{tikzpicture}
+      \end{center}
     \end{column}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Trois définitions formelles de la fairness}
+% --- Fairness 2/3 ---
+\begin{frame}{Fairness (2/3) --- Equal Opportunity}
   \begin{columns}[T]
-    \begin{column}{0.31\textwidth}
-      \begin{block}{Demographic Parity}
-        Le taux de prédictions positives
-        est \textbf{identique} dans chaque groupe.\\[4pt]
-        \textit{Ex : autant de crédits accordés
-        aux hommes qu'aux femmes, en proportion.}\\[4pt]
-        \small Ne tient pas compte
-        des différences réelles
-        entre groupes.
+    \begin{column}{0.46\textwidth}
+      \begin{block}{Définition}
+        \[ P(\hat{Y}{=}1 \mid Y{=}1, G{=}A) = P(\hat{Y}{=}1 \mid Y{=}1, G{=}B) \]
       \end{block}
+      \vspace{-4pt}
+      \begin{itemize}
+        \item Même \textbf{rappel} parmi les vrais positifs
+        \item Les faux négatifs sont répartis équitablement
+      \end{itemize}
+      \begin{exampleblock}{Exemple}
+        Parmi les candidats qualifiés, chacun a
+        la même chance d'être sélectionné
+      \end{exampleblock}
+      \begin{alertblock}{Limite}
+        Ne contrôle pas le taux global
+        de prédictions positives
+      \end{alertblock}
     \end{column}
-    \begin{column}{0.31\textwidth}
-      \begin{block}{Equal Opportunity}
-        Parmi les vrais positifs, le \textbf{taux de rappel}
-        est identique dans chaque groupe.\\[4pt]
-        \textit{Ex : les candidats qualifiés ont
-        la même chance d'être sélectionnés,
-        quel que soit leur genre.}\\[4pt]
-        \small Se concentre sur ceux
-        qui «~méritent~» la prédiction positive.
-      \end{block}
+    \begin{column}{0.50\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[scale=1.05, font=\small]
+        \draw[->] (0,0) -- (4.0,0) node[right]{Groupe};
+        \draw[->] (0,0) -- (0,3.4) node[above]{Qualifiés};
+        % A : total=3.0, TP=2.0 (recall 2/3)
+        \fill[jedy_mid!85]  (0.3,0)   rectangle (1.7,2.0);
+        \fill[jedy_mid!25]  (0.3,2.0) rectangle (1.7,3.0);
+        % B : total=1.8, TP=1.2 (recall 2/3)
+        \fill[jedy_alert!85] (2.3,0)   rectangle (3.7,1.2);
+        \fill[jedy_alert!25] (2.3,1.2) rectangle (3.7,1.8);
+        \node[below] at (1.0,0) {A};
+        \node[below] at (3.0,0) {B};
+        \draw[dashed, gray!60, thick] (0.3,2.0) -- (1.7,2.0);
+        \draw[dashed, gray!60, thick] (2.3,1.2) -- (3.7,1.2);
+        \node[right] at (1.75,1.0) {\footnotesize TP};
+        \node[right] at (1.75,2.5) {\footnotesize FN};
+        \node[left]  at (0.25,1.0) {$\tfrac{2}{3}$};
+      \end{tikzpicture}
+      \end{center}
     \end{column}
-    \begin{column}{0.31\textwidth}
-      \begin{block}{Calibration}
-        Si le modèle prédit 70\,\% de risque,
-        70\,\% des cas se réalisent
-        \textbf{dans chaque groupe}.\\[4pt]
-        \textit{Ex : un score de récidive de 0,7
-        signifie la même chose
-        pour tous les prévenus.}\\[4pt]
-        \small Garantit la cohérence
-        du score, pas l'égalité des taux.
+  \end{columns}
+\end{frame}
+
+% --- Fairness 3/3 ---
+\begin{frame}{Fairness (3/3) --- Calibration}
+  \begin{columns}[T]
+    \begin{column}{0.46\textwidth}
+      \begin{block}{Définition}
+        \[ P(Y{=}1 \mid \hat{p}, G) = \hat{p} \quad \forall\, G \]
       \end{block}
+      \begin{itemize}
+        \item Un score $\hat{p}$ a le \textbf{même sens}
+              dans chaque groupe
+        \item Cohérence sémantique du score
+      \end{itemize}
+      \begin{exampleblock}{Exemple}
+        Score de récidive 0.7 $\Rightarrow$ 70\,\% de récidive
+        réelle, quel que soit le prévenu
+      \end{exampleblock}
+      \begin{alertblock}{Limite}
+        N'impose pas l'égalité des scores moyens
+        entre groupes
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[scale=1.05, font=\small]
+        \draw[->] (0,0) -- (3.4,0) node[right]{$\hat{p}$};
+        \draw[->] (0,0) -- (0,3.4) node[above]{$p$ réel};
+        \node[below] at (1.0,0) {\footnotesize .3};
+        \node[below] at (2.0,0) {\footnotesize .6};
+        \node[below] at (3.0,0) {\footnotesize .9};
+        \node[left]  at (0,1.0) {\footnotesize .3};
+        \node[left]  at (0,2.0) {\footnotesize .6};
+        \node[left]  at (0,3.0) {\footnotesize .9};
+        \draw[gray!50, dashed, thick] (0,0) -- (3.2,3.2)
+          node[above left]{\footnotesize $p{=}\hat{p}$};
+        \fill[jedy_mid!90]   (1.0,1.0) circle (0.13)
+          node[above right]{\footnotesize A};
+        \fill[jedy_mid!90]   (2.0,2.0) circle (0.13)
+          node[above right]{\footnotesize A};
+        \fill[jedy_alert!90] (0.7,0.7) circle (0.13)
+          node[below right]{\footnotesize B};
+        \fill[jedy_alert!90] (2.7,2.7) circle (0.13)
+          node[below right]{\footnotesize B};
+      \end{tikzpicture}
+      \end{center}
     \end{column}
   \end{columns}
 \end{frame}
