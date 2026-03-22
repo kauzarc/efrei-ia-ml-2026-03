@@ -60,42 +60,6 @@
   \end{columns}
 \end{frame}
 
-\begin{frame}{Trois cas qui ont marqué les esprits}
-  \begin{columns}[T]
-    \begin{column}{0.31\textwidth}
-      \begin{alertblock}{COMPAS --- Justice pénale (2016)}
-        Algorithme prédit le risque de récidive
-        aux États-Unis.\\[4pt]
-        Étude ProPublica : les faux positifs
-        («~va récidiver~» alors que non)
-        étaient \textbf{deux fois plus fréquents}
-        pour les prévenus noirs que blancs.
-      \end{alertblock}
-    \end{column}
-    \begin{column}{0.31\textwidth}
-      \begin{alertblock}{Amazon Hiring (2018)}
-        Outil de tri de CV entraîné sur
-        les embauches des 10 années précédentes.\\[4pt]
-        Résultat : pénalisait automatiquement
-        les CV contenant le mot \textbf{«~femmes~»}
-        (ex: «~capitaine de l'équipe féminine~»).\\[4pt]
-        Arrêté en interne avant déploiement.
-      \end{alertblock}
-    \end{column}
-    \begin{column}{0.31\textwidth}
-      \begin{alertblock}{Google Translate --- Genre (2017)}
-        Traduction du turc (sans genre grammatical)
-        vers l'anglais.\\[4pt]
-        «~O bir doktor~» (il/elle est médecin)
-        $\to$ \textbf{«~He is a doctor~»}\\[2pt]
-        «~O bir hemşire~» (il/elle est infirmier/e)
-        $\to$ \textbf{«~She is a nurse~»}\\[4pt]
-        Le modèle reproduit les stéréotypes
-        présents dans le corpus d'entraînement.
-      \end{alertblock}
-    \end{column}
-  \end{columns}
-\end{frame}
 
 % ============================================================
 \section{Les biais}
@@ -138,70 +102,104 @@
 
 \begin{frame}{Biais de représentation}
   \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      \begin{alertblock}{Quand les données ne reflètent pas le monde}
-        Si certaines populations sont \textbf{sous-représentées}
-        dans le dataset, le modèle apprend moins bien pour elles —
-        même si la performance globale semble bonne.\\[4pt]
-        Exemples :
+    \begin{column}{0.44\textwidth}
+      \begin{alertblock}{Données $\neq$ monde réel}
         \begin{itemize}
-          \item Reconnaissance faciale entraînée sur
-                des visages majoritairement blancs
-          \item Textes sur internet sur-représentant
-                certains groupes, langues, cultures
+          \item Certaines populations sont \textbf{sous-représentées}
+          \item Le modèle optimise la loss \textbf{globale}
+          \item Les groupes minoritaires pèsent moins\\
+                $\to$ moins bien appris
         \end{itemize}
       \end{alertblock}
-    \end{column}
-    \begin{column}{0.44\textwidth}
-      \begin{block}{Mécanisme}
-        Le modèle optimise pour minimiser l'erreur
-        sur l'ensemble du dataset.\\[4pt]
-        Les groupes majoritaires «~pèsent~» davantage
-        dans la loss — le modèle leur donne
-        implicitement la priorité.
-      \end{block}
-      \smallskip
-      \begin{exampleblock}{Conséquence}
-        Un modèle avec 95\,\% d'accuracy globale
-        peut n'avoir que 70\,\% sur un sous-groupe
-        minoritaire — sans que ça se voie
-        dans la métrique globale.
+      \begin{exampleblock}{Exemples}
+        \begin{itemize}
+          \item Reconnaissance faciale : visages majoritairement blancs
+          \item Textes web : sur-représentation de certaines cultures
+        \end{itemize}
       \end{exampleblock}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[font=\small, scale=0.85]
+        % --- Left panel: stacked bar (Dataset) ---
+        % scale: 4 units = 100%
+        \fill[jedy_mid!70]   (0,0)   rectangle (1.2, 3.6); % 90%
+        \fill[jedy_alert!70] (0,3.6) rectangle (1.2, 4.0); % 10%
+        \node[above, font=\scriptsize] at (0.6, 4.0) {Dataset};
+        \node[font=\scriptsize, text=white, align=center] at (0.6, 1.8) {Maj.\\90\,\%};
+        \node[font=\scriptsize] at (0.6, 3.8) {10\,\%};
+        % y axis left
+        \draw[->] (0,0) -- (0,4.4) node[above]{\scriptsize \%};
+        \foreach \pct/\y in {0/0,25/1,50/2,75/3,100/4}{
+          \draw[gray!30] (0,\y) -- (3.8,\y);
+          \node[left, font=\tiny] at (0,\y) {\pct};
+        }
+        % --- Arrow "train" ---
+        \draw[->, thick, jedy_mid] (1.4,2.0) -- (2.2,2.0)
+          node[midway, above, font=\scriptsize] {train};
+        % --- Right panel: accuracy bars ---
+        \fill[jedy_mid!70]   (2.4,0) rectangle (3.1,3.6); % 90%
+        \fill[jedy_alert!70] (3.2,0) rectangle (3.9,2.4); % 60%
+        \node[above, font=\scriptsize] at (3.15, 4.0) {Accuracy};
+        \node[above, font=\tiny] at (2.75,3.6) {90\,\%};
+        \node[above, font=\tiny] at (3.55,2.4) {60\,\%};
+        \node[below, font=\scriptsize] at (2.75,0) {Maj.};
+        \node[below, font=\scriptsize] at (3.55,0) {Min.};
+      \end{tikzpicture}
+      \end{center}
     \end{column}
   \end{columns}
 \end{frame}
 
 \begin{frame}{Biais de représentation --- exemple}
   \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      \begin{alertblock}{MIT Gender Shades (Buolamwini \& Gebru, 2018)}
-        Audit de 3 systèmes de reconnaissance faciale commerciaux
-        (Microsoft, IBM, Face++).\\[4pt]
-        Taux d'erreur sur la classification du genre :
-        \begin{itemize}
-          \item Hommes à peau claire : \textbf{0,8\,\%}
-          \item Femmes à peau sombre : \textbf{34,7\,\%}
-        \end{itemize}
-        Les datasets d'entraînement étaient composés
-        majoritairement de visages masculins et à peau claire.
-      \end{alertblock}
-    \end{column}
     \begin{column}{0.44\textwidth}
-      \begin{block}{Pourquoi ce biais ?}
-        Les datasets «~standard~» de l'époque
-        (LFW, IJB-A) étaient constitués
-        de photos de célébrités — majoritairement
-        occidentales et masculines.\\[4pt]
-        Le modèle n'avait jamais vu assez d'exemples
-        de femmes à peau sombre pour apprendre
-        leurs caractéristiques.
+      \begin{alertblock}{MIT Gender Shades (Buolamwini \& Gebru, 2018)}
+        \begin{itemize}
+          \item Audit de 3 systèmes commerciaux (Microsoft, IBM, Face++)
+          \item Datasets d'entraînement (LFW, IJB-A) : photos de
+                célébrités — \textbf{majorité d'hommes occidentaux}
+          \item Le modèle n'avait pas vu assez de femmes à peau sombre
+        \end{itemize}
+      \end{alertblock}
+      \begin{block}{Taux d'erreur (classification du genre)}
+        {\scriptsize\begin{tabular}{lr}
+          H. peau claire & \textbf{0,8\,\%}  \\
+          H. peau sombre & \textbf{7,1\,\%}  \\
+          F. peau claire & \textbf{3,5\,\%}  \\
+          F. peau sombre & \textbf{34,7\,\%} \\
+        \end{tabular}}
       \end{block}
-      \smallskip
+    \end{column}
+    \begin{column}{0.52\textwidth}
+      \begin{center}
+      % scale: 3.5 units = 35% => 0.1 units/percent
+      \begin{tikzpicture}[font=\small, scale=0.75]
+        \draw[->] (0,0) -- (0,4.0) node[above]{\scriptsize Taux d'erreur};
+        \foreach \pct/\y in {10/1.0, 20/2.0, 30/3.0}{
+          \draw[gray!30] (0,\y) -- (5.2,\y);
+          \node[left, font=\tiny] at (0,\y) {\pct\,\%};
+        }
+        % H. clair: 0.8% -> 0.08
+        \fill[jedy_mid!90]   (0.2,0) rectangle (1.1, 0.08);
+        \node[above, font=\tiny] at (0.65, 0.08) {0,8\,\%};
+        \node[below, font=\scriptsize, align=center] at (0.65, 0) {H.\\clair};
+        % H. sombre: 7.1% -> 0.71
+        \fill[jedy_mid!50]   (1.4,0) rectangle (2.3, 0.71);
+        \node[above, font=\tiny] at (1.85, 0.71) {7,1\,\%};
+        \node[below, font=\scriptsize, align=center] at (1.85, 0) {H.\\sombre};
+        % F. claire: 3.5% -> 0.35
+        \fill[jedy_alert!60] (2.7,0) rectangle (3.6, 0.35);
+        \node[above, font=\tiny] at (3.15, 0.35) {3,5\,\%};
+        \node[below, font=\scriptsize, align=center] at (3.15, 0) {F.\\claire};
+        % F. sombre: 34.7% -> 3.47
+        \fill[jedy_alert!90] (4.0,0) rectangle (4.9, 3.47);
+        \node[above, font=\tiny] at (4.45, 3.47) {34,7\,\%};
+        \node[below, font=\scriptsize, align=center] at (4.45, 0) {F.\\sombre};
+      \end{tikzpicture}
+      \end{center}
       \begin{exampleblock}{Impact}
-        Cette étude a poussé Microsoft, IBM et Amazon
-        à réviser leurs systèmes et à publier
-        des engagements formels sur la diversité
-        des données d'entraînement.
+        {\small Révision publique des systèmes de Microsoft, IBM et Amazon}
       \end{exampleblock}
     \end{column}
   \end{columns}
@@ -210,20 +208,16 @@
 \begin{frame}{Biais historique}
   \begin{columns}[T]
     \begin{column}{0.52\textwidth}
-      \begin{alertblock}{Apprendre du passé pour perpétuer ses inégalités}
-        Si les données d'entraînement reflètent
-        des \textbf{décisions passées inéquitables},
-        le modèle les reproduit — et les amplifie.\\[4pt]
-        Exemples :
+      \begin{alertblock}{Le passé perpétué}
         \begin{itemize}
-          \item Historique de crédits refusés
-                à certains quartiers $\to$ le modèle
-                refuse les candidats de ces quartiers
-          \item Postes à responsabilité historiquement
-                occupés par des hommes $\to$ le modèle
-                favorise les profils masculins
+          \item Les données reflètent des \textbf{décisions passées inéquitables}
+          \item Le modèle les reproduit — et les \textbf{amplifie}
         \end{itemize}
       \end{alertblock}
+      \begin{itemize}
+        \item Crédits refusés à certains quartiers $\to$ le modèle reproduit le refus
+        \item Postes occupés par des hommes $\to$ le modèle favorise les profils masculins
+      \end{itemize}
     \end{column}
     \begin{column}{0.44\textwidth}
       \begin{block}{La boucle de rétroaction}
@@ -233,10 +227,10 @@
                         minimum width=2.0cm, minimum height=0.6cm,
                         fill=jedy_blue!10, draw=jedy_blue},
             arr/.style={->, thick, jedy_mid}]
-            \node[blk] (hist) at (0,  1.4) {Inégalités\\historiques};
-            \node[blk] (data) at (2.4, 0)  {Données\\biaisées};
-            \node[blk] (mod)  at (2.4,-1.4) {Modèle\\biaisé};
-            \node[blk] (dec)  at (0,  -1.4) {Décisions\\biaisées};
+            \node[blk] (hist) at (0,   0.7) {Inégalités\\historiques};
+            \node[blk] (data) at (2.6,  0.7) {Données\\biaisées};
+            \node[blk] (mod)  at (2.6, -0.7) {Modèle\\biaisé};
+            \node[blk] (dec)  at (0,   -0.7) {Décisions\\biaisées};
             \draw[arr] (hist) -- (data);
             \draw[arr] (data) -- (mod);
             \draw[arr] (mod)  -- (dec);
@@ -245,10 +239,8 @@
         \end{center}
       \end{block}
       \begin{exampleblock}{Le danger}
-        Le modèle semble \textbf{objectif} car il s'appuie
-        sur des données réelles.
-        Mais il cristallise des inégalités
-        qu'on pourrait vouloir corriger.
+        Semble \textbf{objectif} (données réelles) mais cristallise des
+        inégalités qu'on voudrait corriger
       \end{exampleblock}
     \end{column}
   \end{columns}
@@ -256,108 +248,143 @@
 
 \begin{frame}{Biais historique --- exemple}
   \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
+    \begin{column}{0.48\textwidth}
       \begin{alertblock}{Amazon Hiring (2018)}
-        Outil de tri de CV entraîné sur les embauches
-        des 10 années précédentes.\\[4pt]
-        Ces 10 ans reflétaient une industrie tech
-        \textbf{largement dominée par des hommes}.\\[4pt]
-        Résultat : le modèle pénalisait automatiquement
-        les CV contenant le mot \textbf{«~femmes~»}
-        (ex : «~capitaine de l'équipe féminine~»)
-        et les diplômes d'universités féminines.\\[4pt]
-        Arrêté en interne avant déploiement.
+        \begin{itemize}
+          \item Tri de CV entraîné sur 10 ans d'embauches
+          \item Industrie tech \textbf{largement dominée} par des hommes :
+                les CV retenus étaient quasi exclusivement masculins
+          \item Le modèle apprit que «~femmes~» et diplômes féminins
+                \textbf{corrélaient avec le rejet}
+          \item Arrêté en interne avant tout déploiement
+        \end{itemize}
       \end{alertblock}
     \end{column}
-    \begin{column}{0.44\textwidth}
-      \begin{exampleblock}{Les embeddings}
-        Vous avez vu que les embeddings capturent
-        des relations sémantiques :
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Biais dans les embeddings}
         \begin{center}
-          \texttt{roi -- homme + femme $\approx$ reine}
+        \begin{tikzpicture}[scale=0.9, font=\small]
+          \draw[->] (-0.3,0) -- (3.8,0) node[right]{\tiny dim.\ 1};
+          \draw[->] (0,-0.3) -- (0,3.2) node[above]{\tiny dim.\ 2};
+          % offset vecteur "profession" : (+1.0, +0.3)
+          % homme et médecin
+          \fill[jedy_mid!90]  (1.5, 2.0) circle (0.11)
+            node[below left]{\scriptsize homme};
+          \fill[jedy_mid!70]  (2.5, 2.3) circle (0.11)
+            node[right]{\scriptsize médecin};
+          \draw[->, thick, jedy_mid] (1.5,2.0) -- (2.5,2.3);
+          % femme et infirmière (même offset)
+          \fill[jedy_alert!90] (0.4, 0.8) circle (0.11)
+            node[below left]{\scriptsize femme};
+          \fill[jedy_alert!70] (1.4, 1.1) circle (0.11)
+            node[right]{\scriptsize infirmière};
+          \draw[->, thick, jedy_alert] (0.4,0.8) -- (1.4,1.1);
+          % annotation parallélisme
+          \draw[gray!50, dashed] (1.5,2.0) -- (0.4,0.8);
+          \draw[gray!50, dashed] (2.5,2.3) -- (1.4,1.1);
+        \end{tikzpicture}
         \end{center}
-        \vspace{4pt}
-        Le même mécanisme donne :
-        \begin{center}
-          \texttt{médecin -- homme + femme $\approx$ infirmière}
-        \end{center}
-        \vspace{4pt}
-        Le corpus reflète des \textbf{associations historiques} :
-        les textes anciens décrivent les médecins
-        presque exclusivement au masculin.
-      \end{exampleblock}
+        \scriptsize\texttt{médecin -- homme + femme $\approx$ infirmière}
+      \end{block}
     \end{column}
   \end{columns}
 \end{frame}
 
 \begin{frame}{Biais de proxy}
   \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      \begin{alertblock}{Contourner une interdiction sans le savoir}
-        Il est \textbf{illégal} d'utiliser l'ethnie, le genre
-        ou la religion pour certaines décisions.\\[4pt]
-        Mais d'autres variables \textbf{corrèlent fortement}
-        avec ces attributs protégés :
-        \begin{itemize}
-          \item Code postal $\leftrightarrow$ ethnie
-          \item Prénom $\leftrightarrow$ genre, origine
-          \item École $\leftrightarrow$ classe sociale
-        \end{itemize}
-        Le modèle peut discriminer \textbf{indirectement}
-        sans jamais voir la variable interdite.
-      \end{alertblock}
-    \end{column}
     \begin{column}{0.44\textwidth}
-      \begin{block}{Le problème de la «~neutralité~» des données}
-        Retirer la variable sensible du dataset
-        \textbf{ne suffit pas} si des proxys restent.\\[4pt]
-        Exemple : un modèle de scoring de crédit
-        qui n'utilise pas l'ethnie peut quand même
-        discriminer via le code postal.
-      \end{block}
-      \smallskip
+      \begin{alertblock}{Discriminer sans le savoir}
+        \begin{itemize}
+          \item Utiliser l'ethnie est \textbf{illégal}
+          \item Mais d'autres variables \textbf{lui corrèlent fortement}
+        \end{itemize}
+      \end{alertblock}
+      \begin{itemize}
+        \item Code postal $\leftrightarrow$ ethnie
+        \item Prénom $\leftrightarrow$ genre, origine
+        \item École $\leftrightarrow$ classe sociale
+      \end{itemize}
       \begin{exampleblock}{Ce qu'il faut faire}
         \begin{itemize}
           \item Identifier les variables corrélées
-          \item Auditer les performances \textbf{par sous-groupe}
-          \item Mesurer l'impact différentiel des décisions
+          \item Auditer les performances par sous-groupe
         \end{itemize}
       \end{exampleblock}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[font=\small, scale=0.9,
+        prot/.style={draw=jedy_alert, fill=jedy_alert!15,
+                     rounded corners=3pt, align=center,
+                     minimum width=1.8cm, minimum height=0.65cm},
+        prx/.style={draw=jedy_mid, fill=jedy_mid!15,
+                    rounded corners=3pt, align=center,
+                    minimum width=1.8cm, minimum height=0.65cm},
+        mod/.style={draw=jedy_blue, fill=jedy_blue!15,
+                    rounded corners=3pt, align=center,
+                    minimum width=1.8cm, minimum height=0.65cm}]
+        \node[prot] (eth) at (0,0) {Ethnie};
+        \node[prx]  (cp)  at (2.6, 1.2) {Code postal};
+        \node[prx]  (pr)  at (2.6, 0.0) {Prénom};
+        \node[prx]  (ca)  at (2.6,-1.2) {Casier\\proches};
+        \node[mod]  (mod) at (5.2, 0.0) {Modèle};
+        % dashed direct arrow (forbidden)
+        \draw[->, dashed, gray!60, thick] (eth.east) to[bend left=30]
+          node[midway, above, font=\small, red]{\textbf{X}} (mod.west);
+        % ethnie -> proxys
+        \draw[->, jedy_alert, thick] (eth) -- (cp)
+          node[midway, above, font=\tiny] {corrèle};
+        \draw[->, jedy_alert, thick] (eth) -- (pr);
+        \draw[->, jedy_alert, thick] (eth) -- (ca);
+        % proxys -> modele
+        \draw[->, jedy_mid, thick] (cp) -- (mod);
+        \draw[->, jedy_mid, thick] (pr) -- (mod);
+        \draw[->, jedy_mid, thick] (ca) -- (mod);
+      \end{tikzpicture}
+      \end{center}
     \end{column}
   \end{columns}
 \end{frame}
 
 \begin{frame}{Biais de proxy --- exemple}
   \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      \begin{alertblock}{COMPAS --- Justice pénale (2016)}
-        Algorithme de prédiction du risque de récidive
-        utilisé dans les tribunaux américains.\\[4pt]
-        L'ethnie n'est \textbf{pas dans les variables} du modèle.\\[4pt]
-        Mais il utilise : quartier de résidence,
-        casier judiciaire de proches, type de délit —
-        toutes variables \textbf{corrélées avec l'ethnie}
-        du fait de l'histoire du système judiciaire.\\[4pt]
-        Étude ProPublica : faux positifs deux fois plus
-        fréquents pour les prévenus noirs que blancs.
-      \end{alertblock}
-    \end{column}
     \begin{column}{0.44\textwidth}
-      \begin{block}{Le mécanisme}
-        Les concepteurs de COMPAS ont \textbf{intentionnellement
-        exclu} la variable ethnie.\\[4pt]
-        Pourtant, la discrimination persiste
-        car les proxys transmettent l'information.\\[4pt]
-        C'est la définition du biais de proxy :
-        un biais qui survit à la suppression
-        de la variable protégée.
-      \end{block}
-      \smallskip
-      \begin{exampleblock}{Ce qu'il aurait fallu faire}
-        Mesurer le taux d'erreur \textbf{séparément}
-        pour chaque groupe ethnique — et corriger
-        si les disparités sont significatives.
+      \begin{alertblock}{COMPAS --- Justice pénale (2016)}
+        \begin{itemize}
+          \item Utilisé dans les tribunaux américains pour
+                les décisions de \textbf{mise en liberté sous caution}
+          \item Ethnie \textbf{absente} des variables — intentionnellement
+          \item Mais utilise : quartier, casier des proches, type de délit,
+                toutes \textbf{corrélées avec l'ethnie} via l'histoire
+                du système judiciaire
+        \end{itemize}
+      \end{alertblock}
+      \begin{exampleblock}{Leçon}
+        Supprimer la variable sensible \textbf{ne suffit pas} :
+        il faut auditer les performances par groupe
       \end{exampleblock}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+      \begin{center}
+      % scale: 3.0 units = 60% => 0.05 units/percent
+      \begin{tikzpicture}[font=\small, scale=0.9]
+        \node[above, font=\small\bfseries] at (2.2, 3.3)
+          {Faux positifs --- ProPublica (2016)};
+        \draw[->] (0,0) -- (0,3.6) node[above]{\scriptsize FP rate};
+        \foreach \pct/\y in {20/1.0, 40/2.0, 60/3.0}{
+          \draw[gray!30] (0,\y) -- (4.2,\y);
+          \node[left, font=\tiny] at (0,\y) {\pct\,\%};
+        }
+        % Blancs: 23.5% -> 1.175
+        \fill[jedy_mid!80]   (0.4,0) rectangle (1.8, 1.175);
+        \node[above, font=\scriptsize] at (1.1, 1.175) {23,5\,\%};
+        \node[below, font=\small]      at (1.1, 0) {Blancs};
+        % Noirs: 44.9% -> 2.245
+        \fill[jedy_alert!80] (2.4,0) rectangle (3.8, 2.245);
+        \node[above, font=\scriptsize] at (3.1, 2.245) {44,9\,\%};
+        \node[below, font=\small]      at (3.1, 0) {Noirs};
+      \end{tikzpicture}
+      \end{center}
     \end{column}
   \end{columns}
 \end{frame}
