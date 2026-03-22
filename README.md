@@ -27,5 +27,5 @@ Supports de cours pour la formation **M2 Développement Fullstack** — 6 jours 
 
 ## Évaluation
 
-- **QCM Final** (80 %) — J6 matin, 23 mars 2026
+- **QCM Final** (80 %) — J6 matin, 23 mars 2026 — [`qcm/qcm.md`](qcm/qcm.md)
 - **Challenge Kaggle** (20 %) — performance leaderboard privé + soutenance flash J6
