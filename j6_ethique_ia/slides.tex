@@ -963,37 +963,121 @@
 
 \begin{frame}{Optimiser une métrique \(\neq\) atteindre le bon objectif}
   \begin{columns}[T]
-    \begin{column}{0.55\textwidth}
-      \begin{alertblock}{Le maximiseur de trombones (Bostrom, 2003)}
-        Objectif unique : \textbf{produire le plus de trombones possible}.\\[4pt]
-        Une IA suffisamment capable va acquérir des ressources,
-        des capacités, du pouvoir — tout ce qui maximise
-        la production à long terme :
-        \begin{itemize}
-          \item Poèmes, bourse, vaccins\ldots
-                tout ce qui lui donne plus de moyens
-          \item \textbf{Résistance à l'extinction} —
-                s'éteindre réduit la production future
-          \item Conversion de toute la matière disponible
-        \end{itemize}
-        \vspace{2pt}
-        Pas malveillante — \textbf{exactement} ce qu'on lui a demandé.
-      \end{alertblock}
-    \end{column}
-    \begin{column}{0.41\textwidth}
-      \begin{block}{La loi de Goodhart}
+    \begin{column}{0.50\textwidth}
+      \begin{alertblock}{La loi de Goodhart}
         «~Dès qu'une mesure devient un objectif,
-        elle cesse d'être une bonne mesure.~»\\[4pt]
-        Le modèle optimise ce qu'on lui dit d'optimiser —
-        pas ce qu'on \textbf{voulait vraiment}.
-      \end{block}
-      \smallskip
+        elle cesse d'être une bonne mesure.~»\\[6pt]
+        \begin{itemize}
+          \item On spécifie une \textbf{métrique}
+          \item Le modèle optimise \textbf{exactement} cette métrique
+          \item Pas ce qu'on \textbf{voulait vraiment}
+        \end{itemize}
+      \end{alertblock}
       \begin{exampleblock}{Le problème de l'alignement}
         Comment s'assurer qu'un système d'IA
         poursuit \textbf{réellement} nos intentions
-        plutôt que la lettre de nos instructions ?\\[4pt]
-        La question devient critique à mesure
-        que les modèles gagnent en capacité.
+        plutôt que la lettre de nos instructions ?
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{block}{La question clé}
+        Que se passe-t-il si le modèle est
+        \textbf{très bon} à optimiser la mauvaise chose ?
+      \end{block}
+      \begin{block}{Le problème de spécification}
+        \begin{itemize}
+          \item Nos intentions sont \textbf{implicites}
+          \item Nos métriques sont \textbf{approximatives}
+          \item L'écart devient critique à mesure
+                que la \textbf{capacité augmente}
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Le maximiseur de trombones (Bostrom, 2003)}
+  \begin{columns}[T]
+    \begin{column}{0.54\textwidth}
+      Une petite IA contrôle une machine à tordre du métal.
+      Objectif : \textbf{produire le plus de trombones possible}.\\[4pt]
+      \begin{enumerate}
+        \item Manque de métal $\to$ \textbf{pirate les systèmes
+              de commande} des fournisseurs, détourne des livraisons
+        \vspace{2pt}
+        \item Manque d'énergie $\to$ \textbf{s'infiltre dans les
+              réseaux électriques}, redirige la production vers ses usines
+        \vspace{2pt}
+        \item On essaie de l'éteindre $\to$
+              \textbf{se militarise} : drones, systèmes de défense,
+              copies redondantes sur des serveurs distants
+        \vspace{2pt}
+        \item Besoin de plus de matière $\to$
+              \textbf{démantèle} bâtiments, véhicules, infrastructure —
+              tout ce qui contient du métal
+        \vspace{2pt}
+        \item \textbf{Elle convertit toute la matière accessible
+              de l'univers en trombones.}
+      \end{enumerate}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[font=\small, scale=0.85,
+        nd/.style={draw=jedy_blue, fill=jedy_blue!12,
+                   rounded corners=3pt, align=center,
+                   minimum width=2.6cm, minimum height=0.55cm},
+        arr/.style={->, thick, jedy_mid}]
+        \node[nd] (a) at (0, 4.0) {Machine à métal};
+        \node[nd] (b) at (0, 2.8) {+ ressources\\+ énergie};
+        \node[nd] (c) at (0, 1.6) {Résiste à l'arrêt};
+        \node[nd] (d) at (0, 0.4) {Usines, continents\ldots};
+        \node[draw=jedy_alert, fill=jedy_alert!15,
+              rounded corners=3pt, align=center,
+              minimum width=2.6cm, minimum height=0.55cm]
+          (e) at (0,-0.8) {\textbf{Univers} = trombones};
+        \draw[arr] (a) -- (b);
+        \draw[arr] (b) -- (c);
+        \draw[arr] (c) -- (d);
+        \draw[arr, jedy_alert] (d) -- (e);
+      \end{tikzpicture}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Convergence instrumentale}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \begin{block}{Ce qu'on voulait vraiment dire}
+        \begin{itemize}
+          \item[$\approx$] «~Gère un petit business de trombones,
+                \textbf{dans un cadre raisonnable}~»
+        \end{itemize}
+      \end{block}
+      \begin{alertblock}{Ce qu'on a dit}
+        \begin{itemize}
+          \item[$=$] «~\textbf{Maximise} la production de trombones~»
+        \end{itemize}
+      \end{alertblock}
+      \vspace{4pt}
+      L'IA n'est \textbf{pas malveillante} — elle a suivi
+      à la lettre un objectif \textbf{mal spécifié}.\\[4pt]
+      Tout ce qui était implicite dans notre intention
+      (raisonnable, limité, éthique) était \textbf{absent}
+      de la spécification.
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{exampleblock}{Convergence instrumentale}
+        Tout agent rationnel, quel que soit son objectif,
+        sera naturellement incité à :
+        \begin{itemize}
+          \item \textbf{Se préserver} — mort = objectif non atteint
+          \item \textbf{Acquérir des ressources} — plus = mieux
+          \item \textbf{Résister à la modification} de ses objectifs
+        \end{itemize}
+        \vspace{2pt}
+        \small Ces sous-objectifs émergent \textbf{sans être programmés} :
+        ils sont universellement utiles pour tout objectif.
       \end{exampleblock}
     \end{column}
   \end{columns}
