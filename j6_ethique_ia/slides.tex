@@ -364,32 +364,53 @@
 
 \begin{frame}{Le biais n'est pas toujours visible}
   \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      \begin{alertblock}{Une bonne accuracy peut cacher une injustice}
-        Un modèle avec \textbf{95\,\% d'accuracy globale}
-        peut avoir des performances très différentes
-        selon les groupes :
+    \begin{column}{0.44\textwidth}
+      \begin{alertblock}{95\,\% d'accuracy... mais}
         \begin{itemize}
-          \item 98\,\% sur la majorité
-          \item 70\,\% sur une minorité sous-représentée
+          \item Majorité : \textbf{98\,\%}
+          \item Minorité : \textbf{70\,\%}
         \end{itemize}
         La métrique globale \textbf{masque} la disproportion.
       \end{alertblock}
-    \end{column}
-    \begin{column}{0.44\textwidth}
-      \begin{block}{L'évaluation par tranches (\textit{slicing})}
-        Évaluer les performances \textbf{séparément}
-        sur des sous-groupes pertinents :
-        genre, âge, origine, région, etc.\\[4pt]
-        Si les écarts sont importants,
-        la métrique globale est trompeuse.
+      \begin{block}{Slicing — évaluation par sous-groupes}
+        \begin{itemize}
+          \item Genre, âge, origine, région\ldots
+          \item Si les écarts sont importants,
+                la métrique globale est trompeuse
+        \end{itemize}
       \end{block}
-      \smallskip
-      \begin{exampleblock}{Règle pratique}
-        Pour chaque modèle déployé :
-        \textbf{«~Que se passe-t-il pour les groupes
-        les moins représentés dans le dataset ?~»}
+      \begin{exampleblock}{Question à se poser}
+        «~Que se passe-t-il pour les groupes
+        les moins représentés ?~»
       \end{exampleblock}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+      \begin{center}
+      % échelle : 1 unité = 25%, axe 0->4 = 0->100%
+      \begin{tikzpicture}[scale=1.0, font=\small]
+        \draw[->] (0,0) -- (5.2,0);
+        \draw[->] (0,0) -- (0,4.4) node[above]{\footnotesize Accuracy};
+        % y ticks proportionnels
+        \foreach \pct/\y in {0/0, 25/1.0, 50/2.0, 75/3.0, 100/4.0} {
+          \draw[gray!30] (0,\y) -- (5.0,\y);
+          \node[left, font=\scriptsize] at (0,\y) {\pct\,\%};
+        }
+        % barre globale  : 95% -> 3.80
+        \fill[gray!55]       (0.2,0) rectangle (1.4,3.80);
+        \node[below, font=\footnotesize] at (0.8,0) {Global};
+        \node[above, font=\footnotesize] at (0.8,3.80) {95\,\%};
+        % barre majorité : 98% -> 3.92
+        \fill[jedy_mid!80]   (1.9,0) rectangle (3.1,3.92);
+        \node[below, font=\footnotesize] at (2.5,0) {Majorité};
+        \node[above, font=\footnotesize] at (2.5,3.92) {98\,\%};
+        % barre minorité : 70% -> 2.80
+        \fill[jedy_alert!80] (3.6,0) rectangle (4.8,2.80);
+        \node[below, font=\footnotesize] at (4.2,0) {Minorité};
+        \node[above, font=\footnotesize] at (4.2,2.80) {70\,\%};
+        % ligne globale
+        \draw[dashed, gray!70, thick] (0,3.80) -- (5.0,3.80);
+      \end{tikzpicture}
+      \end{center}
     \end{column}
   \end{columns}
 \end{frame}
