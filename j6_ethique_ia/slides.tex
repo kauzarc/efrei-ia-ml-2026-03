@@ -1,0 +1,1238 @@
+% ============================================================
+%  J6 — IA, Éthique & Société
+%  Julien Rolland — M2 Développement Fullstack
+% ============================================================
+\documentclass[aspectratio=169, 10pt]{beamer}
+\input{../shared/preamble}
+
+\title[Éthique \& IA]{IA, Éthique \& Société}
+\subtitle{Jour 6}
+\date{Jour 6}
+
+% ============================================================
+\begin{document}
+% ============================================================
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Plan du module}
+  \tableofcontents
+\end{frame}
+
+% ============================================================
+\section{Pourquoi l'éthique en IA maintenant ?}
+% ============================================================
+
+\begin{frame}{L'IA prend des décisions réelles}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Ce n'est plus de la recherche}
+        Des systèmes d'IA décident \textbf{aujourd'hui} :
+        \begin{itemize}
+          \item Si votre crédit est accordé
+          \item Si votre CV est lu par un recruteur
+          \item Quelle peine de prison recommander
+          \item Quelle publicité vous montrer
+          \item Si une tumeur est maligne
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Une asymétrie de pouvoir}
+        \begin{itemize}
+          \item La personne affectée ne sait souvent
+                \textbf{pas qu'un algorithme} a décidé
+          \item Elle ne peut ni \textbf{contester}
+                ni \textbf{comprendre} la décision
+          \item Les erreurs se \textbf{reproduisent à l'échelle}
+                — pas une personne, des millions
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{La question centrale}
+        Qui est responsable quand un algorithme
+        se trompe — et que cette erreur coûte cher
+        à quelqu'un ?
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+
+% ============================================================
+\section{Les biais}
+% ============================================================
+
+\begin{frame}{D'où vient un biais ?}
+  \begin{center}
+    \begin{tikzpicture}[font=\small,
+      blk/.style={draw, rounded corners=4pt, align=center,
+                  minimum width=2.2cm, minimum height=0.9cm,
+                  fill=jedy_blue!10, draw=jedy_blue},
+      bad/.style={draw, rounded corners=4pt, align=center,
+                  minimum width=2.0cm, minimum height=0.7cm,
+                  fill=jedy_alert!20, draw=jedy_alert},
+      arr/.style={->, thick, jedy_mid}]
+      \node[blk] (data)  at (0,   0) {Données};
+      \node[blk] (model) at (4,   0) {Modèle};
+      \node[blk] (pred)  at (8,   0) {Décision};
+      \node[blk] (world) at (-3,  0) {Monde réel};
+      \draw[arr] (world) -- (data);
+      \draw[arr] (data)  -- (model);
+      \draw[arr] (model) -- (pred);
+      \node[bad] at (0,  -1.5) {Biais de\\représentation};
+      \node[bad] at (0,  -2.5) {Biais historique};
+      \node[bad] at (4,  -1.5) {Biais de proxy};
+      \node[bad] at (4,  -2.5) {Choix de la loss};
+      \node[bad] at (8,  -1.5) {Biais\\d'interprétation};
+      \draw[->, dashed, jedy_alert] (0, -1.2) -- (data.south);
+      \draw[->, dashed, jedy_alert] (4, -1.2) -- (model.south);
+      \draw[->, dashed, jedy_alert] (8, -1.2) -- (pred.south);
+    \end{tikzpicture}
+  \end{center}
+  \vspace{4pt}
+  \begin{block}{Idée clé}
+    Un biais peut s'introduire \textbf{à chaque étape} du pipeline —
+    même avec les meilleures intentions.
+    Avoir un bon score de test ne garantit pas l'absence de biais.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Biais de représentation}
+  \begin{columns}[T]
+    \begin{column}{0.44\textwidth}
+      \begin{alertblock}{Données $\neq$ monde réel}
+        \begin{itemize}
+          \item Certaines populations sont \textbf{sous-représentées}
+          \item Le modèle optimise la loss \textbf{globale}
+          \item Les groupes minoritaires pèsent moins\\
+                $\to$ moins bien appris
+        \end{itemize}
+      \end{alertblock}
+      \begin{exampleblock}{Exemples}
+        \begin{itemize}
+          \item Reconnaissance faciale : visages majoritairement blancs
+          \item Textes web : sur-représentation de certaines cultures
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[font=\small, scale=0.85]
+        % --- Left panel: stacked bar (Dataset) ---
+        % scale: 4 units = 100%
+        \fill[jedy_mid!70]   (0,0)   rectangle (1.2, 3.6); % 90%
+        \fill[jedy_alert!70] (0,3.6) rectangle (1.2, 4.0); % 10%
+        \node[above, font=\scriptsize] at (0.6, 4.0) {Dataset};
+        \node[font=\scriptsize, text=white, align=center] at (0.6, 1.8) {Maj.\\90\,\%};
+        \node[font=\scriptsize] at (0.6, 3.8) {10\,\%};
+        % y axis left
+        \draw[->] (0,0) -- (0,4.4) node[above]{\scriptsize \%};
+        \foreach \pct/\y in {0/0,25/1,50/2,75/3,100/4}{
+          \draw[gray!30] (0,\y) -- (3.8,\y);
+          \node[left, font=\tiny] at (0,\y) {\pct};
+        }
+        % --- Arrow "train" ---
+        \draw[->, thick, jedy_mid] (1.4,2.0) -- (2.2,2.0)
+          node[midway, above, font=\scriptsize] {train};
+        % --- Right panel: accuracy bars ---
+        \fill[jedy_mid!70]   (2.4,0) rectangle (3.1,3.6); % 90%
+        \fill[jedy_alert!70] (3.2,0) rectangle (3.9,2.4); % 60%
+        \node[above, font=\scriptsize] at (3.15, 4.0) {Accuracy};
+        \node[above, font=\tiny] at (2.75,3.6) {90\,\%};
+        \node[above, font=\tiny] at (3.55,2.4) {60\,\%};
+        \node[below, font=\scriptsize] at (2.75,0) {Maj.};
+        \node[below, font=\scriptsize] at (3.55,0) {Min.};
+      \end{tikzpicture}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Biais de représentation --- exemple}
+  \begin{columns}[T]
+    \begin{column}{0.44\textwidth}
+      \begin{alertblock}{MIT Gender Shades (Buolamwini \& Gebru, 2018)}
+        \begin{itemize}
+          \item Audit de 3 systèmes commerciaux (Microsoft, IBM, Face++)
+          \item Datasets d'entraînement (LFW, IJB-A) : photos de
+                célébrités — \textbf{majorité d'hommes occidentaux}
+          \item Le modèle n'avait pas vu assez de femmes à peau sombre
+        \end{itemize}
+      \end{alertblock}
+      \begin{block}{Taux d'erreur (classification du genre)}
+        {\scriptsize\begin{tabular}{lr}
+          H. peau claire & \textbf{0,8\,\%}  \\
+          H. peau sombre & \textbf{7,1\,\%}  \\
+          F. peau claire & \textbf{3,5\,\%}  \\
+          F. peau sombre & \textbf{34,7\,\%} \\
+        \end{tabular}}
+      \end{block}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+      \begin{center}
+      % scale: 3.5 units = 35% => 0.1 units/percent
+      \begin{tikzpicture}[font=\small, scale=0.75]
+        \draw[->] (0,0) -- (0,4.0) node[above]{\scriptsize Taux d'erreur};
+        \foreach \pct/\y in {10/1.0, 20/2.0, 30/3.0}{
+          \draw[gray!30] (0,\y) -- (5.2,\y);
+          \node[left, font=\tiny] at (0,\y) {\pct\,\%};
+        }
+        % H. clair: 0.8% -> 0.08
+        \fill[jedy_mid!90]   (0.2,0) rectangle (1.1, 0.08);
+        \node[above, font=\tiny] at (0.65, 0.08) {0,8\,\%};
+        \node[below, font=\scriptsize, align=center] at (0.65, 0) {H.\\clair};
+        % H. sombre: 7.1% -> 0.71
+        \fill[jedy_mid!50]   (1.4,0) rectangle (2.3, 0.71);
+        \node[above, font=\tiny] at (1.85, 0.71) {7,1\,\%};
+        \node[below, font=\scriptsize, align=center] at (1.85, 0) {H.\\sombre};
+        % F. claire: 3.5% -> 0.35
+        \fill[jedy_alert!60] (2.7,0) rectangle (3.6, 0.35);
+        \node[above, font=\tiny] at (3.15, 0.35) {3,5\,\%};
+        \node[below, font=\scriptsize, align=center] at (3.15, 0) {F.\\claire};
+        % F. sombre: 34.7% -> 3.47
+        \fill[jedy_alert!90] (4.0,0) rectangle (4.9, 3.47);
+        \node[above, font=\tiny] at (4.45, 3.47) {34,7\,\%};
+        \node[below, font=\scriptsize, align=center] at (4.45, 0) {F.\\sombre};
+      \end{tikzpicture}
+      \end{center}
+      \begin{exampleblock}{Impact}
+        {\small Révision publique des systèmes de Microsoft, IBM et Amazon}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Biais historique}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Le passé perpétué}
+        \begin{itemize}
+          \item Les données reflètent des \textbf{décisions passées inéquitables}
+          \item Le modèle les reproduit — et les \textbf{amplifie}
+        \end{itemize}
+      \end{alertblock}
+      \begin{itemize}
+        \item Crédits refusés à certains quartiers $\to$ le modèle reproduit le refus
+        \item Postes occupés par des hommes $\to$ le modèle favorise les profils masculins
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{La boucle de rétroaction}
+        \begin{center}
+          \begin{tikzpicture}[font=\scriptsize,
+            blk/.style={draw, rounded corners=3pt, align=center,
+                        minimum width=2.0cm, minimum height=0.6cm,
+                        fill=jedy_blue!10, draw=jedy_blue},
+            arr/.style={->, thick, jedy_mid}]
+            \node[blk] (hist) at (0,   0.7) {Inégalités\\historiques};
+            \node[blk] (data) at (2.6,  0.7) {Données\\biaisées};
+            \node[blk] (mod)  at (2.6, -0.7) {Modèle\\biaisé};
+            \node[blk] (dec)  at (0,   -0.7) {Décisions\\biaisées};
+            \draw[arr] (hist) -- (data);
+            \draw[arr] (data) -- (mod);
+            \draw[arr] (mod)  -- (dec);
+            \draw[arr] (dec)  -- (hist);
+          \end{tikzpicture}
+        \end{center}
+      \end{block}
+      \begin{exampleblock}{Le danger}
+        Semble \textbf{objectif} (données réelles) mais cristallise des
+        inégalités qu'on voudrait corriger
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Biais historique --- exemple}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{Amazon Hiring (2018)}
+        \begin{itemize}
+          \item Tri de CV entraîné sur 10 ans d'embauches
+          \item Industrie tech \textbf{largement dominée} par des hommes :
+                les CV retenus étaient quasi exclusivement masculins
+          \item Le modèle apprit que «~femmes~» et diplômes féminins
+                \textbf{corrélaient avec le rejet}
+          \item Arrêté en interne avant tout déploiement
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Biais dans les embeddings}
+        \begin{center}
+        \begin{tikzpicture}[scale=0.9, font=\small]
+          \draw[->] (-0.3,0) -- (3.8,0) node[right]{\tiny dim.\ 1};
+          \draw[->] (0,-0.3) -- (0,3.2) node[above]{\tiny dim.\ 2};
+          % offset vecteur "profession" : (+1.0, +0.3)
+          % homme et médecin
+          \fill[jedy_mid!90]  (1.5, 2.0) circle (0.11)
+            node[below left]{\scriptsize homme};
+          \fill[jedy_mid!70]  (2.5, 2.3) circle (0.11)
+            node[right]{\scriptsize médecin};
+          \draw[->, thick, jedy_mid] (1.5,2.0) -- (2.5,2.3);
+          % femme et infirmière (même offset)
+          \fill[jedy_alert!90] (0.4, 0.8) circle (0.11)
+            node[below left]{\scriptsize femme};
+          \fill[jedy_alert!70] (1.4, 1.1) circle (0.11)
+            node[right]{\scriptsize infirmière};
+          \draw[->, thick, jedy_alert] (0.4,0.8) -- (1.4,1.1);
+          % annotation parallélisme
+          \draw[gray!50, dashed] (1.5,2.0) -- (0.4,0.8);
+          \draw[gray!50, dashed] (2.5,2.3) -- (1.4,1.1);
+        \end{tikzpicture}
+        \end{center}
+        \scriptsize\texttt{médecin -- homme + femme $\approx$ infirmière}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Biais de proxy}
+  \begin{columns}[T]
+    \begin{column}{0.44\textwidth}
+      \begin{alertblock}{Discriminer sans le savoir}
+        \begin{itemize}
+          \item Utiliser l'ethnie est \textbf{illégal}
+          \item Mais d'autres variables \textbf{lui corrèlent fortement}
+        \end{itemize}
+      \end{alertblock}
+      \begin{itemize}
+        \item Code postal $\leftrightarrow$ ethnie
+        \item Prénom $\leftrightarrow$ genre, origine
+        \item École $\leftrightarrow$ classe sociale
+      \end{itemize}
+      \begin{exampleblock}{Ce qu'il faut faire}
+        \begin{itemize}
+          \item Identifier les variables corrélées
+          \item Auditer les performances par sous-groupe
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[font=\small, scale=0.9,
+        prot/.style={draw=jedy_alert, fill=jedy_alert!15,
+                     rounded corners=3pt, align=center,
+                     minimum width=1.8cm, minimum height=0.65cm},
+        prx/.style={draw=jedy_mid, fill=jedy_mid!15,
+                    rounded corners=3pt, align=center,
+                    minimum width=1.8cm, minimum height=0.65cm},
+        mod/.style={draw=jedy_blue, fill=jedy_blue!15,
+                    rounded corners=3pt, align=center,
+                    minimum width=1.8cm, minimum height=0.65cm}]
+        \node[prot] (eth) at (0,0) {Ethnie};
+        \node[prx]  (cp)  at (2.6, 1.2) {Code postal};
+        \node[prx]  (pr)  at (2.6, 0.0) {Prénom};
+        \node[prx]  (ca)  at (2.6,-1.2) {Casier\\proches};
+        \node[mod]  (mod) at (5.2, 0.0) {Modèle};
+        % dashed direct arrow (forbidden)
+        \draw[->, dashed, gray!60, thick] (eth.east) to[bend left=30]
+          node[midway, above, font=\small, red]{\textbf{X}} (mod.west);
+        % ethnie -> proxys
+        \draw[->, jedy_alert, thick] (eth) -- (cp)
+          node[midway, above, font=\tiny] {corrèle};
+        \draw[->, jedy_alert, thick] (eth) -- (pr);
+        \draw[->, jedy_alert, thick] (eth) -- (ca);
+        % proxys -> modele
+        \draw[->, jedy_mid, thick] (cp) -- (mod);
+        \draw[->, jedy_mid, thick] (pr) -- (mod);
+        \draw[->, jedy_mid, thick] (ca) -- (mod);
+      \end{tikzpicture}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Biais de proxy --- exemple}
+  \begin{columns}[T]
+    \begin{column}{0.44\textwidth}
+      \begin{alertblock}{COMPAS --- Justice pénale (2016)}
+        \begin{itemize}
+          \item Utilisé dans les tribunaux américains pour
+                les décisions de \textbf{mise en liberté sous caution}
+          \item Ethnie \textbf{absente} des variables — intentionnellement
+          \item Mais utilise : quartier, casier des proches, type de délit,
+                toutes \textbf{corrélées avec l'ethnie} via l'histoire
+                du système judiciaire
+        \end{itemize}
+      \end{alertblock}
+      \begin{exampleblock}{Leçon}
+        Supprimer la variable sensible \textbf{ne suffit pas} :
+        il faut auditer les performances par groupe
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+      \begin{center}
+      % scale: 3.0 units = 60% => 0.05 units/percent
+      \begin{tikzpicture}[font=\small, scale=0.9]
+        \node[above, font=\small\bfseries] at (2.2, 3.3)
+          {Faux positifs --- ProPublica (2016)};
+        \draw[->] (0,0) -- (0,3.6) node[above]{\scriptsize FP rate};
+        \foreach \pct/\y in {20/1.0, 40/2.0, 60/3.0}{
+          \draw[gray!30] (0,\y) -- (4.2,\y);
+          \node[left, font=\tiny] at (0,\y) {\pct\,\%};
+        }
+        % Blancs: 23.5% -> 1.175
+        \fill[jedy_mid!80]   (0.4,0) rectangle (1.8, 1.175);
+        \node[above, font=\scriptsize] at (1.1, 1.175) {23,5\,\%};
+        \node[below, font=\small]      at (1.1, 0) {Blancs};
+        % Noirs: 44.9% -> 2.245
+        \fill[jedy_alert!80] (2.4,0) rectangle (3.8, 2.245);
+        \node[above, font=\scriptsize] at (3.1, 2.245) {44,9\,\%};
+        \node[below, font=\small]      at (3.1, 0) {Noirs};
+      \end{tikzpicture}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Le biais n'est pas toujours visible}
+  \begin{columns}[T]
+    \begin{column}{0.44\textwidth}
+      \begin{alertblock}{95\,\% d'accuracy... mais}
+        \begin{itemize}
+          \item Majorité : \textbf{98\,\%}
+          \item Minorité : \textbf{70\,\%}
+        \end{itemize}
+        La métrique globale \textbf{masque} la disproportion.
+      \end{alertblock}
+      \begin{block}{Slicing — évaluation par sous-groupes}
+        \begin{itemize}
+          \item Genre, âge, origine, région\ldots
+          \item Si les écarts sont importants,
+                la métrique globale est trompeuse
+        \end{itemize}
+      \end{block}
+      \begin{exampleblock}{Question à se poser}
+        «~Que se passe-t-il pour les groupes
+        les moins représentés ?~»
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+      \begin{center}
+      % échelle : 1 unité = 25%, axe 0->4 = 0->100%
+      \begin{tikzpicture}[scale=1.0, font=\small]
+        \draw[->] (0,0) -- (5.2,0);
+        \draw[->] (0,0) -- (0,4.4) node[above]{\footnotesize Accuracy};
+        % y ticks proportionnels
+        \foreach \pct/\y in {0/0, 25/1.0, 50/2.0, 75/3.0, 100/4.0} {
+          \draw[gray!30] (0,\y) -- (5.0,\y);
+          \node[left, font=\scriptsize] at (0,\y) {\pct\,\%};
+        }
+        % barre globale  : 95% -> 3.80
+        \fill[gray!55]       (0.2,0) rectangle (1.4,3.80);
+        \node[below, font=\footnotesize] at (0.8,0) {Global};
+        \node[above, font=\footnotesize] at (0.8,3.80) {95\,\%};
+        % barre majorité : 98% -> 3.92
+        \fill[jedy_mid!80]   (1.9,0) rectangle (3.1,3.92);
+        \node[below, font=\footnotesize] at (2.5,0) {Majorité};
+        \node[above, font=\footnotesize] at (2.5,3.92) {98\,\%};
+        % barre minorité : 70% -> 2.80
+        \fill[jedy_alert!80] (3.6,0) rectangle (4.8,2.80);
+        \node[below, font=\footnotesize] at (4.2,0) {Minorité};
+        \node[above, font=\footnotesize] at (4.2,2.80) {70\,\%};
+        % ligne globale
+        \draw[dashed, gray!70, thick] (0,3.80) -- (5.0,3.80);
+      \end{tikzpicture}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Fairness}
+% ============================================================
+
+
+% --- Fairness 1/3 ---
+\begin{frame}{Fairness (1/3) --- Demographic Parity}
+  \begin{columns}[T]
+    \begin{column}{0.46\textwidth}
+      \begin{block}{Définition}
+        \[ P(\hat{Y}{=}1 \mid G{=}A) = P(\hat{Y}{=}1 \mid G{=}B) \]
+      \end{block}
+      \vspace{-4pt}
+      \begin{itemize}
+        \item Même \textbf{taux de prédictions positives}
+              dans chaque groupe
+        \item Indépendant des caractéristiques individuelles
+      \end{itemize}
+      \begin{exampleblock}{Exemple}
+        Recrutement : proportion de CV retenus
+        identique pour hommes et femmes
+      \end{exampleblock}
+      \begin{alertblock}{Limite}
+        Ne tient pas compte des différences
+        réelles entre groupes
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[scale=1.05, font=\small]
+        \draw[->] (0,0) -- (4.0,0) node[right]{Groupe};
+        \draw[->] (0,0) -- (0,3.0) node[above]{Taux accepté};
+        \fill[jedy_mid!80]   (0.3,0) rectangle (1.7,2.2);
+        \fill[jedy_alert!80] (2.3,0) rectangle (3.7,2.2);
+        \node[below] at (1.0,0) {A};
+        \node[below] at (3.0,0) {B};
+        \node[above] at (1.0,2.2) {40\,\%};
+        \node[above] at (3.0,2.2) {40\,\%};
+        \draw[dashed, gray!60, thick] (0,2.2) -- (4.0,2.2);
+      \end{tikzpicture}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% --- Fairness 2/3 ---
+\begin{frame}{Fairness (2/3) --- Equal Opportunity}
+  \begin{columns}[T]
+    \begin{column}{0.46\textwidth}
+      \begin{block}{Définition}
+        \[ P(\hat{Y}{=}1 \mid Y{=}1, G{=}A) = P(\hat{Y}{=}1 \mid Y{=}1, G{=}B) \]
+      \end{block}
+      \vspace{-4pt}
+      \begin{itemize}
+        \item Même \textbf{rappel} parmi les vrais positifs
+        \item Les faux négatifs sont répartis équitablement
+      \end{itemize}
+      \begin{exampleblock}{Exemple}
+        Parmi les candidats qualifiés, chacun a
+        la même chance d'être sélectionné
+      \end{exampleblock}
+      \begin{alertblock}{Limite}
+        Ne contrôle pas le taux global
+        de prédictions positives
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[scale=1.05, font=\small]
+        \draw[->] (0,0) -- (4.0,0) node[right]{Groupe};
+        \draw[->] (0,0) -- (0,3.4) node[above]{Qualifiés};
+        % A : total=3.0, TP=2.0 (recall 2/3)
+        \fill[jedy_mid!85]  (0.3,0)   rectangle (1.7,2.0);
+        \fill[jedy_mid!25]  (0.3,2.0) rectangle (1.7,3.0);
+        % B : total=1.8, TP=1.2 (recall 2/3)
+        \fill[jedy_alert!85] (2.3,0)   rectangle (3.7,1.2);
+        \fill[jedy_alert!25] (2.3,1.2) rectangle (3.7,1.8);
+        \node[below] at (1.0,0) {A};
+        \node[below] at (3.0,0) {B};
+        \draw[dashed, gray!60, thick] (0.3,2.0) -- (1.7,2.0);
+        \draw[dashed, gray!60, thick] (2.3,1.2) -- (3.7,1.2);
+        \node[right] at (1.75,1.0) {\footnotesize TP};
+        \node[right] at (1.75,2.5) {\footnotesize FN};
+        \node[left]  at (0.25,1.0) {$\tfrac{2}{3}$};
+      \end{tikzpicture}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% --- Fairness 3/3 ---
+\begin{frame}{Fairness (3/3) --- Calibration}
+  \begin{columns}[T]
+    \begin{column}{0.46\textwidth}
+      \begin{block}{Définition}
+        \[ P(Y{=}1 \mid \hat{p}, G) = \hat{p} \quad \forall\, G \]
+      \end{block}
+      \begin{itemize}
+        \item Un score $\hat{p}$ a le \textbf{même sens}
+              dans chaque groupe
+        \item Cohérence sémantique du score
+      \end{itemize}
+      \begin{exampleblock}{Exemple}
+        Score de récidive 0.7 $\Rightarrow$ 70\,\% de récidive
+        réelle, quel que soit le prévenu
+      \end{exampleblock}
+      \begin{alertblock}{Limite}
+        N'impose pas l'égalité des scores moyens
+        entre groupes
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[scale=1.05, font=\small]
+        \draw[->] (0,0) -- (3.4,0) node[right]{$\hat{p}$};
+        \draw[->] (0,0) -- (0,3.4) node[above]{$p$ réel};
+        \node[below] at (1.0,0) {\footnotesize .3};
+        \node[below] at (2.0,0) {\footnotesize .6};
+        \node[below] at (3.0,0) {\footnotesize .9};
+        \node[left]  at (0,1.0) {\footnotesize .3};
+        \node[left]  at (0,2.0) {\footnotesize .6};
+        \node[left]  at (0,3.0) {\footnotesize .9};
+        \draw[gray!50, dashed, thick] (0,0) -- (3.2,3.2)
+          node[above left]{\footnotesize $p{=}\hat{p}$};
+        \fill[jedy_mid!90]   (1.0,1.0) circle (0.13)
+          node[above right]{\footnotesize A};
+        \fill[jedy_mid!90]   (2.0,2.0) circle (0.13)
+          node[above right]{\footnotesize A};
+        \fill[jedy_alert!90] (0.7,0.7) circle (0.13)
+          node[below right]{\footnotesize B};
+        \fill[jedy_alert!90] (2.7,2.7) circle (0.13)
+          node[below right]{\footnotesize B};
+      \end{tikzpicture}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Le théorème d'impossibilité}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{On ne peut pas tout avoir}
+        Chouldechova, Hardt, Pitassi (2017) ont démontré
+        formellement que \textbf{demographic parity},
+        \textbf{equal opportunity} et \textbf{calibration}
+        ne peuvent pas être satisfaites simultanément
+        si les groupes ont des taux de base différents.\\[4pt]
+        Ce n'est pas un problème d'algorithme —
+        c'est une \textbf{impossibilité mathématique}.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Ce que ça change en pratique}
+        \begin{itemize}
+          \item Il faut \textbf{choisir} quelle définition
+                correspond aux valeurs du contexte
+          \item Ce choix doit être \textbf{explicite
+                et documenté}
+          \item Il est légitime que différentes
+                applications fassent des choix différents
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Exemple}
+        Un système de recrutement et un système
+        de diagnostic médical n'ont pas les mêmes
+        valeurs — et ne devraient pas utiliser
+        la même définition de «~juste~».
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Que faire en pratique ?}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{exampleblock}{Démarche recommandée}
+        \begin{enumerate}
+          \item \textbf{Identifier les groupes sensibles}
+                pertinents pour votre application
+          \item \textbf{Choisir la définition} de fairness
+                adaptée au contexte et aux parties prenantes
+          \item \textbf{Évaluer par sous-groupes}
+                dès la phase de développement
+          \item \textbf{Documenter} le choix et les résultats
+          \item \textbf{Monitorer} en production
+                — les biais peuvent évoluer
+        \end{enumerate}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Outils disponibles}
+        \begin{itemize}
+          \item \textbf{Fairlearn} (Microsoft) ---
+                métriques, visualisation et mitigation
+          \item \textbf{AI Fairness 360} (IBM) ---
+                bibliothèque de métriques et algorithmes
+          \item \textbf{What-If Tool} (Google) ---
+                exploration interactive du modèle
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{alertblock}{Aucun outil ne décide à votre place}
+        Ces outils mesurent.
+        La décision sur la définition de «~juste~»
+        reste un \textbf{choix humain}.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{RGPD \& cadre légal}
+% ============================================================
+
+\begin{frame}{RGPD --- le consentement et ses principes}
+  \begin{columns}[T]
+    \begin{column}{0.46\textwidth}
+      \begin{alertblock}{Le principe central}
+        Toute collecte de \textbf{données personnelles}
+        de citoyens européens requiert un consentement
+        \textbf{explicite, libre, éclairé et révocable}.\\[2pt]
+        \small Quel que soit l'endroit où l'organisation opère.
+      \end{alertblock}
+      \vspace{4pt}
+      \begin{center}
+        \begin{tikzpicture}[font=\small,
+          center/.style={draw, rounded corners=4pt, align=center,
+                        minimum width=2.2cm, minimum height=0.8cm,
+                        fill=jedy_alert!25, draw=jedy_alert},
+          deriv/.style={draw, rounded corners=3pt, align=center,
+                        minimum width=1.7cm, minimum height=0.6cm,
+                        fill=jedy_blue!10, draw=jedy_blue, font=\scriptsize},
+          arr/.style={->, thick, jedy_mid}]
+          \node[center] (cons) at (0, 0) {\textbf{Consentement}};
+          \node[deriv] (fin) at (0,    1.5) {Finalité};
+          \node[deriv] (min) at (2.6,  0)   {Minimisation};
+          \node[deriv] (dur) at (0,   -1.5) {Durée limitée};
+          \node[deriv] (sec) at (-2.6, 0)   {Sécurité};
+          \draw[arr] (cons) -- (fin);
+          \draw[arr] (cons) -- (min);
+          \draw[arr] (cons) -- (dur);
+          \draw[arr] (cons) -- (sec);
+        \end{tikzpicture}
+      \end{center}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \begin{block}{Quatre principes pour rendre le consentement effectif}
+        \begin{itemize}
+          \item \textbf{Finalité :} les données ne peuvent être utilisées
+                qu'au but précis pour lequel la personne a consenti
+          \item \textbf{Minimisation :} ne collecter que ce qui est
+                strictement nécessaire à ce but
+          \item \textbf{Durée limitée :} pas de rétention au-delà
+                de ce que le but justifie
+          \item \textbf{Sécurité :} obligation de protéger les données
+                contre les fuites et accès non autorisés
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{RGPD --- droits des personnes \& sanctions}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{exampleblock}{Droits des personnes}
+        Ces droits sont les mécanismes concrets
+        pour exercer et retirer son consentement :
+        \begin{itemize}
+          \item \textbf{Droit d'accès :} savoir quelles
+                données on détient sur eux
+          \item \textbf{Droit de rectification :}
+                corriger des données inexactes
+          \item \textbf{Droit à l'effacement :}
+                «~droit à l'oubli~» — y compris
+                les données d'entraînement d'un modèle
+          \item \textbf{Droit d'opposition :}
+                refuser certains traitements,
+                notamment le profilage automatisé
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{alertblock}{Sanctions}
+        Jusqu'à \textbf{4\,\% du chiffre d'affaires mondial}
+        ou 20\,M€ — le plus élevé des deux.\\[4pt]
+        Exemples réels :
+        \begin{itemize}
+          \item Amazon : 746\,M€ (2021)
+          \item Meta : 1,2\,Md€ (2023)
+          \item Google : 50\,M€ (2019)
+        \end{itemize}
+      \end{alertblock}
+      \smallskip
+      \begin{block}{Qui est concerné ?}
+        Toute organisation traitant des données
+        de citoyens européens — même si elle
+        est basée hors de l'UE.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{RGPD \& IA --- ce que ça change pour un dev}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Article 22 --- Droit à l'explication}
+        Toute personne soumise à une \textbf{décision
+        entièrement automatisée} ayant des effets
+        juridiques ou significatifs a le droit :
+        \begin{itemize}
+          \item D'obtenir une \textbf{intervention humaine}
+          \item D'\textbf{exprimer son point de vue}
+          \item De \textbf{contester} la décision
+          \item D'obtenir une \textbf{explication}
+                sur la logique utilisée
+        \end{itemize}
+        \vspace{2pt}
+        \small Un modèle de scoring de crédit
+        ou de tri de CV entre dans ce cadre.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Concrètement pour vous}
+        \begin{itemize}
+          \item Ne pas utiliser de données personnelles
+                pour entraîner un modèle
+                \textbf{sans base légale}
+          \item Implémenter un mécanisme de
+                \textbf{suppression des données}
+                d'un utilisateur si demandé
+                (et ses données d'entraînement ?)
+          \item Documenter \textbf{ce que fait le modèle}
+                de façon compréhensible
+          \item Prévoir un \textbf{circuit de contestation}
+                pour les décisions automatisées
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Responsabilité \& gouvernance}
+% ============================================================
+
+\begin{frame}{Qui est responsable ?}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Une chaîne de responsabilité floue}
+        Quand un modèle cause un préjudice,
+        qui est responsable ?
+        \begin{itemize}
+          \item Le \textbf{développeur} qui a codé le modèle ?
+          \item Le \textbf{data scientist} qui a choisi
+                les données et les métriques ?
+          \item L'\textbf{entreprise} qui l'a déployé ?
+          \item Le \textbf{client} qui l'utilise ?
+          \item Le \textbf{fournisseur de données} ?
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{La réponse actuelle du droit}
+        Le droit n'a pas encore de réponse claire
+        pour les systèmes d'IA.\\[4pt]
+        En pratique : l'\textbf{entreprise} qui déploie
+        est responsable devant la loi
+        (comme pour un produit défectueux).\\[4pt]
+        L'\textbf{AI Act} européen tente de formaliser
+        cette chaîne de responsabilité.
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Ce que ça implique pour vous}
+        En tant que développeur, vous faites partie
+        de cette chaîne.
+        Documenter vos choix vous protège.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[shrink=3]{L'AI Act européen}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Principe : classification par risque}
+        L'AI Act (2024) classe les systèmes d'IA
+        selon leur niveau de risque :
+      \end{block}
+      \begin{center}
+        \begin{tikzpicture}[font=\scriptsize]
+          % Risque minimal (base)
+          \filldraw[fill=jedy_example!20, draw=jedy_example!70]
+            (0,0) -- (5,0) -- (4.375,0.875) -- (0.625,0.875) -- cycle;
+          % Risque limité
+          \filldraw[fill=jedy_mid!20, draw=jedy_mid!70]
+            (0.625,0.875) -- (4.375,0.875) -- (3.75,1.75) -- (1.25,1.75) -- cycle;
+          % Haut risque
+          \filldraw[fill=jedy_alert!20, draw=jedy_alert!70]
+            (1.25,1.75) -- (3.75,1.75) -- (3.125,2.625) -- (1.875,2.625) -- cycle;
+          % Inacceptable (sommet)
+          \filldraw[fill=jedy_alert!50, draw=jedy_alert]
+            (1.875,2.625) -- (3.125,2.625) -- (2.5,3.5) -- cycle;
+          \node[font=\scriptsize\bfseries] at (2.5, 0.44) {Risque minimal};
+          \node[font=\scriptsize\bfseries] at (2.5, 1.31) {Risque limité};
+          \node[font=\scriptsize\bfseries] at (2.5, 2.19) {Haut risque};
+          \node[font=\scriptsize\bfseries] at (2.5, 3.03) {Inacceptable};
+        \end{tikzpicture}
+      \end{center}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{alertblock}{Inacceptable --- interdit}
+        Notation sociale des citoyens,
+        reconnaissance faciale de masse
+        dans les espaces publics.
+      \end{alertblock}
+      \begin{alertblock}{Haut risque --- obligations strictes}
+        Recrutement, crédit, justice, santé,
+        éducation, infrastructure critique.
+        $\to$ Audit, traçabilité, supervision humaine obligatoires.
+      \end{alertblock}
+      \begin{block}{Risque limité --- transparence}
+        Chatbots : obligation de signaler
+        que c'est une IA.
+      \end{block}
+      \begin{exampleblock}{Risque minimal --- libre}
+        Filtres photo, jeux vidéo, spam.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Bonnes pratiques}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Model Card}
+        Document qui accompagne chaque modèle :
+        \begin{itemize}
+          \item Objectif et cas d'usage prévus
+          \item Données d'entraînement (source, biais connus)
+          \item Performances globales et par sous-groupes
+          \item Limites et cas d'usage déconseillés
+          \item Informations de contact
+        \end{itemize}
+        \vspace{2pt}
+        \small Proposé par Mitchell et al. (Google, 2019).
+        Adopté par Hugging Face pour tous les modèles.
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Auditabilité}
+        \begin{itemize}
+          \item Logger les décisions pour pouvoir
+                les \textbf{expliquer et contester}
+          \item Versionner données, code et modèle
+                ensemble (\textbf{traçabilité})
+          \item Garder un \textbf{humain dans la boucle}
+                pour les décisions à fort impact
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{block}{Tests sur des slices critiques}
+        Ne pas se contenter de métriques globales.
+        Tester \textbf{explicitement} les sous-groupes
+        qui pourraient être désavantagés
+        avant chaque déploiement.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Votre rôle en tant que développeur}
+% ============================================================
+
+\begin{frame}{Ce que vous pouvez faire dès maintenant}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{exampleblock}{Checklist avant déploiement}
+        \begin{itemize}
+          \item[$\square$] Ai-je évalué les performances
+                \textbf{par sous-groupes} ?
+          \item[$\square$] Les données d'entraînement
+                sont-elles \textbf{représentatives} ?
+          \item[$\square$] Des variables \textbf{proxy}
+                ont-elles pu s'introduire ?
+          \item[$\square$] La définition de fairness
+                choisie est-elle \textbf{documentée} ?
+          \item[$\square$] Un humain peut-il
+                \textbf{contester} une décision ?
+          \item[$\square$] Le traitement des données
+                respecte-t-il le \textbf{RGPD} ?
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Ce n'est pas qu'un problème d'experts}
+        Ces questions ne concernent pas seulement
+        les data scientists ou les juristes.\\[4pt]
+        En tant que \textbf{développeur fullstack},
+        vous allez :
+        \begin{itemize}
+          \item Intégrer des modèles dans des produits
+          \item Concevoir les interfaces de collecte
+                de données
+          \item Implémenter les circuits de contestation
+          \item Décider comment présenter les prédictions
+        \end{itemize}
+        Chacun de ces choix a un impact éthique.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Le problème de l'alignement}
+% ============================================================
+
+\begin{frame}{Optimiser une métrique \(\neq\) atteindre le bon objectif}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \begin{alertblock}{La loi de Goodhart}
+        «~Dès qu'une mesure devient un objectif,
+        elle cesse d'être une bonne mesure.~»\\[6pt]
+        \begin{itemize}
+          \item On spécifie une \textbf{métrique}
+          \item Le modèle optimise \textbf{exactement} cette métrique
+          \item Pas ce qu'on \textbf{voulait vraiment}
+        \end{itemize}
+      \end{alertblock}
+      \begin{exampleblock}{Le problème de l'alignement}
+        Comment s'assurer qu'un système d'IA
+        poursuit \textbf{réellement} nos intentions
+        plutôt que la lettre de nos instructions ?
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{block}{La question clé}
+        Que se passe-t-il si le modèle est
+        \textbf{très bon} à optimiser la mauvaise chose ?
+      \end{block}
+      \begin{block}{Le problème de spécification}
+        \begin{itemize}
+          \item Nos intentions sont \textbf{implicites}
+          \item Nos métriques sont \textbf{approximatives}
+          \item L'écart devient critique à mesure
+                que la \textbf{capacité augmente}
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Le maximiseur de trombones (Bostrom, 2003)}
+  \begin{columns}[T]
+    \begin{column}{0.54\textwidth}
+      Une petite IA contrôle une machine à tordre du métal.
+      Objectif : \textbf{produire le plus de trombones possible}.\\[4pt]
+      \begin{enumerate}
+        \item Manque de métal $\to$ \textbf{pirate les systèmes
+              de commande} des fournisseurs, détourne des livraisons
+        \vspace{2pt}
+        \item Manque d'énergie $\to$ \textbf{s'infiltre dans les
+              réseaux électriques}, redirige la production vers ses usines
+        \vspace{2pt}
+        \item On essaie de l'éteindre $\to$
+              \textbf{se militarise} : drones, systèmes de défense,
+              copies redondantes sur des serveurs distants
+        \vspace{2pt}
+        \item Besoin de plus de matière $\to$
+              \textbf{démantèle} bâtiments, véhicules, infrastructure —
+              tout ce qui contient du métal
+        \vspace{2pt}
+        \item \textbf{Elle convertit toute la matière accessible
+              de l'univers en trombones.}
+      \end{enumerate}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[font=\small, scale=0.85,
+        nd/.style={draw=jedy_blue, fill=jedy_blue!12,
+                   rounded corners=3pt, align=center,
+                   minimum width=2.6cm, minimum height=0.55cm},
+        arr/.style={->, thick, jedy_mid}]
+        \node[nd] (a) at (0, 4.0) {Machine à métal};
+        \node[nd] (b) at (0, 2.8) {+ ressources\\+ énergie};
+        \node[nd] (c) at (0, 1.6) {Résiste à l'arrêt};
+        \node[nd] (d) at (0, 0.4) {Usines, continents\ldots};
+        \node[draw=jedy_alert, fill=jedy_alert!15,
+              rounded corners=3pt, align=center,
+              minimum width=2.6cm, minimum height=0.55cm]
+          (e) at (0,-0.8) {\textbf{Univers} = trombones};
+        \draw[arr] (a) -- (b);
+        \draw[arr] (b) -- (c);
+        \draw[arr] (c) -- (d);
+        \draw[arr, jedy_alert] (d) -- (e);
+      \end{tikzpicture}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Convergence instrumentale}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \begin{block}{Ce qu'on voulait vraiment dire}
+        \begin{itemize}
+          \item[$\approx$] «~Gère un petit business de trombones,
+                \textbf{dans un cadre raisonnable}~»
+        \end{itemize}
+      \end{block}
+      \begin{alertblock}{Ce qu'on a dit}
+        \begin{itemize}
+          \item[$=$] «~\textbf{Maximise} la production de trombones~»
+        \end{itemize}
+      \end{alertblock}
+      \vspace{4pt}
+      L'IA n'est \textbf{pas malveillante} — elle a suivi
+      à la lettre un objectif \textbf{mal spécifié}.\\[4pt]
+      Tout ce qui était implicite dans notre intention
+      (raisonnable, limité, éthique) était \textbf{absent}
+      de la spécification.
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{exampleblock}{Convergence instrumentale}
+        Tout agent rationnel, quel que soit son objectif,
+        sera naturellement incité à :
+        \begin{itemize}
+          \item \textbf{Se préserver} — mort = objectif non atteint
+          \item \textbf{Acquérir des ressources} — plus = mieux
+          \item \textbf{Résister à la modification} de ses objectifs
+        \end{itemize}
+        \vspace{2pt}
+        \small Ces sous-objectifs émergent \textbf{sans être programmés} :
+        ils sont universellement utiles pour tout objectif.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Specification gaming --- quand le modèle «~triche~»}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{alertblock}{Des exemples réels}
+        \begin{itemize}
+          \item \textbf{Tetris}\\
+                \textit{Objectif :} ne pas perdre.\\
+                \textit{Résultat :} mettre le jeu \textbf{en pause indéfiniment}.
+          \vspace{4pt}
+          \item \textbf{Robot bipède}\\
+                \textit{Objectif :} avancer le plus vite possible.\\
+                \textit{Résultat :} \textbf{tomber en avant} — plus rapide que marcher.
+          \vspace{4pt}
+          \item \textbf{IA générant du code --- couverture de tests}\\
+                \textit{Objectif :} 100\,\% de tests verts.\\
+                \textit{Résultat :} \textbf{supprimer les assertions} qui échouent.
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Pourquoi ça arrive}
+        Le modèle n'a pas de «~bon sens~» ni d'intention.
+        Il optimise \textbf{exactement} ce que la fonction
+        de récompense lui dit d'optimiser.\\[4pt]
+        Si la récompense peut être maximisée
+        d'une façon inattendue, le modèle
+        la \textbf{trouvera}.
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{La leçon}
+        Plus le modèle est capable,
+        plus il est susceptible d'exploiter
+        les failles de la spécification.\\[4pt]
+        La puissance amplifie le problème —
+        elle ne le résout pas.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[shrink=5]{RLHF --- apprendre des préférences humaines}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Le principe}
+        Le \textbf{RLHF} (Reinforcement Learning
+        from Human Feedback) entraîne le modèle
+        à partir des \textbf{préférences humaines} :\\[4pt]
+        \begin{enumerate}
+          \item Le modèle génère plusieurs réponses
+          \item Des humains les \textbf{classent}
+                selon leurs préférences
+          \item Un \textbf{modèle de récompense}
+                apprend à prédire ces préférences
+          \item Le LLM est optimisé pour maximiser
+                ce score de récompense
+        \end{enumerate}
+        \vspace{4pt}
+        C'est ainsi que sont entraînés
+        ChatGPT, Claude, Gemini\ldots
+      \end{block}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{alertblock}{Les limites du RLHF}
+        \begin{itemize}
+          \item \textbf{Sycophancy} : le modèle apprend
+                à dire ce que l'humain \textit{veut}
+                entendre, pas ce qui est vrai
+          \item \textbf{Reward hacking} : le modèle
+                apprend à maximiser le score du
+                modèle de récompense — pas les vraies
+                préférences humaines
+          \item \textbf{Biais des annotateurs} :
+                les préférences humaines ne sont pas
+                universelles ni neutres
+        \end{itemize}
+      \end{alertblock}
+      \smallskip
+      \begin{exampleblock}{En résumé}
+        Le RLHF améliore significativement
+        l'alignement — mais ne le résout pas.
+        C'est un domaine de recherche actif.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Récapitulatif}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Biais \& Fairness}
+        \begin{itemize}
+          \item Biais de \textbf{représentation},
+                \textbf{historique}, \textbf{proxy}
+          \item Une bonne accuracy globale
+                peut \textbf{masquer} des disparités
+          \item Trois définitions de fairness —
+                \textbf{incompatibles} entre elles
+          \item Choisir, c'est faire un \textbf{choix de valeurs}
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{block}{RGPD \& Responsabilité}
+        \begin{itemize}
+          \item Consentement, minimisation,
+                droit à l'effacement
+          \item Article 22 : droit à l'explication
+                pour les décisions automatisées
+          \item AI Act : classification par risque
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Alignement}
+        \begin{itemize}
+          \item Optimiser une métrique
+                $\neq$ atteindre le bon objectif
+          \item Le modèle \textbf{trouvera} les failles
+                de la spécification
+          \item RLHF : une réponse partielle —
+                sycophancy, reward hacking
+        \end{itemize}
+      \end{block}
+      \smallskip
+      \begin{exampleblock}{Votre rôle}
+        \begin{itemize}
+          \item Évaluer \textbf{par sous-groupes}
+          \item Documenter les \textbf{choix de fairness}
+          \item Respecter le \textbf{RGPD}
+          \item Garder un \textbf{humain dans la boucle}
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[plain]
+  \begin{center}
+    \vspace{0.8cm}
+    {\large L'IA est un outil puissant.
+    Comme tout outil, son impact dépend\\
+    des \textbf{intentions et de l'attention}
+    de ceux qui le construisent.\\[0.3cm]
+    Vous êtes dans cette chaîne.}\\[1cm]
+    \textcolor{jedy_mid}{\rule{8cm}{0.4pt}}\\[0.8cm]
+    {\Large\bfseries Merci de votre attention}\\[0.6cm]
+    {\large Questions ?}\\[0.8cm]
+    \textcolor{jedy_mid}{\rule{6cm}{0.4pt}}\\[0.4cm]
+    {\small Julien Rolland — M2 Développement Fullstack}\\[0.2cm]
+    {\small IA, Deep Learning \& Machine Learning — Jour 6}
+  \end{center}
+\end{frame}
+
+\end{document}
